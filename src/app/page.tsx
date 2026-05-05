@@ -1,10 +1,10 @@
-import LandingForm from '@/components/ui/landing/LandingForm';
+import LandingView from '@/modules/landing/LandingView';
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen w-full">
       <main>
-        <LandingForm />
+        <LandingView />
       </main>
     </div>
   );
