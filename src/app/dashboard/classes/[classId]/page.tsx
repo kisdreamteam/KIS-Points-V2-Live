@@ -1,10 +1,18 @@
 import DashboardLayout from '@/layouts/dashboard/DashboardLayout';
-import DashboardViewSwitch from '@/components/dashboard/DashboardViewSwitch';
+import DashboardViewSwitch from '../../../../modules/dashboard/DashboardViewSwitch';
 
-export default function ClassRosterPage() {
+type ClassRosterPageProps = {
+  params: Promise<{
+    classId: string;
+  }>;
+};
+
+export default async function ClassRosterPage({ params }: ClassRosterPageProps) {
+  const { classId } = await params;
+
   return (
     <DashboardLayout>
-      <DashboardViewSwitch />
+      <DashboardViewSwitch key={classId} />
     </DashboardLayout>
   );
 }

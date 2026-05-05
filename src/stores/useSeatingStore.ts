@@ -7,14 +7,6 @@ import { STUDENT_EVENTS, type SeatingStudentPointsDeltaDetail } from '@/lib/even
 export type UnseatedSet = Student[] | ((prev: Student[]) => Student[]);
 export type SelectedForGroupSet = Student | null | ((prev: Student | null) => Student | null);
 
-function mapAssignmentsToRecord(map: Map<string, GroupAssignment[]>): Record<string, GroupAssignment[]> {
-  const out: Record<string, GroupAssignment[]> = {};
-  map.forEach((v, k) => {
-    out[k] = v;
-  });
-  return out;
-}
-
 export type SeatingLayoutNavHandlers = {
   onSelectLayout: (layoutId: string) => void;
   onAddLayout: () => void;
@@ -58,10 +50,6 @@ interface SeatingStore {
   setSelectedStudentForGroup: (next: SelectedForGroupSet) => void;
   addStudentToGroup: (studentId: string, groupId: string) => void;
   resetForClassSwitch: () => void;
-  applyGroupsFetch: (
-    groupsData: SeatingGroupRecord[] | null | undefined,
-    assignmentsMap: Map<string, GroupAssignment[]>
-  ) => void;
   patchGroupAssignmentsForPointsDelta: (studentIds: string[], delta: number) => void;
 }
 
@@ -136,27 +124,6 @@ export const useSeatingStore = create<SeatingStore>((set, get) => ({
       selectedStudentForGroup: null,
       ...initialViewSettings,
     }),
-
-  applyGroupsFetch: (groupsData, assignmentsMap) => {
-    if (!groupsData || groupsData.length === 0) {
-      set({ groups: [], groupAssignmentsById: {}, groupPositionsById: {}, isLoadingGroups: false });
-      return;
-    }
-    const groupPositionsById: Record<string, { x: number; y: number }> = { ...get().groupPositionsById };
-    groupsData.forEach((group, index) => {
-      if (group.position_x !== undefined && group.position_y !== undefined) {
-        groupPositionsById[group.id] = { x: group.position_x, y: group.position_y };
-      } else if (groupPositionsById[group.id] === undefined) {
-        groupPositionsById[group.id] = { x: 20 + index * 20, y: 20 + index * 100 };
-      }
-    });
-    set({
-      groups: groupsData,
-      groupAssignmentsById: mapAssignmentsToRecord(assignmentsMap),
-      groupPositionsById,
-      isLoadingGroups: false,
-    });
-  },
 
   patchGroupAssignmentsForPointsDelta: (studentIds, delta) => {
     if (studentIds.length === 0 || delta === 0 || !Number.isFinite(delta)) return;

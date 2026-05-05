@@ -1,7 +1,7 @@
 'use client';
 
 import { Student } from '@/lib/types';
-import SeatingChartEditorWorkspace from '@/components/dashboard/SeatingChartEditorWorkspace';
+import SeatingChartEditorWorkspace from './SeatingChartEditorWorkspace';
 
 interface SeatingChartEditorViewProps {
   classId: string;

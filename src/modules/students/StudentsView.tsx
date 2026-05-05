@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import StudentsWorkspace from '@/components/dashboard/StudentsWorkspace';
+import StudentsWorkspace from './StudentsWorkspace';
 import { useStudentsUrlState } from '@/hooks/useStudentsUrlState';
 
 export default function StudentsView() {

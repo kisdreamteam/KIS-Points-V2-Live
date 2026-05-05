@@ -1,89 +1,32 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, Suspense } from 'react';
-import { usePathname, useSearchParams, useRouter } from 'next/navigation';
+import { Suspense } from 'react';
 import { DashboardStudentSync } from '@/hooks/useDashboardStudentSync';
 import { SeatingChartDataSync } from '@/hooks/useSeatingChartDataSync';
 import { DashboardProfileSync } from '@/hooks/useDashboardProfileSync';
 import { DashboardClassesFilterSync } from '@/hooks/useDashboardClassesFilterSync';
+import { useDashboardRouteStateSync } from '@/hooks/useDashboardRouteStateSync';
 import { refreshDashboardClassesForUserAction } from '@/hooks/useDashboardClassesSync';
-import { usePreferenceStore } from '@/stores/usePreferenceStore';
 import LeftNav from '@/components/layout/LeftNav';
 import SeatingEditorLeftNav from '@/components/layout/SeatingEditorLeftNav';
 import DashboardWorkspace from '@/components/dashboard/DashboardWorkspace';
 import EditClassModal from '@/components/dashboard/modals/EditClassModal';
 import DashboardClassModalsHost from '@/components/dashboard/DashboardClassModalsHost';
 import { useLayoutStore } from '@/stores/useLayoutStore';
-import type { ViewState } from '@/stores/useLayoutStore';
 
 function DashboardLayoutShell({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const viewPreference = usePreferenceStore((s) => s.viewPreference);
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const viewPreferenceRef = useRef(viewPreference);
+  const { currentClassId } = useDashboardRouteStateSync();
   const isSidebarOpen = useLayoutStore((s) => s.isSidebarOpen);
   const isSeatingChartView = useLayoutStore((s) => s.activeView === 'seating_chart');
   const isEditMode = useLayoutStore((s) => s.isEditMode);
   const isEditClassModalOpen = useLayoutStore((s) => s.isEditClassModalOpen);
-  const setEditMode = useLayoutStore((s) => s.setEditMode);
   const setEditClassModalOpen = useLayoutStore((s) => s.setEditClassModalOpen);
 
-  const currentClassId = pathname ? (pathname.match(/\/dashboard\/classes\/([^/]+)/)?.[1] ?? null) : null;
-  const searchParamsKey = searchParams?.toString() ?? '';
-
-  useLayoutEffect(() => {
-    const onClassRoute = !!pathname?.includes('/dashboard/classes/');
-    let next: ViewState = 'classes';
-    if (onClassRoute) {
-      const view = searchParams?.get('view') || 'grid';
-      next = view === 'seating' ? 'seating_chart' : 'students';
-    }
-    useLayoutStore.getState().setActiveView(next);
-    setEditMode(searchParams?.get('mode') === 'edit');
-  }, [pathname, searchParamsKey, searchParams, setEditMode]);
-
-  useEffect(() => {
-    viewPreferenceRef.current = viewPreference;
-  }, [viewPreference]);
-
   const isClassesRootView = !currentClassId;
-
-  useEffect(() => {
-    const handleClassUpdate = () => {
-      void refreshDashboardClassesForUserAction();
-    };
-    window.addEventListener('classUpdated', handleClassUpdate);
-    return () => window.removeEventListener('classUpdated', handleClassUpdate);
-  }, []);
-
-  useEffect(() => {
-    const inClassRoute = !!pathname?.includes('/dashboard/classes/');
-    const params = new URLSearchParams(window.location.search);
-    const hasView = params.has('view');
-    if (!inClassRoute) return;
-    if (hasView) return;
-
-    if (viewPreferenceRef.current === 'seating') {
-      params.set('view', 'seating');
-    } else {
-      params.delete('view');
-      params.delete('mode');
-    }
-
-    const base = pathname ?? '/';
-    const currentSearch = window.location.search;
-    const currentUrl = currentSearch ? `${base}${currentSearch}` : base;
-    const newUrl = params.toString() ? `${base}?${params.toString()}` : base;
-    if (newUrl === currentUrl) {
-      return;
-    }
-    router.replace(newUrl, { scroll: false });
-  }, [pathname, router]);
 
   return (
     <>

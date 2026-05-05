@@ -8,11 +8,7 @@ import AwardPointsModal from '@/components/dashboard/modals/AwardPointsModal';
 import PointsAwardedConfirmationModal from '@/components/dashboard/modals/PointsAwardedConfirmationModal';
 import { normalizeAvatarPath } from '@/lib/iconUtils';
 import { useAwardPointsFlow } from '@/hooks/useAwardPointsFlow';
-import {
-  fetchStudentsForRandomByClassId,
-  markStudentAsPicked,
-  resetPickedStudentsByClassId,
-} from '@/lib/api/students';
+import { useRandomStudentFlow } from '@/hooks/useRandomStudentFlow';
 
 interface RandomProps {
   onClose: () => void;
@@ -31,15 +27,20 @@ export default function Random({ onClose }: RandomProps) {
   const reelCopies = baseRotations + maxExtraRotations + 2;
   const params = useParams();
   const classId = (params?.classId as string | undefined) ?? '';
-  const [students, setStudents] = useState<Student[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    students,
+    isLoading,
+    isResetting,
+    fetchStudents,
+    markSelectedStudentAsPicked,
+    handleResetPickedStudents,
+  } = useRandomStudentFlow();
   const [isSpinning, setIsSpinning] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const reelRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const [isAwardPointsModalOpen, setIsAwardPointsModalOpen] = useState(false);
   const [isListAwardPointsModalOpen, setIsListAwardPointsModalOpen] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
   const [pointsListStudents, setPointsListStudents] = useState<Student[]>([]);
   const {
     awardInfo,
@@ -55,27 +56,10 @@ export default function Random({ onClose }: RandomProps) {
   const pickedStudentsCount = totalStudents - availableStudents.length;
   const pointsListStudentIds = pointsListStudents.map((student) => student.id);
 
-  const fetchStudents = useCallback(async (options?: { silent?: boolean }) => {
-    const silent = options?.silent ?? false;
-    try {
-      if (!silent) {
-        setIsLoading(true);
-      }
-      const studentsData = await fetchStudentsForRandomByClassId(classId);
-      setStudents(studentsData);
-    } catch (err) {
-      console.error('Unexpected error fetching students:', err);
-    } finally {
-      if (!silent) {
-        setIsLoading(false);
-      }
-    }
-  }, [classId]);
-
   // Fetch students when component mounts
   useEffect(() => {
     if (classId) {
-      fetchStudents();
+      void fetchStudents(classId);
     }
   }, [classId, fetchStudents]);
 
@@ -143,37 +127,6 @@ export default function Random({ onClose }: RandomProps) {
       console.log('Could not play tick sound:', error);
     }
   }, []);
-
-  const markSelectedStudentAsPicked = useCallback(async (studentId: string) => {
-    try {
-      await markStudentAsPicked(studentId);
-
-      // Optimistic local update only — do not refetch here. A silent `setStudents` from Supabase
-      // replaces the whole list, remounts reel rows/Images, and layout can shift while
-      // `scrollPosition` stays fixed, so the winner appears on the wrong band (e.g. top vs middle).
-      setStudents((prev) =>
-        prev.map((s) => (s.id === studentId ? { ...s, has_been_picked: true } : s))
-      );
-    } catch (error) {
-      console.error('Unexpected error marking student as picked:', error);
-    }
-  }, []);
-
-  const handleResetPickedStudents = useCallback(async () => {
-    if (!classId || isResetting) return;
-
-    try {
-      setIsResetting(true);
-      await resetPickedStudentsByClassId(classId);
-
-      setSelectedStudent(null);
-      await fetchStudents();
-    } catch (error) {
-      console.error('Unexpected error resetting picked students:', error);
-    } finally {
-      setIsResetting(false);
-    }
-  }, [classId, fetchStudents, isResetting]);
 
   const handleSpin = () => {
     if (availableStudents.length === 0 || isSpinning) return;
@@ -336,7 +289,7 @@ export default function Random({ onClose }: RandomProps) {
                   {pickedStudentsCount} of {totalStudents} students picked
                 </p>
                 <button
-                  onClick={handleResetPickedStudents}
+                  onClick={() => void handleResetPickedStudents(classId, () => setSelectedStudent(null))}
                   disabled={isResetting}
                   className="bg-white/20 hover:bg-white/30 disabled:bg-white/10 disabled:text-white/60 text-white px-5 py-2 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed"
                 >
@@ -509,7 +462,7 @@ export default function Random({ onClose }: RandomProps) {
           onClose={() => setIsAwardPointsModalOpen(false)}
           student={selectedStudent}
           classId={classId}
-          onRefresh={() => fetchStudents({ silent: true })}
+          onRefresh={() => fetchStudents(classId, { silent: true })}
           onPointsAwarded={handlePointsAwarded}
         />
       )}
@@ -521,7 +474,7 @@ export default function Random({ onClose }: RandomProps) {
         classId={classId}
         selectedStudentIds={pointsListStudentIds}
         onAwardComplete={handleListAwardComplete}
-        onRefresh={() => fetchStudents({ silent: true })}
+        onRefresh={() => fetchStudents(classId, { silent: true })}
         onPointsAwarded={handlePointsAwarded}
       />
 

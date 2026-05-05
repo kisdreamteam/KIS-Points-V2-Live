@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import CreateClassModal from '@/components/dashboard/modals/CreateClassModal';
 import EditClassModal from '@/components/dashboard/modals/EditClassModal';
-import type { CreateClassFormValues } from '@/components/dashboard/forms/CreateClassForm';
 import { refreshDashboardClassesForUserAction } from '@/hooks/useDashboardClassesSync';
+import { useClassesWorkspaceActions } from '@/hooks/useClassesWorkspaceActions';
 import LoadingState from '@/components/ui/LoadingState';
 import EmptyState from '@/components/ui/EmptyState';
-import ClassCardsGrid from './ClassCardsGrid';
-import { createClassForCurrentUser, fetchStudentCountsByClassIds, type ClassRecord } from '@/lib/api/classes';
+import ClassCardsGrid from '@/components/dashboard/ClassCardsGrid';
+import type { ClassRecord } from '@/lib/api/classes';
 
 type ClassesWorkspaceProps = {
   classes: ClassRecord[];
@@ -32,15 +32,25 @@ export default function ClassesWorkspace({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-  const [studentCounts, setStudentCounts] = useState<Record<string, number>>({});
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [archiveClassId, setArchiveClassId] = useState<string | null>(null);
   const [archiveClassName, setArchiveClassName] = useState<string>('');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteClassId, setDeleteClassId] = useState<string | null>(null);
   const [deleteClassName, setDeleteClassName] = useState<string>('');
-  const [isCreatingClass, setIsCreatingClass] = useState(false);
-  const [createClassError, setCreateClassError] = useState<string | null>(null);
+  const {
+    studentCounts,
+    isCreatingClass,
+    createClassError,
+    fetchStudentCounts,
+    handleCreateClassSubmit,
+    clearCreateClassError,
+  } = useClassesWorkspaceActions({
+    onCreateSuccess: () => {
+      setIsModalOpen(false);
+      void refreshDashboardClassesForUserAction();
+    },
+  });
 
   const isArchivedView = viewMode === 'archived';
   const classOwnerMap = new Map(classes.map((cls) => [cls.id, cls.is_owner !== false]));
@@ -57,55 +67,17 @@ export default function ClassesWorkspace({
     }
   }, [openDropdownId]);
 
-  const fetchStudentCounts = useCallback(async () => {
-    try {
-      const classIds = classes.map(cls => cls.id);
-
-      if (classIds.length === 0) {
-        setStudentCounts({});
-        return;
-      }
-      const countsMap = await fetchStudentCountsByClassIds(classIds);
-      setStudentCounts(countsMap);
-    } catch (err) {
-      console.error('Error fetching student counts:', err);
-    }
-  }, [classes]);
-
   // Fetch student counts for all classes
   useEffect(() => {
-    if (classes.length > 0) {
-      fetchStudentCounts();
-    } else {
-      setStudentCounts({});
-    }
+    void fetchStudentCounts(classes);
   }, [classes, fetchStudentCounts]);
 
   // Handle modal close with refresh
   const handleModalClose = () => {
-    setCreateClassError(null);
+    clearCreateClassError();
     setIsModalOpen(false);
     void refreshDashboardClassesForUserAction();
   };
-
-  const handleCreateClassSubmit = useCallback(async (values: CreateClassFormValues) => {
-    setCreateClassError(null);
-    setIsCreatingClass(true);
-    try {
-      await createClassForCurrentUser({
-        className: values.className,
-        grade: values.grade,
-        schoolYear: values.schoolYear,
-        icon: values.icon,
-      });
-      handleModalClose();
-    } catch (err) {
-      console.error('Unexpected error creating class:', err);
-      setCreateClassError(err instanceof Error ? err.message : 'Failed to create class. Please try again.');
-    } finally {
-      setIsCreatingClass(false);
-    }
-  }, []);
 
   // Handle dropdown toggle
   const toggleDropdown = (classId: string, event: React.MouseEvent) => {

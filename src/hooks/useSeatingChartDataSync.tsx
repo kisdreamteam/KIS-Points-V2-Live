@@ -3,8 +3,36 @@
 import { useEffect, useRef } from 'react';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 import { useSeatingStore } from '@/stores/useSeatingStore';
-import { fetchSeatingGroupsWithAssignments, fetchSeatingLayoutsByClassId } from '@/lib/api/seating';
+import {
+  fetchSeatingGroupsWithAssignments,
+  fetchSeatingLayoutsByClassId,
+  type GroupAssignment,
+  type SeatingGroupRecord,
+} from '@/lib/api/seating';
 import { STUDENT_EVENTS } from '@/lib/events/students';
+
+function mapAssignmentsToRecord(map: Map<string, GroupAssignment[]>): Record<string, GroupAssignment[]> {
+  const out: Record<string, GroupAssignment[]> = {};
+  map.forEach((v, k) => {
+    out[k] = v;
+  });
+  return out;
+}
+
+function buildGroupPositions(
+  groupsData: SeatingGroupRecord[],
+  prev: Record<string, { x: number; y: number }>
+): Record<string, { x: number; y: number }> {
+  const groupPositionsById: Record<string, { x: number; y: number }> = { ...prev };
+  groupsData.forEach((group, index) => {
+    if (group.position_x !== undefined && group.position_y !== undefined) {
+      groupPositionsById[group.id] = { x: group.position_x, y: group.position_y };
+    } else if (groupPositionsById[group.id] === undefined) {
+      groupPositionsById[group.id] = { x: 20 + index * 20, y: 20 + index * 100 };
+    }
+  });
+  return groupPositionsById;
+}
 
 export async function refreshSeatingLayoutsForClass(classId: string): Promise<void> {
   const st = useSeatingStore.getState();
@@ -51,7 +79,18 @@ export async function refreshSeatingGroupsForLayout(layoutId: string | null): Pr
   try {
     const { groups: groupsData, groupAssignments: nextGroupAssignments } =
       await fetchSeatingGroupsWithAssignments(layoutId);
-    st.applyGroupsFetch(groupsData, nextGroupAssignments);
+    if (!groupsData || groupsData.length === 0) {
+      st.setGroups([]);
+      st.setGroupAssignmentsById({});
+      st.setGroupPositionsById({});
+      st.setGroupsLoading(false);
+      return;
+    }
+    const nextPositions = buildGroupPositions(groupsData, st.groupPositionsById);
+    st.setGroups(groupsData);
+    st.setGroupAssignmentsById(mapAssignmentsToRecord(nextGroupAssignments));
+    st.setGroupPositionsById(nextPositions);
+    st.setGroupsLoading(false);
   } catch (err) {
     console.error('Unexpected error fetching seating groups:', err);
     st.setGroupsLoading(false);

@@ -4,7 +4,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useShallow } from 'zustand/react/shallow';
 import type { Student } from '@/lib/types';
-import SeatingChartWorkspace from '@/components/dashboard/SeatingChartWorkspace';
+import SeatingChartWorkspace from './SeatingChartWorkspace';
 import { useClassPointLog } from '@/hooks/useClassPointLog';
 import { useSeatingLayoutManager } from '@/hooks/useSeatingLayoutManager';
 import { useSeatingStore } from '@/stores/useSeatingStore';
