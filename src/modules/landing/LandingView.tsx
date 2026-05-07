@@ -6,7 +6,7 @@ import LandingNavLink from '@/components/ui/landing/LandingNavLink'
 
 export default function LandingView() {
   return (
-    <div className="flex-col-1 md:flex-col-2 h-screen w-full">
+    <div className="flex-col-1 md:flex-col-2">
       <LandingHeader>
         <LandingNavLink href="/login">Login</LandingNavLink>
         <LandingNavLink href="/signup">Signup</LandingNavLink>

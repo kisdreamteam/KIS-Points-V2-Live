@@ -82,44 +82,44 @@ export default function Random({ onClose }: RandomProps) {
       if (!AudioContextClass) {
         return;
       }
-      
+
       // Create or reuse audio context
       if (!audioContextRef.current) {
         audioContextRef.current = new AudioContextClass();
       }
-      
+
       const audioContext = audioContextRef.current;
-      
+
       // Resume audio context if suspended (required by some browsers)
       if (audioContext.state === 'suspended') {
         await audioContext.resume();
       }
-      
+
       // Create a mechanical slot machine tick sound
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      
+
       // Lower frequency for a more mechanical, slot machine-like sound
       // Real slot machines typically have lower-pitched mechanical clicks
       oscillator.frequency.value = 250; // Lower pitch (was 800)
       oscillator.type = 'sawtooth'; // Sawtooth gives a more mechanical, gritty sound
-      
+
       // Create a short mechanical click envelope
       const now = audioContext.currentTime;
       const duration = 0.08; // Slightly longer for more presence
-      
+
       // Quick attack and decay for a mechanical click sound
       gainNode.gain.setValueAtTime(0, now);
       gainNode.gain.linearRampToValueAtTime(volume, now + 0.005); // Very quick attack
       gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration); // Quick decay
-      
+
       // Add slight frequency variation for more mechanical character
       oscillator.frequency.setValueAtTime(250, now);
       oscillator.frequency.linearRampToValueAtTime(230, now + duration); // Slight downward sweep
-      
+
       oscillator.start(now);
       oscillator.stop(now + duration);
     } catch (error) {
@@ -133,7 +133,7 @@ export default function Random({ onClose }: RandomProps) {
 
     setIsSpinning(true);
     setSelectedStudent(null);
-    
+
     // Reset card tracking and scroll position to top for consistent animation
     lastCardIndexRef.current = -1;
     if (reelRef.current) reelRef.current.style.transform = `translateY(-${0}px)`; // Reset to top immediately
@@ -155,44 +155,44 @@ export default function Random({ onClose }: RandomProps) {
     // Always start from top (0) for consistent animation
     const startPosition = 0;
     const distance = finalTarget - startPosition;
-    
+
     // Consistent animation duration (3.5 seconds)
     const duration = 3500; // Always 3.5 seconds
     const startTime = performance.now();
-    
+
     // Easing function for smooth deceleration
     const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
-    
+
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      
+
       // Apply easing
       const easedProgress = easeOutCubic(progress);
-      
+
       // Calculate current position
       const currentPosition = startPosition + distance * easedProgress;
       if (reelRef.current) reelRef.current.style.transform = `translateY(-${currentPosition}px)`;
-      
+
       // Calculate which card is currently in the middle slot
       // The middle of the visible viewport is at middleOfWindow (inner height / 2)
       // With scrollPosition, the card at position (scrollPosition + middleOfWindow) is centered
       // Calculate which item index this corresponds to
       const currentCenterPosition = currentPosition + middleOfWindow;
       const currentCardIndex = Math.floor((currentCenterPosition - itemCenterOffset) / itemHeight);
-      
+
       // Play sound when a new card passes through the middle
       // The timing will naturally be faster at the start (due to higher scroll speed) 
       // and slower at the end (due to easing), which is exactly what we want
       if (currentCardIndex !== lastCardIndexRef.current && currentCardIndex >= 0) {
         lastCardIndexRef.current = currentCardIndex;
-        
+
         // Volume decreases as we approach the end (softer sounds near the end)
         // This creates a nice effect where sounds are more prominent at the start
         const volume = 0.3 - (progress * 0.2); // Start at 0.3, end at 0.1
         playTickSound(volume);
       }
-      
+
       if (progress < 1) {
         animationFrameRef.current = requestAnimationFrame(animate);
       } else {
@@ -204,7 +204,7 @@ export default function Random({ onClose }: RandomProps) {
         void markSelectedStudentAsPicked(selected.id);
       }
     };
-    
+
     animationFrameRef.current = requestAnimationFrame(animate);
   };
 
@@ -275,10 +275,10 @@ export default function Random({ onClose }: RandomProps) {
           <div className="text-center">
             <h1 className="text-5xl font-bold text-white mb-6">Random Student Selector</h1>
             <p className="text-white/80 text-xl mb-8">
-              {isLoading 
-                ? 'Loading students...' 
+              {isLoading
+                ? 'Loading students...'
                 : totalStudents === 0
-                  ? 'No students found' 
+                  ? 'No students found'
                   : availableStudents.length === 0
                     ? 'All students have been picked. Reset to start again.'
                     : `Click the button to randomly select from ${availableStudents.length} students`}
@@ -297,7 +297,7 @@ export default function Random({ onClose }: RandomProps) {
                 </button>
               </div>
             )}
-            
+
             {!isLoading && availableStudents.length > 0 && (
               <button
                 onClick={handleSpin}
@@ -367,14 +367,14 @@ export default function Random({ onClose }: RandomProps) {
                   {/* Top and bottom gradient overlays for fade effect */}
                   <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none" style={{ height: '100px' }}></div>
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" style={{ height: '100px' }}></div>
-                  
+
                   {/* Selection indicator lines */}
                   <div className="absolute top-1/2 left-0 right-0 transform -translate-y-1/2 z-20 pointer-events-none">
                     <div className="border-t-4 border-b-4 border-yellow-400" style={{ height: '250px' }}></div>
                   </div>
-                  
+
                   {/* Reel Container */}
-                  <div 
+                  <div
                     ref={reelRef}
                     className="relative transition-none"
                     style={{
@@ -383,7 +383,7 @@ export default function Random({ onClose }: RandomProps) {
                     }}
                   >
                     {/* Duplicate students multiple times for seamless scrolling */}
-                    {[...Array(reelCopies)].map((_, rotation) => 
+                    {[...Array(reelCopies)].map((_, rotation) =>
                       reelStudents.map((student, index) => {
                         return (
                           <div

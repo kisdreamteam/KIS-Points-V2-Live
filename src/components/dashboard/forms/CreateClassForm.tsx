@@ -66,7 +66,7 @@ export default function CreateClassForm({ onClose, onSubmit, isLoading, error }:
             </button>
             {isIconDropdownOpen && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setIsIconDropdownOpen(false)} />
+                <div className="fixed  inset-0 z-10" onClick={() => setIsIconDropdownOpen(false)} />
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-20 w-80 max-h-96 overflow-y-auto">
                   <div className="text-sm font-semibold text-gray-700 mb-3 text-center">Choose Class Icon</div>
                   <div className="grid grid-cols-5 gap-3">
@@ -78,9 +78,8 @@ export default function CreateClassForm({ onClose, onSubmit, isLoading, error }:
                           setSelectedIcon(icon);
                           setIsIconDropdownOpen(false);
                         }}
-                        className={`w-12 h-12 rounded-lg flex items-center justify-center border-2 transition-all hover:scale-110 ${
-                          selectedIcon === icon ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-                        }`}
+                        className={`w-12 h-12 rounded-lg flex items-center justify-center border-2 transition-all hover:scale-110 ${selectedIcon === icon ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                          }`}
                       >
                         <Image src={icon} alt={`Icon ${index + 1}`} width={40} height={40} className="w-10 h-10 object-contain" />
                       </button>

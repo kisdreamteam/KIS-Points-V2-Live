@@ -7,7 +7,7 @@ type AuthLayoutProps = {
 
 const AuthLayout: FC<AuthLayoutProps> = ({ children, className = '' }) => {
   return (
-    <div className={`min-h-screen w-full bg-brand-purple flex items-center justify-center p-6 font-spartan relative ${className}`}>
+    <div className={`h-screen w-full bg-brand-purple flex items-center justify-center font-spartan relative ${className}`}>
       {children}
     </div>
   );
