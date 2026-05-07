@@ -7,8 +7,12 @@ import Image from 'next/image';
 import AwardPointsModal from '@/components/dashboard/modals/AwardPointsModal';
 import PointsAwardedConfirmationModal from '@/components/dashboard/modals/PointsAwardedConfirmationModal';
 import { normalizeAvatarPath } from '@/lib/iconUtils';
+import { emitSeatingStudentPointsDelta } from '@/lib/events/students';
 import { useAwardPointsFlow } from '@/hooks/useAwardPointsFlow';
 import { useRandomStudentFlow } from '@/hooks/useRandomStudentFlow';
+import { refreshDashboardStudents } from '@/hooks/useDashboardStudentSync';
+import { refreshSeatingGroupsForLayout } from '@/hooks/useSeatingChartDataSync';
+import { useSeatingStore } from '@/stores/useSeatingStore';
 
 interface RandomProps {
   onClose: () => void;
@@ -55,6 +59,21 @@ export default function Random({ onClose }: RandomProps) {
   const availableStudents = students.filter((student) => !student.has_been_picked);
   const pickedStudentsCount = totalStudents - availableStudents.length;
   const pointsListStudentIds = pointsListStudents.map((student) => student.id);
+  const [lastAwardedStudentIds, setLastAwardedStudentIds] = useState<string[]>([]);
+
+  const refreshRandomAndDashboardStudents = useCallback(async () => {
+    await Promise.allSettled([
+      fetchStudents(classId, { silent: true }),
+      refreshDashboardStudents(true),
+    ]);
+  }, [classId, fetchStudents]);
+
+  const handleClose = useCallback(async () => {
+    await refreshRandomAndDashboardStudents();
+    const selectedLayoutId = useSeatingStore.getState().selectedLayoutId;
+    await refreshSeatingGroupsForLayout(selectedLayoutId);
+    onClose();
+  }, [onClose, refreshRandomAndDashboardStudents]);
 
   // Fetch students when component mounts
   useEffect(() => {
@@ -231,8 +250,17 @@ export default function Random({ onClose }: RandomProps) {
     categoryName: string;
     categoryIcon?: string;
   }) => {
+    if (classId && lastAwardedStudentIds.length > 0 && Number.isFinite(info.points)) {
+      // Patch seating store directly because seating listeners can be unmounted while Random is open.
+      useSeatingStore.getState().patchGroupAssignmentsForPointsDelta(lastAwardedStudentIds, info.points);
+      emitSeatingStudentPointsDelta({
+        classId,
+        studentIds: lastAwardedStudentIds,
+        delta: info.points,
+      });
+    }
     openAwardConfirmation(info);
-  }, [openAwardConfirmation]);
+  }, [classId, lastAwardedStudentIds, openAwardConfirmation]);
 
   // Handle keyboard shortcut
   useEffect(() => {
@@ -251,7 +279,7 @@ export default function Random({ onClose }: RandomProps) {
     <div className="fixed inset-0 bg-brand-purple z-50 flex items-center justify-center">
       {/* Close Button */}
       <button
-        onClick={onClose}
+        onClick={() => void handleClose()}
         className="absolute top-10 right-10 w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors z-10"
       >
         <svg
@@ -328,7 +356,12 @@ export default function Random({ onClose }: RandomProps) {
                 <p className="text-white text-2xl font-semibold mb-6 text-center">No student selected</p>
               )}
               <button
-                onClick={() => setIsAwardPointsModalOpen(true)}
+                onClick={() => {
+                  if (selectedStudent) {
+                    setLastAwardedStudentIds([selectedStudent.id]);
+                  }
+                  setIsAwardPointsModalOpen(true);
+                }}
                 disabled={!selectedStudent}
                 className="w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold text-xl transition-colors shadow-lg"
               >
@@ -444,7 +477,10 @@ export default function Random({ onClose }: RandomProps) {
               </div>
 
               <button
-                onClick={handleOpenListAwardModal}
+                onClick={() => {
+                  setLastAwardedStudentIds(pointsListStudentIds);
+                  handleOpenListAwardModal();
+                }}
                 disabled={pointsListStudents.length === 0}
                 className="mt-4 w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-bold text-base transition-colors shadow-lg"
               >
@@ -462,7 +498,7 @@ export default function Random({ onClose }: RandomProps) {
           onClose={() => setIsAwardPointsModalOpen(false)}
           student={selectedStudent}
           classId={classId}
-          onRefresh={() => fetchStudents(classId, { silent: true })}
+          onRefresh={() => void refreshRandomAndDashboardStudents()}
           onPointsAwarded={handlePointsAwarded}
         />
       )}
@@ -474,7 +510,7 @@ export default function Random({ onClose }: RandomProps) {
         classId={classId}
         selectedStudentIds={pointsListStudentIds}
         onAwardComplete={handleListAwardComplete}
-        onRefresh={() => fetchStudents(classId, { silent: true })}
+        onRefresh={() => void refreshRandomAndDashboardStudents()}
         onPointsAwarded={handlePointsAwarded}
       />
 
