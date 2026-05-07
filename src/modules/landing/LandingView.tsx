@@ -13,7 +13,10 @@ export default function LandingView() {
       </LandingHeader>
 
       <section>
-        <div className="grid grid-cols-1 md:grid-cols-2 pt-40 md:pt-60 gap-20">
+        <div className="
+          grid grid-cols-1 md:grid-cols-2 
+          md:pt-60 pt-40 
+          md:gap-20 gap-10">
           <LandingMascot />
           <div>
             <HeroTitle>
