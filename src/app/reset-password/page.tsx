@@ -1,5 +1,5 @@
-import ResetPasswordPageModule from '../../modules/auth/ResetPasswordPageModule';
+import ResetPasswordView from '../../modules/auth/ResetPasswordView';
 
 export default function ResetPasswordPage() {
-  return <ResetPasswordPageModule />;
+  return <ResetPasswordView />;
 }

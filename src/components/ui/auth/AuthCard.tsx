@@ -7,7 +7,7 @@ type AuthCardProps = {
 
 const AuthCard: FC<AuthCardProps> = ({ children, className = '' }) => {
   return (
-    <div className={`relative bg-brand-cream rounded-[28px] shadow-xl ${className}`}>
+    <div className={`bg-brand-cream rounded-[28px] shadow-xl relative ${className}`}>
       {children}
     </div>
   );

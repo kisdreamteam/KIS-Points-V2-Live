@@ -25,23 +25,13 @@ type LoginFormProps = {
 
 const LoginHeader: FC = () => (
   <>
-    <div className="flex flex-row-3 gap-1">
-      <div className="flex justify-start w-50 md:w-1/3 items-center">
-        <AuthBackLink
-          className="flex text-brand-purple justify-start items-center"
-          // style={{
-          //   left: 'max(calc(50% - 400px - 48px), 24px)',
-          //   top: 'calc(50% - 220px)',
-          // }}
-          strokeWidth={3}
-        />
-      </div>
-      <div className="flex justify-center w-150 md:w-1/3 items-center">
+    <div className="flex flex-row gap-1 px-2 md:px-0">
+      <div className="flex md:flex-row justify-start items-center w-150 md:w-1/2">
         <h1 className="text-3xl md:text-6xl font-extrabold text-brand-purple font-spartan">
           Login
         </h1>
       </div>
-      <div className="flex justify-end w-50 md:w-1/3 items-center">
+      <div className="flex justify-end w-50 md:w-1/2 items-center">
         <Image
           src="/images/auth/auth-login-kis-logo.png"
           alt="KIS Points logo"
@@ -78,6 +68,7 @@ const LoginForm: FC<LoginFormProps> = ({
 }) => {
   return (
     <>
+      <AuthBackLink className="top-6 left-6" />
       {/* <AuthBackLink
         className="text-gray-300 flex-shrink-0"
         style={{
@@ -87,7 +78,7 @@ const LoginForm: FC<LoginFormProps> = ({
         strokeWidth={3}
       /> */}
 
-      <AuthCard className="w-[350px] md:w-[800px] pb-4 px-2 md:px-0">
+      <AuthCard className="w-9/10 md:w-1/3 pb-2 px-2 md:px-6">
         <LoginHeader />
         <form
           className="grid gap-6"
@@ -96,7 +87,7 @@ const LoginForm: FC<LoginFormProps> = ({
             void onSubmit({ email, password });
           }}
         >
-          <div className="flex flex-col gap-6 px-8">
+          <div className="flex flex-col gap-6">
             <div className="grid gap-2">
               <FormLabel htmlFor="email" className="text-base font-semibold text-[24px] text-black font-spartan">
                 Email address

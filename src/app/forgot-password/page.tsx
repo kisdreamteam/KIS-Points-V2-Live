@@ -1,5 +1,5 @@
-import ForgotPasswordPageModule from '../../modules/auth/ForgotPasswordPageModule';
+import ForgotPasswordView from '../../modules/auth/ForgotPasswordView';
 
 export default function ForgotPasswordPage() {
-  return <ForgotPasswordPageModule />;
+  return <ForgotPasswordView />;
 }

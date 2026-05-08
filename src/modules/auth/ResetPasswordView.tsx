@@ -4,7 +4,7 @@ import AuthLayout from '@/components/layout/AuthLayout';
 import ResetPasswordForm from '@/components/ui/auth/ResetPasswordForm';
 import { useAuthFlow } from '@/hooks/useAuthFlow';
 
-export default function ResetPasswordPageModule() {
+export default function ResetPasswordView() {
   const {
     resetPassword,
     setResetPassword,

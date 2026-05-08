@@ -6,19 +6,19 @@ import LandingNavLink from '@/components/ui/landing/LandingNavLink'
 
 export default function LandingView() {
   return (
-    <div className="flex-col-1 md:flex-col-2">
+    <div className="flex flex-col">
       <LandingHeader>
         <LandingNavLink href="/login">Login</LandingNavLink>
         <LandingNavLink href="/signup">Signup</LandingNavLink>
       </LandingHeader>
 
-      <section>
+      <main>
         <div className="
           grid grid-cols-1 md:grid-cols-2 
-          md:pt-60 pt-40 
-          md:gap-20 gap-10">
+          md:pt-20 pt-20 
+          md:gap-40 gap-10">
           <LandingMascot />
-          <div>
+          <div className="flex flex-col md:items-start items-center">
             <HeroTitle>
               Let&apos;s get
               <br />
@@ -33,7 +33,7 @@ export default function LandingView() {
             />
           </div>
         </div>
-      </section>
+      </main>
     </div>
   )
 }

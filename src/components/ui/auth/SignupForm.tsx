@@ -73,22 +73,23 @@ const SignupFooter: FC = () => (
 );
 
 const SignupAvatar: FC = () => (
-  <div className="hidden lg:flex items-center justify-center flex-1 relative translate-y-40">
-    <div className="relative">
+  <div className="hidden md:unhidden flex-1 md:flex w-full md:w-full items-center justify-center">
+    <div className="relative flex items-center justify-center bg-brand-purple w-200 h-200">
       <div
-        className="bg-[#cdd1d1] rounded-full p-8 w-[450px] h-[290px] relative shadow-xl"
+        className="bg-brand-cream rounded-full w-120 h-100 translate-y-25 translate-x-10 shadow-xl"
         style={{ borderRadius: '40% 30% 30% 30% / 40% 40% 40% 40%' }}
       >
-        <Image
-          src="/images/signup/signup-avatar.png"
-          alt="Signup avatar character"
-          width={600}
-          height={600}
-          priority
-          className="absolute left-1/2 -translate-x-10/25 -translate-y-10/28 max-w-[450px] w-full h-auto object-cover scale-170"
-          style={{ top: 'calc(-20% + 10px)' }}
-        />
       </div>
+      <Image
+        src="/images/auth/auth-signup-mascot.png"
+        alt="Signup avatar character"
+        width={600}
+        height={600}
+        priority
+        className="absolute w-190 h-auto object-cover"
+      // style={{ top: 'calc(-20% + 10px)' }}
+      // -translate-x-10/25 -translate-y-10/28 scale-170
+      />
     </div>
   </div>
 );
@@ -115,11 +116,17 @@ const SignupForm: FC<SignupFormProps> = ({
 }) => {
   return (
     <>
-      <AuthBackLink className="top-6 left-6" />
-      <div className="w-full max-w-7xl flex items-center gap-8">
+      <div className="flex flex-row">
+        {/* not in a flex - not needed */}
+        <AuthBackLink className="top-6 left-6" />
+        {/* <div className="flex items-center justify-center"> */}
+        {/* 1st child of the authlayout component */}
         <SignupAvatar />
-
-        <AuthCard className="w-full lg:w-[600px] p-8 sm:p-10">
+      </div>
+      <div className="flex flex-row items-center justify-center p-2 md:p-0">
+        {/* w-9/10 md:w-1/3 pb-4 px-2 md:px-0 */}
+        {/* 2nd child of the authlayout component */}
+        <AuthCard className="w-full md:w-200 p-6 md:p-10 bg-brand-cream">
           <SignupHeader />
 
           <form
@@ -244,6 +251,7 @@ const SignupForm: FC<SignupFormProps> = ({
 
           <SignupFooter />
         </AuthCard>
+        {/* </div> */}
       </div>
     </>
   );

@@ -4,7 +4,7 @@ import AuthLayout from '@/components/layout/AuthLayout';
 import ForgotPasswordForm from '@/components/ui/auth/ForgotPasswordForm';
 import { useAuthFlow } from '@/hooks/useAuthFlow';
 
-export default function ForgotPasswordPageModule() {
+export default function ForgotPasswordView() {
   const {
     forgotStep,
     setForgotStep,

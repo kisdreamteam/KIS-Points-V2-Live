@@ -1,5 +1,5 @@
-import SignupPageModule from '../../modules/auth/SignupPageModule';
+import SignUpView from '../../modules/auth/SignUpView';
 
 export default function SignupPage() {
-  return <SignupPageModule />;
+  return <SignUpView />;
 }

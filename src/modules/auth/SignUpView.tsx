@@ -4,7 +4,7 @@ import AuthLayout from '@/components/layout/AuthLayout';
 import SignupForm from '@/components/ui/auth/SignupForm';
 import { useAuthFlow } from '@/hooks/useAuthFlow';
 
-export default function SignupPageModule() {
+export default function SignUpView() {
   const {
     signupTitle,
     setSignupTitle,

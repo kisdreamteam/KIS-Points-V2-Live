@@ -10,7 +10,6 @@ const HeroTitle: FC<HeroTitleProps> = ({ children }) => {
           md:text-9xl text-4xl  
           md:leading-27.25 leading-10 
           md:mb-20 mb-0 
-          md:ml-0 ml-15
           font-spartan font-semibold text-brand-purple">
       {children}
     </h1>
