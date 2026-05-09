@@ -57,14 +57,15 @@ export default function LeftNav() {
 
         <button
           onClick={handleAllClassesClick}
-          className={`w-full bg-brand-purple text-white p-3 rounded-lg mb-4 hover:bg-blue-800 transition-colors cursor-pointer flex-shrink-0 ${
-            viewMode === 'active' ? 'ring-2 ring-white ring-offset-2 ring-offset-brand-purple' : ''
-          }`}
+          className={`w-full bg-brand-purple text-white p-3 rounded-lg mb-4 hover:bg-blue-800 transition-colors cursor-pointer flex-shrink-0 ${viewMode === 'active' ? 'ring-2 ring-white ring-offset-2 ring-offset-brand-purple' : ''
+            }`}
         >
           <h2 className="text-center font-semibold">All Classes</h2>
         </button>
 
+        {/* LeftNav Classes List Starts Here - brrand cream container*/}
         <div className="flex-1 overflow-y-auto space-y-2 min-h-0 bg-brand-cream rounded-xl mb-4">
+          {/* if loading classes, show loading spinner, otherwise show no classes found message, else show the classes list */}
           {isLoadingClasses ? (
             <div className="flex items-center justify-center py-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
@@ -76,6 +77,7 @@ export default function LeftNav() {
             </div>
           ) : (
             <>
+              {/* map through the active classes and create a link for each class */}
               {activeClasses.map((cls) => {
                 const isActiveClass = activeClassId === cls.id;
                 return (
@@ -85,17 +87,13 @@ export default function LeftNav() {
                     className="block"
                     onClick={() => {
                       useDashboardStore.getState().setActiveClassId(cls.id);
-                      useLayoutStore
-                        .getState()
-                        .setActiveView(currentView === 'seating' ? 'seating_chart' : 'students');
                     }}
                   >
                     <div
-                      className={`flex items-center space-x-3 p-2 rounded cursor-pointer transition-colors ${
-                        isActiveClass ? 'bg-purple-400 hover:bg-purple-500' : 'hover:bg-blue-200'
-                      }`}
+                      className={`flex items-center space-x-3 px-2 py-1rounded cursor-pointer transition-colors ${isActiveClass ? 'bg-purple-400 hover:bg-purple-500' : 'hover:bg-blue-200'
+                        }`}
                     >
-                      <div className="w-8 h-8 flex-shrink-0">
+                      <div className="w-6 h-6 flex-shrink-0">
                         <Image
                           src={normalizeClassIconPath(cls.icon)}
                           alt={`${cls.name} icon`}
@@ -106,9 +104,8 @@ export default function LeftNav() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <span
-                          className={`text-xl font-medium block truncate ${
-                            isActiveClass ? 'text-white' : 'text-gray-800'
-                          }`}
+                          className={`text-xl font-medium block truncate ${isActiveClass ? 'text-white' : 'text-gray-800'
+                            }`}
                         >
                           {cls.name}
                         </span>
@@ -118,12 +115,11 @@ export default function LeftNav() {
                 );
               })}
 
-              {hasArchivedClasses && (
+              {/* {hasArchivedClasses && (
                 <div
                   onClick={handleArchivedClassesClick}
-                  className={`flex items-center space-x-3 p-2 hover:bg-blue-200 rounded cursor-pointer transition-colors ${
-                    viewMode === 'archived' ? 'bg-blue-200' : ''
-                  }`}
+                  className={`flex items-center space-x-3 p-2 hover:bg-blue-200 rounded cursor-pointer transition-colors ${viewMode === 'archived' ? 'bg-blue-200' : ''
+                    }`}
                 >
                   <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center">
                     <IconTimerClock className="w-6 h-6 text-gray-600" />
@@ -132,7 +128,7 @@ export default function LeftNav() {
                     <span className="text-xl font-medium text-gray-800 block truncate">Archived Classes</span>
                   </div>
                 </div>
-              )}
+              )} */}
             </>
           )}
         </div>
