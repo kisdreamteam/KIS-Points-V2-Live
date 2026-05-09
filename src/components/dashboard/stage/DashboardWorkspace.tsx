@@ -192,7 +192,7 @@ export default function DashboardWorkspace({
       </section>
 
       {showBottomNav && (
-        <footer className="row-start-3 row-end-4 h-auto overflow-visible relative z-20 w-full">
+        <footer className="row-start-3 row-end-4 flex min-h-16 h-auto w-full flex-col overflow-visible relative z-20">
           {isSeatingView && isEditMode ? (
             <SeatingEditorBottomNavBridge
               currentClassName={currentClassName}

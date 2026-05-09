@@ -4,13 +4,13 @@ import { useState, useEffect, useRef } from 'react';
 import type { SortOption } from '@/stores/usePreferenceStore';
 import ViewModeModal from '@/components/dashboard/modals/ViewModeModal';
 import IconViewDots from '@/components/ui/icons/iconViewDots';
-import IconRandomArrows from '@/components/ui/icons/iconRandomArrows';
-import IconTimerClock from '@/components/ui/icons/iconTimerClock';
 import IconSortingArrows from '@/components/ui/icons/iconSortingArrows';
 import IconCheckBox from '@/components/ui/icons/iconCheckBox';
 import IconSettingsWheel from '@/components/ui/icons/iconSettingsWheel';
 import BotNavGrayButton from '@/components/ui/BotNavGrayButton';
 import BaseBottomNav from '@/components/ui/BaseBottomNav';
+import DashboardBottomNavGrid from '@/components/dashboard/shell/DashboardBottomNavGrid';
+import BottomNavRandomTimerCenter from '@/components/dashboard/shell/BottomNavRandomTimerCenter';
 
 interface StudentsBottomNavProps {
   currentClassName: string | null;
@@ -71,132 +71,141 @@ export default function StudentsBottomNav({
 
   return (
     <BaseBottomNav className="overflow-visible">
-      {currentClassName && (
-        <div className="relative flex-shrink-0" ref={viewButtonRef}>
-          <BotNavGrayButton
-            icon={<IconViewDots />}
-            label="View"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsViewPopupOpen(!isViewPopupOpen);
-            }}
-            stopPropagation={true}
-          />
-          <ViewModeModal
-            isOpen={isViewPopupOpen}
-            onClose={() => setIsViewPopupOpen(false)}
-            currentView={currentView}
-            onViewChange={(view) => {
-              onViewChange(view);
-              setIsViewPopupOpen(false);
-            }}
-          />
-        </div>
-      )}
-
-      <BotNavGrayButton icon={<IconRandomArrows />} label="Random" onClick={onRandomClick} />
-
-      <BotNavGrayButton icon={<IconTimerClock />} label="Timer" onClick={onTimerClick} />
-
-      {currentClassName && (
-        <div className="relative flex-shrink-0" ref={sortButtonRef}>
-          <BotNavGrayButton
-            icon={<IconSortingArrows />}
-            label="Sorting"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!sortingDisabled) setIsSortPopupOpen(!isSortPopupOpen);
-            }}
-            stopPropagation={true}
-            enabled={!sortingDisabled}
-          />
-          {isSortPopupOpen && (
-            <div className="absolute bottom-full left-0 mb-2 bg-blue-100 rounded-lg shadow-lg border-4 border-brand-purple py-2 z-[100] min-w-[200px]">
-              <div className="px-4 py-2 text-sm font-semibold text-gray-700 border-b border-gray-200">
-                Sort by:
+      <DashboardBottomNavGrid
+        zone5={
+          <>
+            {currentClassName && (
+              <div className="relative flex-shrink-0" ref={viewButtonRef}>
+                <BotNavGrayButton
+                  icon={<IconViewDots />}
+                  label="View"
+                  active={isViewPopupOpen}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsViewPopupOpen(!isViewPopupOpen);
+                  }}
+                  stopPropagation={true}
+                />
+                <ViewModeModal
+                  isOpen={isViewPopupOpen}
+                  onClose={() => setIsViewPopupOpen(false)}
+                  currentView={currentView}
+                  onViewChange={(view) => {
+                    onViewChange(view);
+                    setIsViewPopupOpen(false);
+                  }}
+                />
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  onSortChange('number');
-                  setIsSortPopupOpen(false);
-                }}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
-                  sortBy === 'number' ? 'bg-purple-50 text-purple-600 font-medium' : 'text-gray-700'
-                }`}
-              >
-                Student Number
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  onSortChange('alphabetical');
-                  setIsSortPopupOpen(false);
-                }}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
-                  sortBy === 'alphabetical' ? 'bg-purple-50 text-purple-600 font-medium' : 'text-gray-700'
-                }`}
-              >
-                Alphabetical
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  onSortChange('points');
-                  setIsSortPopupOpen(false);
-                }}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
-                  sortBy === 'points' ? 'bg-purple-50 text-purple-600 font-medium' : 'text-gray-700'
-                }`}
-              >
-                Points
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      <BotNavGrayButton
-        icon={<IconCheckBox />}
-        label="Multiple Select"
-        onClick={onToggleMultiSelect}
-      />
-
-      <div className="relative flex-shrink-0" ref={settingsButtonRef}>
-        <BotNavGrayButton
-          icon={<IconSettingsWheel />}
-          label="Settings"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsSettingsPopupOpen(!isSettingsPopupOpen);
-          }}
-          stopPropagation={true}
-        />
-
-        {isSettingsPopupOpen && (
-          <div className="absolute bottom-full left-0 mb-2 bg-blue-100 rounded-lg shadow-lg border-4 border-brand-purple py-2 z-[100] min-w-[200px]">
-            {classId && onEditClass && (
-              <button
-                type="button"
-                onClick={() => {
-                  onEditClass();
-                  setIsSettingsPopupOpen(false);
-                }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                Edit Class
-              </button>
             )}
-            <button
-              type="button"
-              onClick={onLogout}
-              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              Log out
-            </button>
+
+            {currentClassName && (
+              <div className="relative flex-shrink-0" ref={sortButtonRef}>
+                <BotNavGrayButton
+                  icon={<IconSortingArrows />}
+                  label="Sorting"
+                  active={isSortPopupOpen}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!sortingDisabled) setIsSortPopupOpen(!isSortPopupOpen);
+                  }}
+                  stopPropagation={true}
+                  enabled={!sortingDisabled}
+                />
+                {isSortPopupOpen && (
+                  <div className="absolute bottom-full left-0 z-[100] mb-2 min-w-[200px] rounded-lg border-4 border-brand-purple bg-blue-100 py-2 shadow-lg">
+                    <div className="border-b border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700">
+                      Sort by:
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSortChange('number');
+                        setIsSortPopupOpen(false);
+                      }}
+                      className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-gray-100 ${
+                        sortBy === 'number' ? 'bg-purple-50 font-medium text-brand-purple' : 'text-gray-700'
+                      }`}
+                    >
+                      Student Number
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSortChange('alphabetical');
+                        setIsSortPopupOpen(false);
+                      }}
+                      className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-gray-100 ${
+                        sortBy === 'alphabetical' ? 'bg-purple-50 font-medium text-brand-purple' : 'text-gray-700'
+                      }`}
+                    >
+                      Alphabetical
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSortChange('points');
+                        setIsSortPopupOpen(false);
+                      }}
+                      className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-gray-100 ${
+                        sortBy === 'points' ? 'bg-purple-50 font-medium text-brand-purple' : 'text-gray-700'
+                      }`}
+                    >
+                      Points
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <BotNavGrayButton icon={<IconCheckBox />} label="Multiple Select" onClick={onToggleMultiSelect} />
+          </>
+        }
+        zone6={
+          <BottomNavRandomTimerCenter
+            interactive
+            onRandomClick={onRandomClick}
+            onTimerClick={onTimerClick}
+          />
+        }
+        zone7={
+          <div className="relative flex-shrink-0" ref={settingsButtonRef}>
+            <BotNavGrayButton
+              icon={<IconSettingsWheel />}
+              label="Settings"
+              active={isSettingsPopupOpen}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsSettingsPopupOpen(!isSettingsPopupOpen);
+              }}
+              stopPropagation={true}
+            />
+
+            {isSettingsPopupOpen && (
+              <div className="absolute bottom-full right-0 z-[100] mb-2 min-w-[200px] rounded-lg border-4 border-brand-purple bg-blue-100 py-2 shadow-lg">
+                {classId && onEditClass && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onEditClass();
+                      setIsSettingsPopupOpen(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100"
+                  >
+                    Edit Class
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100"
+                >
+                  Log out
+                </button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        }
+      />
     </BaseBottomNav>
   );
 }
