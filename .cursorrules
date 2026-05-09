@@ -1,28 +1,131 @@
-# KIS-Points Prototype 1 - Cursor Rules
+Here is the full, integrated version of your **KIS-Points Prototype 1 Cursor Rules**. This version combines your original state management principles with the new **7-Zone Grid** architecture and the **Macro/Micro** positioning logic.
+
+---
+
+# KIS-Points Prototype 1 - Cursor Rules (Grid & Zustand)
 
 ## 1. Architectural Mandate: The 3-Tier Visual / 3-Layer Data System
+
 You must strictly adhere to the established architecture. Do not blur the lines between routing, state, and pure UI components.
 
-### The 3-Tier Visual Architecture
-* **Tier 1 (Scaffolding):** Layouts, Shells, Navbars under `src/components/dashboard/shell` (e.g. `TopNav`, `LeftNav`, `DashboardLayout`). These handle application layout and routing bounds, not complex business logic.
-* **Tier 2 (View Switch):** Main view containers (e.g., `DashboardViewSwitch`). Determines *which* Tier 3 components to display based on the current UI state.
-* **Tier 3 (The Actors):** Pure UI components (`StudentCard`, `ActionButtons`, modals). They receive data, render UI, and trigger events, but rarely manage their own complex state.
+### The 3-Tier Visual Architecture (The Theater)
 
-### The 3-Layer Data Architecture
-* **Layer 1 (The Orchestrators):** Custom hooks (e.g., `useClassPointLog`, `useAwardPointsService`). They handle business logic: they call Layer 3 to fetch data, then push that data into Layer 2 (Zustand). 
-* **Layer 2 (The Desk - STATE):** Zustand Stores. Pure data storage and setter functions. **No Supabase calls or complex data transformations live here.**
-* **Layer 3 (The Vault):** Pure API/Database interactions. Files that talk strictly to Supabase and return raw data arrays/objects to Layer 1.
+* **Tier 1: Scaffolding (The Building):** Located in `@/components/dashboard/shell/`. These define the persistent **CSS Grid Shell** (e.g., `grid-cols-[19rem_1fr]`). They handle application layout and global boundaries.
 
-## 2. STRICT STATE MANAGEMENT RULES (ZUSTAND OVER CONTEXT)
+
+* **Tier 2: The Stage (The Sets):** Located in `@/components/dashboard/stage/` & `@/modules/`. These use **Explicit Row Locking** (e.g., `grid-rows-[auto_1fr_auto]`) to manage "Scroll Locking." They decide *which* Tier 3 components to display based on UI state.
+
+
+* **Tier 3: The Actors (Pure UI):** Atomic components (`StudentCard`, `ActionButton`) found in `@/components/dashboard/cards/` or `@/components/ui/`. They must be "Standard Flow" compatible—**never use `h-screen` or `fixed` positioning** inside the stage.
+
+
+
+### The 3-Layer Data Architecture (The Flow)
+
+* **Layer 1: The Orchestrators (Hooks):** Located in `@/hooks/`.
+* **Sync Hooks:** Located in `@/hooks/sync/`. Headless workers that keep the URL and Zustand in harmony.
+
+
+* **Service Hooks:** Handle complex business logic and optimistic UI (e.g., `useAwardPointsService`).
+
+
+
+
+* **Layer 2: The Desk (Zustand):** Located in `@/stores/`. Pure data storage and setter functions. **No Supabase calls or complex transformations live here**.
+
+
+* **Layer 3: The Vault (API):** Located in `@/lib/api/`. Pure database interactions. They take parameters and return raw data. No React or Zustand knowledge.
+
+
+
+---
+
+## 2. The 7-Zone Fixed Grid System
+
+The Dashboard is a fixed coordinate system. Components must be explicitly assigned to these zones or a "merged" combination.
+
+### The Zones
+
+* **Zone 1:** Persistent Left Navigation.
+
+
+* **Zones 2 & 3:** Top Bar / Header Area.
+
+
+* **Zones 4 & 5:** Main Canvas / Content Area.
+
+
+* **Zones 6 & 7:** Bottom Bar / Footer Area.
+
+
+* **Utility Column:** Zones 3, 5, and 7 form the right-hand utility strip.
+
+
+
+### View-Based Mounting (Merging Logic)
+
+* **ClassesView (Root):**
+* **Mounts:** `LeftNav` (Zone 1), `TopNav` (Zone 2/3).
+
+
+* **Unmounts:** `CanvasToolbar`, `BottomNav`.
+
+
+* **Layout:** Zone 4 spans `row-span-2` and `col-span-2` to cover zones 4, 5, 6, and 7.
+
+
+
+
+* **Students/Seating Views:**
+* **Mounts:** All zones active (1 through 7).
+
+
+* **Layout:** Content in 4, Right Toolbar in 5, Bottom Navs in 6/7. Seating Canvas may span 2 & 4.
+
+
+
+
+
+---
+
+## 3. Strict State & Layout Rules
+
 * 🚫 **REACT CONTEXT IS FORBIDDEN** for global application state, UI state, or data caching.
-* ✅ **USE ZUSTAND** for all global state management (stores must be located in `/src/stores/`).
-* 🎯 **STRICT SELECTORS ARE MANDATORY:** When a Tier 2 or Tier 3 component reads data from a Zustand store, it MUST subscribe *only* to the specific slice of state it needs. This is critical to prevent grid-wide re-renders.
-  * ❌ **BAD:** `const { students } = useDashboardStore()` (Triggers a re-render anytime *anything* in the store changes).
-  * ✅ **GOOD:** `const students = useDashboardStore(state => state.students)`
-  * ✅ **GOOD (Deep Selection):** `const studentPoints = useDashboardStore(state => state.students.find(s => s.id === props.id)?.points)`
 
-## 3. General Best Practices
-* **TypeScript:** Strictly type all component props, Zustand store shapes, and Supabase database responses. Rely on `/src/lib/types.ts`. Avoid `any`.
-* **Tailwind CSS:** Use Tailwind utility classes for all styling. 
-* **Component Size:** Avoid "God Components." If a component handles multiple responsibilities or grows too large, extract the sub-elements into smaller Tier 3 Actors.
-* **Optimistic UI:** When mutating data (e.g., awarding a point), Layer 1 should immediately update the Zustand store (Layer 2) for an instant UI reaction, *then* process the Layer 3 database call in the background.
+
+* 🚫 **NO FLEXBOX FOR MAIN SHELLS:** Use CSS Grid for high-level layouts (Shells and Stages). Use Flexbox only for internal component alignment.
+
+
+* 🚫 **NO "FLOATING" HEIGHTS:** Components inside the Stage must use `h-full` or `min-h-0`. Never use `h-screen` inside the Dashboard.
+
+
+* ✅ **URL IS THE SOURCE OF TRUTH:** If state is shareable (active class, active view), it must be in the URL and mirrored to Zustand via a `@/hooks/sync/` worker.
+
+
+* ✅ **ABSOLUTE POSITIONING:** Permitted **only** for internal styling (icons, badges, mascot poses). All absolute elements MUST be contained within a `relative` parent that respects the Grid-locked boundaries.
+
+
+* 🎯 **STRICT SELECTORS ARE MANDATORY:** Subscribe *only* to specific slices of state.
+* ❌ **BAD:** `const { students } = useDashboardStore()`.
+
+
+* ✅ **GOOD:** `const students = useDashboardStore(state => state.students)`.
+
+
+
+
+
+---
+
+## 4. General Best Practices
+
+* **TypeScript:** Strictly type all props, store shapes, and API responses using `@/lib/types.ts`. Avoid `any`.
+
+
+* **Component Size:** Avoid "God Components." Extract sub-elements into smaller Tier 3 Actors.
+
+
+* **Optimistic UI:** Layer 1 hooks must update Zustand immediately for instant UI reaction, then process the database call.
+
+
+* **Explicit Placement:** When Grid placement gets messy, use explicit row/column indices (e.g., `row-start-2`) to force stability.
