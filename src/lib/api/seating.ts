@@ -288,17 +288,68 @@ export async function broadcastSeatingChartRefresh(layoutId: string): Promise<vo
     layoutId,
     emittedAt: Date.now(),
   };
-  const channel = supabase.channel(`seating_chart_view_settings_${layoutId}`);
-  await channel.subscribe();
-  const result = await channel.send({
-    type: 'broadcast',
-    event: SEATING_REFRESH_EVENT,
-    payload,
-  });
-  if (result !== 'ok' && result !== 'timed out') {
-    throwApiError(new Error('Failed to broadcast seating refresh'), 'broadcastSeatingChartRefresh');
+  const channelName = `seating_chart_view_settings_${layoutId}`;
+  const channel = supabase.channel(channelName);
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      let finished = false;
+      const timeoutMs = 12_000;
+      const timeoutId = setTimeout(() => {
+        if (finished) return;
+        finished = true;
+        void supabase.removeChannel(channel);
+        reject(new Error('broadcastSeatingChartRefresh: subscribe timed out'));
+      }, timeoutMs);
+
+      const done = (fn: () => void) => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timeoutId);
+        fn();
+      };
+
+      channel.subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          void (async () => {
+            try {
+              const result = await channel.send({
+                type: 'broadcast',
+                event: SEATING_REFRESH_EVENT,
+                payload,
+              });
+              if (result !== 'ok' && result !== 'timed out') {
+                done(() => {
+                  void supabase.removeChannel(channel);
+                  reject(new Error('Failed to broadcast seating refresh'));
+                });
+                return;
+              }
+              done(() => {
+                void supabase.removeChannel(channel);
+                resolve();
+              });
+            } catch (sendErr) {
+              done(() => {
+                void supabase.removeChannel(channel);
+                reject(sendErr instanceof Error ? sendErr : new Error(String(sendErr)));
+              });
+            }
+          })();
+          return;
+        }
+
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          done(() => {
+            void supabase.removeChannel(channel);
+            reject(err ?? new Error(`Realtime channel ${status}`));
+          });
+        }
+      });
+    });
+  } catch (e) {
+    throwApiError(e instanceof Error ? e : new Error(String(e)), 'broadcastSeatingChartRefresh');
   }
-  void supabase.removeChannel(channel);
 }
 
 /** Supabase realtime: `seating_charts` row updates for view settings (grid/objects/orientation). */

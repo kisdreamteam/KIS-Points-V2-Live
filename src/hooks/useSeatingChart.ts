@@ -31,6 +31,7 @@ import {
 import type { GroupAssignment } from '@/lib/api/seating';
 import { getCoordinates, getNextIndex, getSlotIndex } from '@/lib/seatingLogic';
 import { STUDENT_EVENTS, emitSeatingEditMode } from '@/lib/events/students';
+import { refreshSeatingGroupsForLayout } from '@/hooks/sync/useSeatingChartDataSync';
 
 
 interface SeatingChart {
@@ -216,6 +217,8 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     const [groupAssignments, setGroupAssignments] = useState<Map<string, GroupAssignment[]>>(new Map());
     const groupAssignmentsRef = useRef<Map<string, GroupAssignment[]>>(new Map());
     const handleCloseRef = useRef<() => void>(() => {});
+    /** Set when closing via handleClose after save so unmount cleanup does not emit edit-mode false again. */
+    const skipUnmountEditModeEmitRef = useRef(false);
     const addStudentToGroupInFlightRef = useRef<{ studentId: string; groupId: string } | null>(null);
     const saveAllChangesInFlightRef = useRef(false);
     const [targetGroupId, setTargetGroupId] = useState<string | null>(null);
@@ -289,6 +292,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     // Handle close button - navigate back to seating chart view (remove mode=edit)
     const handleClose = () => {
       void saveAllChangesToDatabase(() => {
+        skipUnmountEditModeEmitRef.current = true;
         const params = new URLSearchParams(searchParams?.toString() ?? '');
         params.delete('mode');
         const base = pathname ?? '/';
@@ -297,6 +301,17 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         emitSeatingEditMode({ isEditMode: false });
       });
     };
+
+    const searchParamsSnapshot = searchParams?.toString() ?? '';
+    useEffect(() => {
+      return () => {
+        if (skipUnmountEditModeEmitRef.current) return;
+        const params = new URLSearchParams(searchParamsSnapshot);
+        if (params.get('mode') === 'edit') {
+          emitSeatingEditMode({ isEditMode: false });
+        }
+      };
+    }, [searchParamsSnapshot]);
 
     useEffect(() => {
       handleCloseRef.current = handleClose;
@@ -657,6 +672,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         );
 
         showSuccessNotification('Saved', 'Your seating chart layout and assignments were saved.');
+        await refreshSeatingGroupsForLayout(selectedLayoutId);
         onSaveComplete?.();
       } catch (err) {
         console.error('Unexpected error saving seating chart:', err);

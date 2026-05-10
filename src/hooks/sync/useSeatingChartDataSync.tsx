@@ -100,7 +100,6 @@ export async function refreshSeatingGroupsForLayout(layoutId: string | null): Pr
 /** Keeps seating layout/group data in `useSeatingStore` aligned with class + layout selection. */
 export function SeatingChartDataSync() {
   const activeClassId = useDashboardStore((s) => s.activeClassId);
-  const rosterLen = useDashboardStore((s) => s.students.length);
   const selectedLayoutId = useSeatingStore((s) => s.selectedLayoutId);
   const prevClassRef = useRef<string | null>(null);
 
@@ -127,9 +126,8 @@ export function SeatingChartDataSync() {
       useSeatingStore.getState().setGroupPositionsById({});
       return;
     }
-    if (rosterLen === 0) return;
     void refreshSeatingGroupsForLayout(selectedLayoutId);
-  }, [selectedLayoutId, rosterLen]);
+  }, [selectedLayoutId]);
 
   useEffect(() => {
     const handleSeatingEditMode = (event: Event) => {
