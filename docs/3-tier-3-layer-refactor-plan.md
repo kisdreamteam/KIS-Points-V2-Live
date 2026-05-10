@@ -148,7 +148,7 @@ Status: Finished
 
 Status: Finished
 
-**File:** `src/components/dashboard/DashboardWorkspace.tsx`  
+**File:** `src/components/dashboard/stage/DashboardWorkspace.tsx`  
 **Issue:** scaffolding-level component performs auth/view preference persistence logic.
 
 ### Create

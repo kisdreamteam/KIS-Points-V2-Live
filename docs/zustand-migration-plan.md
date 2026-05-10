@@ -15,7 +15,7 @@
 - [x] **Setup:** Run `npm install zustand`.
 - [x] **Typings:** Define the UI state shape in `/src/lib/types.ts` or at the top of the store file (e.g., `activeView`, `isSidebarOpen`).
 - [x] **Create Store:** Create [`/src/stores/useLayoutStore.ts`](../src/stores/useLayoutStore.ts) with basic state and setter functions.
-- [x] **Reroute Readers:** Update [`DashboardViewSwitch`](../src/components/dashboard/DashboardViewSwitch.tsx) (Tier 2b) to subscribe purely to `useLayoutStore((state) => state.activeView)`; [`DashboardWorkspace`](../src/components/dashboard/DashboardWorkspace.tsx) reads seating chrome from the same store. URL is synced from [`DashboardLayout`](../src/components/dashboard/shell/DashboardLayout.tsx) via `useLayoutEffect`.
+- [x] **Reroute Readers:** Update [`DashboardViewSwitch`](../src/components/dashboard/DashboardViewSwitch.tsx) (Tier 2b) to subscribe purely to `useLayoutStore((state) => state.activeView)`; [`DashboardWorkspace`](../src/components/dashboard/stage/DashboardWorkspace.tsx) reads seating chrome from the same store. URL is synced from [`DashboardLayout`](../src/components/dashboard/shell/DashboardLayout.tsx) via `useLayoutEffect`.
 - [x] **Reroute Writers:** Update [`LeftNav`](../src/components/dashboard/shell/LeftNav.tsx) and [`ViewModeModal`](../src/components/ui/modals/ViewModeModal.tsx) to call `setActiveView` from `useLayoutStore` (TopNav has no view switches).
 - [x] **Verification:** `npm run build` passed; confirm in the browser: `/dashboard` ↔ class routes, grid ↔ seating via View modal, deep link `?view=seating`, and stage chrome (TopNav / toolbar) still match seating vs non-seating.
 
@@ -85,7 +85,7 @@
 - [x] **Seating store:** [`useSeatingStore.ts`](../src/stores/useSeatingStore.ts) adds `selectedLayoutId`, `setSelectedLayoutId`, and nullable `layoutNavHandlers` (registered from [`SeatingChartView.tsx`](../src/components/dashboard/SeatingChartView.tsx)); `resetForClassSwitch` clears selection + handlers.
 - [x] **Layout store:** [`useLayoutStore.ts`](../src/stores/useLayoutStore.ts) adds `isMultiSelectMode` + setters; [`useStudentsSelection.ts`](../src/hooks/useStudentsSelection.ts) and [`useStudentsToolbarEvents.ts`](../src/hooks/useStudentsToolbarEvents.ts) keep the store and legacy window events aligned.
 - [x] **Student grid:** [`StudentCard.tsx`](../src/components/dashboard/cards/StudentCard.tsx) + [`StudentCardsGrid.tsx`](../src/components/dashboard/StudentCardsGrid.tsx) unified path; `StudentCardMulti.tsx` removed.
-- [x] **Dead code:** `StageToolbarContext.tsx` deleted; `StageToolbarProvider` removed from [`DashboardWorkspace.tsx`](../src/components/dashboard/DashboardWorkspace.tsx).
+- [x] **Dead code:** `StageToolbarContext.tsx` deleted; `StageToolbarProvider` removed from [`DashboardWorkspace.tsx`](../src/components/dashboard/stage/DashboardWorkspace.tsx).
 
 ---
 
