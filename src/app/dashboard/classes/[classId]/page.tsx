@@ -1,4 +1,4 @@
-import DashboardLayout from '@/components/dashboard/shell/DashboardLayout';
+import DashboardView from '@/modules/dashboard/DashboardView';
 import DashboardViewSwitch from '../../../../modules/dashboard/DashboardViewSwitch';
 
 type ClassRosterPageProps = {
@@ -11,8 +11,8 @@ export default async function ClassRosterPage({ params }: ClassRosterPageProps) 
   const { classId } = await params;
 
   return (
-    <DashboardLayout>
+    <DashboardView>
       <DashboardViewSwitch key={classId} />
-    </DashboardLayout>
+    </DashboardView>
   );
 }

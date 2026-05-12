@@ -2,7 +2,7 @@
 
 import type { FC } from 'react';
 
-import AuthLayout from '@/components/dashboard/shell/AuthLayout';
+import AuthLayout from '@/modules/auth/AuthLayout';
 import LoginForm from '@/components/ui/auth/LoginForm';
 import { useAuthFlow } from '@/hooks/useAuthFlow';
 

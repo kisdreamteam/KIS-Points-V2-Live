@@ -1,10 +1,10 @@
-import DashboardLayout from '@/components/dashboard/shell/DashboardLayout';
+import DashboardView from '@/modules/dashboard/DashboardView';
 import DashboardViewSwitch from '../../modules/dashboard/DashboardViewSwitch';
 
 export default function DashboardPage() {
   return (
-    <DashboardLayout>
+    <DashboardView>
       <DashboardViewSwitch />
-    </DashboardLayout>
+    </DashboardView>
   );
 }

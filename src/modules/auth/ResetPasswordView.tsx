@@ -1,6 +1,6 @@
 'use client';
 
-import AuthLayout from '@/components/dashboard/shell/AuthLayout';
+import AuthLayout from '@/modules/auth/AuthLayout';
 import ResetPasswordForm from '@/components/ui/auth/ResetPasswordForm';
 import { useAuthFlow } from '@/hooks/useAuthFlow';
 
