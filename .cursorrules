@@ -1,131 +1,82 @@
-Here is the full, integrated version of your **KIS-Points Prototype 1 Cursor Rules**. This version combines your original state management principles with the new **7-Zone Grid** architecture and the **Macro/Micro** positioning logic.
-
----
-
 # KIS-Points Prototype 1 - Cursor Rules (Grid & Zustand)
 
-## 1. Architectural Mandate: The 3-Tier Visual / 3-Layer Data System
+## 1. Architectural Mandate: The Dual-Shell System
 
-You must strictly adhere to the established architecture. Do not blur the lines between routing, state, and pure UI components.
+The application operates under two distinct visual and logical paradigms. You must identify which layout is active before applying layout or state rules.
 
-### The 3-Tier Visual Architecture (The Theater)
+### A. Auth Layout (The Entryway)
 
-* **Tier 1: Scaffolding (The Building):** Located in `@/components/dashboard/shell/`. These define the persistent **CSS Grid Shell** (e.g., `grid-cols-[19rem_1fr]`). They handle application layout and global boundaries.
+* **Location:** `@/modules/auth/`, `@/app/(auth)/`.
+* **Shell:** `AuthLayout.tsx`.
+* **Layout Logic:** Uses **Flexbox** for centering (e.g., `flex items-center justify-center`).
+* **State:** Uses `useAuthStore.ts` (Layer 2). Handles session, loading states for login/signup, and password reset flows.
+* **Scope:** Landing page and the 4 auth pages (Login, SignUp, Forgot Password, Reset Password).
+
+### B. Dashboard Layout (The Workspace)
+
+* **Location:** `@/modules/dashboard/`, `@/app/dashboard/`.
+* **Shell:** `DashboardLayout.tsx`.
+* **Layout Logic:** Uses the **7-Zone CSS Grid System**.
+* **State:** Uses `useDashboardStore.ts` and `useDashboardUIStore.ts` (Layer 2).
+* **Scope:** All authenticated teacher views (Classes, Students, Seating).
+
+---
+
+## 2. The 3-Tier Visual / 3-Layer Data System
+
+### Tier 1: Scaffolding (The Buildings)
+
+* **Auth Shell:** Centered, restricted width (`max-w-md`), focus on readability.
+* **Dashboard Shell:** Persistent **7-Zone CSS Grid** (`grid-cols-[19rem_1fr]`). Located in `@/components/dashboard/shell/`.
+
+### Tier 2: The Stage (The Sets)
+
+* **Dashboard Views:** Located in `@/modules/`. Use **Explicit Row Locking** (e.g., `grid-rows-[auto_1fr_auto]`) to prevent layout shift.
+* **Auth Views:** Simple containers for forms and marketing copy.
+
+### Tier 3: The Actors (Pure UI)
+
+* **Rules:** Atomic components (`StudentCard`, `Input`, `Button`). Found in `@/components/ui/`.
+* **Constraint:** Must be context-agnostic. A button should look the same in the Login page as it does in the Dashboard.
+
+---
+
+## 3. The 7-Zone Fixed Grid (Dashboard Only)
+
+Components in the Dashboard must be assigned to zones. `AuthLayout` is exempt from this coordinate system.
+
+* **Zone 1:** Left Nav.
+* **Zones 2/3:** Header.
+* **Zones 4/5:** Canvas.
+* **Zones 6/7:** Footer.
+* **Merging:** `ClassesView` merges Zone 4/5/6/7 into a single large canvas. `StudentView` utilizes all zones for toolbars.
+
+---
+
+## 4. Strict State & Layout Rules
+
+* 🚫 **REACT CONTEXT IS FORBIDDEN** for global application state.
+* ✅ **ISOLATED STORES:**
+* **Auth State:** `useAuthStore` manages identity and auth-flow UI.
+* **Dashboard State:** `useDashboardDataStore` (students/classes) and `useDashboardUIStore` (activeView/sidebar).
 
 
-* **Tier 2: The Stage (The Sets):** Located in `@/components/dashboard/stage/` & `@/modules/`. These use **Explicit Row Locking** (e.g., `grid-rows-[auto_1fr_auto]`) to manage "Scroll Locking." They decide *which* Tier 3 components to display based on UI state.
+* ✅ **LAYOUT SPECIFICITY:** * Use **Flexbox** for Auth/Landing.
+* Use **CSS Grid** for Dashboard Shells.
 
 
-* **Tier 3: The Actors (Pure UI):** Atomic components (`StudentCard`, `ActionButton`) found in `@/components/dashboard/cards/` or `@/components/ui/`. They must be "Standard Flow" compatible—**never use `h-screen` or `fixed` positioning** inside the stage.
-
-
-
-### The 3-Layer Data Architecture (The Flow)
-
-* **Layer 1: The Orchestrators (Hooks):** Located in `@/hooks/`.
-* **Sync Hooks:** Located in `@/hooks/sync/`. Headless workers that keep the URL and Zustand in harmony.
-
-
-* **Service Hooks:** Handle complex business logic and optimistic UI (e.g., `useAwardPointsService`).
-
-
-
-
-* **Layer 2: The Desk (Zustand):** Located in `@/stores/`. Pure data storage and setter functions. **No Supabase calls or complex transformations live here**.
-
-
-* **Layer 3: The Vault (API):** Located in `@/lib/api/`. Pure database interactions. They take parameters and return raw data. No React or Zustand knowledge.
+* 🚫 **NO "FLOATING" HEIGHTS:** Inside the Dashboard, components must use `h-full` or `min-h-0`. Never use `h-screen`.
+* ✅ **URL SYNC:** Shareable state (active class, active view) must be mirrored from the URL to Zustand via `@/hooks/sync/` workers.
+* 🎯 **STRICT SELECTORS:** Always use granular selectors to prevent re-renders.
+* `const profile = useAuthStore(state => state.profile)`
 
 
 
 ---
 
-## 2. The 7-Zone Fixed Grid System
+## 5. General Best Practices
 
-The Dashboard is a fixed coordinate system. Components must be explicitly assigned to these zones or a "merged" combination.
-
-### The Zones
-
-* **Zone 1:** Persistent Left Navigation.
-
-
-* **Zones 2 & 3:** Top Bar / Header Area.
-
-
-* **Zones 4 & 5:** Main Canvas / Content Area.
-
-
-* **Zones 6 & 7:** Bottom Bar / Footer Area.
-
-
-* **Utility Column:** Zones 3, 5, and 7 form the right-hand utility strip.
-
-
-
-### View-Based Mounting (Merging Logic)
-
-* **ClassesView (Root):**
-* **Mounts:** `LeftNav` (Zone 1), `TopNav` (Zone 2/3).
-
-
-* **Unmounts:** `CanvasToolbar`, `BottomNav`.
-
-
-* **Layout:** Zone 4 spans `row-span-2` and `col-span-2` to cover zones 4, 5, 6, and 7.
-
-
-
-
-* **Students/Seating Views:**
-* **Mounts:** All zones active (1 through 7).
-
-
-* **Layout:** Content in 4, Right Toolbar in 5, Bottom Navs in 6/7. Seating Canvas may span 2 & 4.
-
-
-
-
-
----
-
-## 3. Strict State & Layout Rules
-
-* 🚫 **REACT CONTEXT IS FORBIDDEN** for global application state, UI state, or data caching.
-
-
-* 🚫 **NO FLEXBOX FOR MAIN SHELLS:** Use CSS Grid for high-level layouts (Shells and Stages). Use Flexbox only for internal component alignment.
-
-
-* 🚫 **NO "FLOATING" HEIGHTS:** Components inside the Stage must use `h-full` or `min-h-0`. Never use `h-screen` inside the Dashboard.
-
-
-* ✅ **URL IS THE SOURCE OF TRUTH:** If state is shareable (active class, active view), it must be in the URL and mirrored to Zustand via a `@/hooks/sync/` worker.
-
-
-* ✅ **ABSOLUTE POSITIONING:** Permitted **only** for internal styling (icons, badges, mascot poses). All absolute elements MUST be contained within a `relative` parent that respects the Grid-locked boundaries.
-
-
-* 🎯 **STRICT SELECTORS ARE MANDATORY:** Subscribe *only* to specific slices of state.
-* ❌ **BAD:** `const { students } = useDashboardStore()`.
-
-
-* ✅ **GOOD:** `const students = useDashboardStore(state => state.students)`.
-
-
-
-
-
----
-
-## 4. General Best Practices
-
-* **TypeScript:** Strictly type all props, store shapes, and API responses using `@/lib/types.ts`. Avoid `any`.
-
-
-* **Component Size:** Avoid "God Components." Extract sub-elements into smaller Tier 3 Actors.
-
-
-* **Optimistic UI:** Layer 1 hooks must update Zustand immediately for instant UI reaction, then process the database call.
-
-
-* **Explicit Placement:** When Grid placement gets messy, use explicit row/column indices (e.g., `row-start-2`) to force stability.
+* **TypeScript:** Strictly type all props and store shapes in `@/lib/types.ts`. **No `any**`.
+* **Layer 1 Orchestration:** All Supabase interactions must be wrapped in Layer 1 hooks (e.g., `useLoginService`, `useAwardPointsService`).
+* **Optimistic UI:** Dashboard mutations must update Layer 2 immediately before Layer 3 confirms.
+* **Tier 3 Purity:** Components in `@/components/ui/` must not import stores or API clients; they receive data via props only.
