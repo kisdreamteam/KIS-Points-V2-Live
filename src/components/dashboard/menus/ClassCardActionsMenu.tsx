@@ -2,7 +2,7 @@
 
 import { type RefObject } from 'react';
 import { createPortal } from 'react-dom';
-import { useAnchoredDropdownPortal } from '@/components/dashboard/menus/useAnchoredDropdownPortal';
+import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 import MenuSurface from '@/components/ui/menu/MenuSurface';
 import MenuItem from '@/components/ui/menu/MenuItem';
 import MenuDivider from '@/components/ui/menu/MenuDivider';

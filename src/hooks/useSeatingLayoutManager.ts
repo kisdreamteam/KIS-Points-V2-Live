@@ -228,10 +228,12 @@ export function useSeatingLayoutManager({
     };
     const onTogglePointLogEvent = () => {
       if (currentView !== 'seating') return;
+      setIsLayoutManagerOpen(false);
       setIsPointLogOpen((v) => !v);
     };
     const onToggleLayoutManagerEvent = () => {
       if (currentView !== 'seating') return;
+      setIsPointLogOpen(false);
       setIsLayoutManagerOpen((v) => !v);
     };
 

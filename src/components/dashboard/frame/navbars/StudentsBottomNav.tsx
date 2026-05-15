@@ -8,10 +8,11 @@ import StudentsSettingsMenu from '@/components/dashboard/menus/StudentsSettingsM
 import IconViewDots from '@/components/ui/icons/iconViewDots';
 import IconSortingArrows from '@/components/ui/icons/iconSortingArrows';
 import IconCheckBox from '@/components/ui/icons/iconCheckBox';
+import IconRandomArrows from '@/components/ui/icons/iconRandomArrows';
+import IconTimerClock from '@/components/ui/icons/iconTimerClock';
 import IconSettingsWheel from '@/components/ui/icons/iconSettingsWheel';
 import BotNavGrayButton from '@/components/ui/BotNavGrayButton';
 import BaseBottomNav from '@/components/ui/BaseBottomNav';
-import BottomNavRandomTimerCenter from '@/components/dashboard/frame/BottomNavRandomTimerCenter';
 
 interface StudentsBottomNavProps {
   currentClassName: string | null;
@@ -123,11 +124,8 @@ export default function StudentsBottomNav({
 
         <BotNavGrayButton icon={<IconCheckBox />} label="Multiple Select" onClick={onToggleMultiSelect} />
 
-        <BottomNavRandomTimerCenter
-          interactive
-          onRandomClick={onRandomClick}
-          onTimerClick={onTimerClick}
-        />
+        <BotNavGrayButton icon={<IconRandomArrows />} label="Random" onClick={() => onRandomClick()} />
+        <BotNavGrayButton icon={<IconTimerClock />} label="Timer" onClick={() => onTimerClick()} />
 
         <div className="relative flex-shrink-0" ref={settingsButtonRef}>
           <BotNavGrayButton

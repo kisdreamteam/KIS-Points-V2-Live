@@ -9,7 +9,6 @@ import IconNoCircleX from '@/components/ui/icons/iconNoCircleX';
 import IconStarTrophy from '@/components/ui/icons/iconStarTrophy';
 import BotNavGrayButton from '@/components/ui/BotNavGrayButton';
 import BaseBottomNav from '@/components/ui/BaseBottomNav';
-import BottomNavRandomTimerCenter from '@/components/dashboard/frame/BottomNavRandomTimerCenter';
 import { STUDENT_EVENTS } from '@/lib/events/students';
 
 export default function MultiSelectBottomNav() {
@@ -104,8 +103,6 @@ export default function MultiSelectBottomNav() {
           onClick={handleInverseSelect}
           enabled={selectedCount > 0}
         />
-
-        <BottomNavRandomTimerCenter interactive={false} onRandomClick={() => {}} onTimerClick={() => {}} />
 
         <BotNavGrayButton
           variant="danger"

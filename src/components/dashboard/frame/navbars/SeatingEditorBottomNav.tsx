@@ -10,7 +10,6 @@ import IconAutoAssign from '@/components/ui/icons/iconAutoAssign';
 import IconAddPlus from '@/components/ui/icons/iconAddPlus';
 import BotNavGrayButton from '@/components/ui/BotNavGrayButton';
 import BaseBottomNav from '@/components/ui/BaseBottomNav';
-import BottomNavRandomTimerCenter from '@/components/dashboard/frame/BottomNavRandomTimerCenter';
 
 interface SeatingEditorBottomNavProps extends SeatingEditBottomNavViewProps {
   currentClassName: string | null;
@@ -186,8 +185,6 @@ export default function SeatingEditorBottomNav({
             />
           </div>
         )}
-
-        <BottomNavRandomTimerCenter interactive={false} onRandomClick={() => {}} onTimerClick={() => {}} />
 
         <BotNavGrayButton
           variant="danger"
