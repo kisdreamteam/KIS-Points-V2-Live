@@ -76,7 +76,7 @@ Status: Finished
 
 Status: Finished
 
-**File:** `src/components/dashboard/DashboardClassModalsHost.tsx`  
+**File:** `src/modules/dashboard/DashboardClassModalsHost.tsx`  
 **Issue:** modal host directly calls student APIs.
 
 ### Create
@@ -112,7 +112,7 @@ Status: Finished
 
 Status: Finished
 
-**File:** `src/components/dashboard/tools/Random.tsx`  
+**File:** `src/modules/dashboard/tools/Random.tsx`  
 **Issue:** UI tool directly performs API operations.
 
 ### Create

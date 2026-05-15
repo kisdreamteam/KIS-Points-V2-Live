@@ -24,6 +24,7 @@ import {
 } from '@/lib/api/students';
 import type { Student } from '@/lib/types';
 import type { AddStudentsFormSubmitValues } from '@/components/dashboard/forms/AddStudentsForm';
+import { refreshDashboardRosterIfActive } from '@/hooks/sync/useDashboardStudentSync';
 
 export interface CollaboratorTeacher {
   collaboratorRowId: string;
@@ -192,6 +193,7 @@ export function useClassManagement({
         await insertStudentsBulk(newStudents);
       }
       await fetchStudents();
+      await refreshDashboardRosterIfActive(classId);
       setHasUnsavedChanges(false);
       setNextStudentNumber(await getNextStartingStudentNumber(classId));
     } catch (err) {
@@ -291,12 +293,13 @@ export function useClassManagement({
       });
       await bulkUpdateStudents(updates);
       await fetchStudents();
+      await refreshDashboardRosterIfActive(classId);
       setHasUnsavedChanges(false);
       setShowSaveConfirmation(true);
     } finally {
       setIsLoading(false);
     }
-  }, [students, originalStudents, fetchStudents]);
+  }, [students, originalStudents, fetchStudents, classId]);
 
   const handleResetPoints = useCallback(async (deleteEvents: boolean) => {
     if (!isClassOwner) return alert('Only the primary class owner can reset points.');
@@ -308,6 +311,7 @@ export function useClassManagement({
       if (deleteEvents) await deleteCustomPointEventsByStudentIds(studentIds);
       await resetPointsByStudentIds(studentIds);
       await fetchStudents();
+      await refreshDashboardRosterIfActive(classId);
       onRefresh();
       setShowResetPointsPopup(false);
     } finally {
@@ -321,6 +325,50 @@ export function useClassManagement({
     onRefresh();
     router.push('/dashboard');
   }, [onClose, onRefresh, router]);
+
+  const handleCancelChanges = useCallback(() => {
+    setStudents(JSON.parse(JSON.stringify(originalStudents)) as StudentWithPhoto[]);
+    setHasUnsavedChanges(false);
+  }, [originalStudents]);
+
+  const handleSwitchFirstAndLastNames = useCallback(() => {
+    setStudents((prev) =>
+      prev.map((student) => ({
+        ...student,
+        first_name: student.last_name || '',
+        last_name: student.first_name,
+      }))
+    );
+    setHasUnsavedChanges(true);
+  }, []);
+
+  const updateStudentField = useCallback(
+    (studentId: string, field: keyof Pick<Student, 'first_name' | 'last_name' | 'student_number' | 'gender'>, value: string | number | null) => {
+      setStudents((prev) =>
+        prev.map((student) => {
+          if (student.id !== studentId) return student;
+          if (field === 'student_number') {
+            const num = value === '' || value === null ? null : Number(value);
+            return { ...student, student_number: Number.isNaN(num as number) ? null : num };
+          }
+          return { ...student, [field]: value };
+        })
+      );
+      setHasUnsavedChanges(true);
+    },
+    []
+  );
+
+  const handleGenderToggle = useCallback((studentId: string, targetGender: 'Boy' | 'Girl') => {
+    setStudents((prev) =>
+      prev.map((student) => {
+        if (student.id !== studentId) return student;
+        const newGender = student.gender === targetGender ? null : targetGender;
+        return { ...student, gender: newGender };
+      })
+    );
+    setHasUnsavedChanges(true);
+  }, []);
 
   return {
     className, setClassName,
@@ -356,5 +404,9 @@ export function useClassManagement({
     handleSaveAllChanges,
     handleResetPoints,
     handleReturnToDashboard,
+    handleCancelChanges,
+    handleSwitchFirstAndLastNames,
+    updateStudentField,
+    handleGenderToggle,
   };
 }

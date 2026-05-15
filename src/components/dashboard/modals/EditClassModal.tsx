@@ -1,4 +1,4 @@
 'use client';
 
-export { default } from '@/components/dashboard/EditClassModalRoot';
-export type { EditClassModalProps } from '@/components/dashboard/EditClassModalRoot';
+export { default } from '@/modules/classes/EditClassModalRoot';
+export type { EditClassModalProps } from '@/modules/classes/EditClassModalRoot';

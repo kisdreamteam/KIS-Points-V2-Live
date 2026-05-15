@@ -7,7 +7,7 @@ import EditLayoutModal from '@/components/dashboard/modals/EditLayoutModal';
 import PointsLogDrawer from '@/components/dashboard/PointsLogDrawer';
 import LayoutManagerDrawer from '@/components/dashboard/seating/LayoutManagerDrawer';
 import SeatingCanvasDecor from '@/components/dashboard/seating/SeatingCanvasDecor';
-import SeatingGroupsCanvas from '@/components/dashboard/seating/SeatingGroupsCanvas';
+import SeatingGroupsCanvas from '@/modules/seating/SeatingGroupsCanvas';
 import type { PointLogRow } from '@/hooks/useClassPointLog';
 import type { SeatingChartRecord } from '@/lib/api/seating';
 

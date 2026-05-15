@@ -5,7 +5,11 @@ Prototype 1 uses a **dual-shell** layout model and a **dual-boundary** data mode
 - **Visual 3-Tier:** where React components live and what they may render.
 - **Data 3-Layer:** how state and Supabase interact.
 
-**Status (May 2026):** The Zustand migration described in `docs/zustand-migration-plan.md` is effectively complete. Dashboard global state no longer uses React Context. Remaining work is boundary hygiene and manual regression checks—not a second state platform.
+**Status (May 2026):**
+
+- Zustand migration is effectively complete; dashboard global state does not use React Context.
+- **Dashboard visual boundaries:** Tier 1 frame and Tier 3 actors live under `src/components/dashboard/`; Tier 2 view containers live under `src/modules/{dashboard,classes,students,seating}/`.
+- **Auth/landing:** self-contained under `src/modules/` (not subject to the dashboard `components/` vs `modules/` tier split).
 
 Related docs: `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-tier-3-layer-refactor-plan.md`.
 
@@ -13,38 +17,60 @@ Related docs: `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-ti
 
 ## 0. Dual shells (identify the shell first)
 
-### A. Auth & landing shell
+### A. Auth & landing shell — self-contained under `modules/`
 
-- **Routes:** `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`
-- **App entry:** thin `src/app/*/page.tsx` files compose `src/modules/auth/*` and `src/modules/landing/*`
-- **Layout:** `src/modules/auth/AuthLayout.tsx` — centered flex, `max-w-md` forms, marketing chrome
-- **State:** `useAuthFlow` in `src/hooks/useAuthFlow.ts` keeps **local** form/session UI state. There is no global `useAuthStore` in this repo.
-- **Data:** Layer 1 hook → `src/lib/api/auth.service.ts` (Layer 3)
+Auth is **not** subject to the dashboard `components/` vs `modules/` tier split. Keep auth-related files where they are.
 
-### B. Dashboard shell
+| Concern | Location |
+|---------|----------|
+| Tier 1 layout | `src/modules/auth/AuthLayout.tsx` |
+| Tier 2 views | `src/modules/auth/LoginView.tsx`, `SignUpView.tsx`, `ForgotPasswordView.tsx`, `ResetPasswordView.tsx` |
+| Tier 2 landing | `src/modules/landing/LandingView.tsx` |
+| Tier 3 UI | `src/components/ui/auth/*`, `src/components/ui/landing/*` |
+| Layer 1 | `src/hooks/useAuthFlow.ts` |
+| Layer 3 | `src/lib/api/auth.service.ts` |
+| Routes | Thin `src/app/login|signup|.../page.tsx` → `@/modules/auth/*` or `@/modules/landing/*` |
 
-- **Routes:** `/dashboard`, `/dashboard/classes/[classId]` with `?view=` / `?mode=` query params
-- **App entry:** `src/app/dashboard/layout.tsx` mounts long-lived `DashboardClassesSync`; pages render `DashboardView` + `DashboardViewSwitch`
-- **Layout:** `src/components/dashboard/frame/DashboardLayout.tsx` — persistent **7-zone CSS grid** (`grid-cols-[19rem_1fr]` when the sidebar is open)
-- **State:** Zustand stores under `src/stores/` (see §4)
-- **Sync:** renderless sync workers mounted from `src/components/dashboard/frame/DashboardView.tsx` and route hooks inside the shell
+### B. Dashboard shell — `components/` = T1 & T3, `modules/` = T2
 
-**Rule:** Do not apply dashboard grid/zone rules to auth pages, or flex centering rules to the dashboard workspace.
+| Concern | Location |
+|---------|----------|
+| Tier 1 | `src/components/dashboard/frame/` |
+| Tier 2 | `src/modules/dashboard/`, `classes/`, `students/`, `seating/` |
+| Tier 3 | `src/components/dashboard/{cards,modals,menus,forms,seating}/` + `src/components/ui/` |
+| Layer 1 / 1b | `src/hooks/`, `src/hooks/sync/` |
+| Layer 2 | `src/stores/` |
+| Layer 3 | `src/lib/api/` |
+| Routes | `src/app/dashboard/*` → `DashboardView` (components) + `DashboardViewSwitch` (modules) |
+
+**Rule:** Do not apply dashboard grid/zone rules to auth/landing, or auth flex centering rules to the dashboard workspace.
 
 ---
 
-## 1. Visual 3-Tier separation (the theater)
+## 1. Visual 3-Tier — dashboard folder policy
 
-### Tier 1 — Scaffolding (the building)
+### 1.1 Folder ↔ tier (dashboard only)
 
-**Responsibility:** Persistent chrome, routing bounds, zone assignment. Subscribes to layout/UI slices only; no Supabase and no mutation orchestration.
+| Tier | Role | Location |
+|------|------|----------|
+| **1** | Scaffolding, chrome, zones | `src/components/dashboard/frame/` |
+| **2** | View containers, workspaces, orchestration | `src/modules/{dashboard,classes,students,seating}/` |
+| **3** | Presentational UI | `src/components/dashboard/{cards,modals,menus,forms,seating}/`, `src/components/ui/` |
 
-**Primary locations**
+`src/modules/` is the permanent home for auth, landing, and dashboard Tier 2. Do not move `AuthLayout` or auth views into `components/` for folder-policy reasons.
 
-- `src/components/dashboard/frame/` — `DashboardView.tsx`, `DashboardLayout.tsx`, `dashboardZoneConfig.ts`, `BottomNavRandomTimerCenter.tsx`
-- `src/components/dashboard/frame/navbars/` — `LeftNav`, `TopNav`, bottom nav bridges, seating editor nav
-- `src/modules/auth/AuthLayout.tsx`
-- `src/app/**/layout.tsx` — route wrappers only
+### 1.2 Tier 1 — Scaffolding (`components/dashboard/frame/`)
+
+**Responsibility:** Persistent chrome, routing bounds, zone assignment. Mounts Layer 1b sync workers; reads layout/UI slices for chrome only (no Supabase, no mutation orchestration).
+
+| Path | Role |
+|------|------|
+| `frame/DashboardView.tsx` | Sync worker host + `DashboardLayout` |
+| `frame/DashboardLayout.tsx` | 7-zone grid, nav slots, mounts modal host & tools |
+| `frame/dashboardZoneConfig.ts` | Zone / toolbar definitions |
+| `frame/navbars/*` | Left/top/bottom nav, seating editor chrome |
+
+Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, `viewMode`) because they are shell chrome, not workspace orchestration.
 
 **Dashboard 7-zone grid (conceptual)**
 
@@ -55,46 +81,54 @@ Related docs: `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-ti
 | 4–5 | Main canvas |
 | 6–7 | Footer / bottom toolbars |
 
-`ClassesView` may merge canvas zones into one full-height grid. Student and seating modes use toolbars across multiple zones. Seating view can swap left nav and suppress top nav while keeping the outer cream/purple frame mounted.
-
 **Rules**
 
 - Prefer `h-full` / `min-h-0` inside the dashboard; avoid `h-screen` in nested workspace content.
 - URL-reflected UI (`activeView`, edit mode, active class) is mirrored from the route via `src/hooks/sync/*`, not ad hoc `useEffect` in Tier 1.
+- Timer overlay: `src/components/dashboard/tools/Timer.tsx` (mounted from layout).
 
-### Tier 2 — The stage (view containers)
+### 1.3 Tier 2 — Stage (`modules/`)
 
-**Responsibility:** Choose **which** workspace is visible, wire hooks, pass props into grids/canvas. Uses strict Zustand selectors and `useShallow` where lists are derived.
+**Responsibility:** Choose which workspace is visible; wire Layer 1 hooks; subscribe to stores; pass props into Tier 3 children.
 
-**Primary locations**
-
-- `src/modules/dashboard/DashboardViewSwitch.tsx` — classes vs class-scoped students/seating
-- `src/modules/classes/ClassesWorkspace.tsx`
-- `src/modules/students/StudentsView.tsx`, `StudentsWorkspace.tsx`, `StudentCardsGrid.tsx`
-- `src/modules/seating/SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`
-- Thin adapters in `src/components/dashboard/*View.tsx` (e.g. `ClassesView.tsx`) that read stores and delegate to modules
+| Module path | Files |
+|-------------|-------|
+| `modules/dashboard/` | `DashboardViewSwitch.tsx`, `DashboardClassModalsHost.tsx`, `stage/DashboardCanvasToolbar.tsx`, `stage/canvasToolbarPresets.tsx`, `tools/Random.tsx` |
+| `modules/classes/` | `ClassesView.tsx`, `ClassesWorkspace.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx` |
+| `modules/students/` | `StudentsView.tsx`, `StudentsWorkspace.tsx`, `StudentCardsGrid.tsx` |
+| `modules/seating/` | `SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`, `SeatingChartEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx` |
 
 **Rules**
 
 - Tier 2 may import Layer 1 hooks and stores; it must not call Supabase clients directly for runtime mutations.
-- Prefer `dashboardStudentSelectors.ts` for roster ordering/aggregates instead of recomputing in every child.
+- Type-only imports from `@/lib/api/*` are acceptable.
+- Prefer `dashboardStudentSelectors.ts` for roster ordering/aggregates.
 
-### Tier 3 — Actors (UI)
+### 1.4 Tier 3 — Actors (`components/dashboard/` + `components/ui/`)
 
-**Responsibility:** Presentation, local interaction affordances, menus/modals as composed UI.
+**Responsibility:** Presentation; props in, callbacks out.
 
-**Primary locations**
-
-- `src/components/ui/` — shared inputs, buttons, base modals, landing/auth chrome (**props in; no stores or API clients**)
-- `src/components/dashboard/cards/` — `StudentCard`, `ClassCard`, skill/whole-class cards
-- `src/components/dashboard/modals/`, `menus/`, `forms/`, `seating/`, `tools/`
-- Dashboard-specific modal host: `src/components/dashboard/DashboardClassModalsHost.tsx`
+```text
+components/dashboard/
+  cards/      modals/     menus/     forms/
+  seating/    (presentational widgets only, e.g. LayoutManagerDrawer, SeatingCanvasDecor)
+components/ui/            # shared atoms + auth/landing chrome
+```
 
 **Rules**
 
-- Default: Tier 3 is store-agnostic and receives data via props.
-- **Documented performance exception:** hot paths such as `StudentCard.tsx` may subscribe directly to `useDashboardStore` / `useLayoutStore` with `useShallow` so a single card update does not re-render the whole grid. New grid cells should follow that pattern rather than widening Tier 2 subscriptions.
-- Type-only imports from `@/lib/api/*` are acceptable; runtime API calls are not.
+- Default: no stores, no API clients.
+- **Documented exceptions (remain in `components/` by design):**
+  - `cards/StudentCard.tsx` — `useShallow` store slice for grid performance.
+  - `modals/AwardPointsModal.tsx`, `modals/EditSkillsModal.tsx` — hook wiring (`usePointAwarding`, `useSkillManagement`); optional future extraction to modules.
+  - `cards/ClassCard.tsx` — reads `viewPreference` only.
+- `modals/EditClassModal.tsx` — thin façade re-exporting `modules/classes/EditClassModalRoot.tsx`.
+
+### 1.5 Tier 3 presentation kept in dashboard `components/`
+
+| File | Notes |
+|------|-------|
+| `PointsLogDrawer.tsx` | Props only; workspace owns data |
 
 ---
 
@@ -124,63 +158,52 @@ Related docs: `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-ti
 | Seating editor | `useSeatingChart.ts`, `useSeatingLayoutManager.ts`, `useSeatingEditBottomNav.ts` |
 | Session / logout | `useDashboardSessionActions.ts` |
 | Auth forms | `useAuthFlow.ts` |
+| Canvas toolbar | `hooks/dashboard/useCanvasToolbarActions.ts` |
+| UI utilities | `useAnchoredDropdownPortal.ts`, `useSortedStudents.ts`, `useClassPointLog.ts`, `useStudentsUrlState.ts`, `useStudentsToolbarEvents.ts`, `useDashboardToolbarInset.ts`, `useSkillManagement.ts`, `useAvailableIcons.ts` |
 
-Pure helpers (no React): `src/lib/awardPointsService.ts`, `src/lib/seatingLogic.ts`.
+Pure helpers (no React): `src/lib/awardPointsService.ts`, `src/lib/seatingLogic.ts`, `src/lib/iconUtils.ts`.
 
 ### Layer 1b — Route & store sync (`src/hooks/sync/`)
 
-Renderless workers (return `null` or export imperative refresh helpers) keep **shareable** state aligned:
-
 | Worker | Role |
 |--------|------|
-| `useDashboardRouteStateSync.ts` | Path + query → `useLayoutStore.activeView` / `isEditMode`; default `view` query from preferences |
-| `useDashboardStudentSync.ts` | URL class segment → `activeClassId`, roster fetch/cache, `refreshDashboardStudents` |
+| `useDashboardRouteStateSync.ts` | Path + query → `useLayoutStore.activeView` / `isEditMode` |
+| `useDashboardStudentSync.ts` | URL class segment → `activeClassId`, roster fetch/cache |
 | `useDashboardClassesSync.tsx` | Bootstrap + silent refresh of `allAccessibleClasses` |
 | `useDashboardClassesFilterSync.tsx` | `viewMode` + full class list → filtered `classes` |
 | `useDashboardProfileSync.tsx` | Teacher profile → `useUserStore` |
-| `useSeatingChartDataSync.tsx` | Class/layout changes → `useSeatingStore` layouts/groups |
+| `useSeatingChartDataSync.tsx` | Class/layout changes → `useSeatingStore` |
 | `useViewPreferenceSync.ts` | Persist preferred grid vs seating view |
 
-**Mounting today**
+**Mounting**
 
-- `DashboardClassesSync` — `src/app/dashboard/layout.tsx` (survives page swaps)
+- `DashboardClassesSync` — `src/app/dashboard/layout.tsx`
 - `DashboardStudentSync`, `SeatingChartDataSync`, `DashboardProfileSync`, `DashboardClassesFilterSync` — `src/components/dashboard/frame/DashboardView.tsx`
-- `useDashboardRouteStateSync` — inside `DashboardLayout.tsx`
+- `useDashboardRouteStateSync`, `useViewPreferenceSync` — `src/components/dashboard/frame/DashboardLayout.tsx`
 
 ### Layer 2 — Desk (`src/stores/`)
 
-**Responsibility:** Global client state and small setters/patches only. **No Supabase imports or network I/O.**
-
 | Store | Owns |
 |-------|------|
-| `useLayoutStore.ts` | `activeView`, sidebar, multi-select, timer/random overlays, edit mode flags, edit-class modal flag |
-| `useDashboardStore.ts` | `activeClassId`, `allAccessibleClasses`, filtered `classes`, `students`, loading flags, `updateStudent`, `applyPointsDelta` |
+| `useLayoutStore.ts` | `activeView`, sidebar, multi-select, timer/random overlays, edit mode flags |
+| `useDashboardStore.ts` | `activeClassId`, classes, students, loading, `applyPointsDelta` |
 | `useModalStore.ts` | Modal type, targets, open/close |
-| `useSeatingStore.ts` | Layout list, selected layout, groups/assignments/positions, seating view settings, editor-adjacent lists, layout nav handler registration, points-delta patches |
-| `usePreferenceStore.ts` | `sortBy` (persisted), `viewMode`, `viewPreference` |
+| `useSeatingStore.ts` | Layouts, groups, assignments, seating view settings |
+| `usePreferenceStore.ts` | `sortBy`, `viewMode`, `viewPreference` |
 | `useUserStore.ts` | `teacherProfile`, profile loading |
 
-**Selectors:** `src/stores/dashboardStudentSelectors.ts` — ordered student ids, totals, shallow-friendly selectors.
+**Selectors:** `src/stores/dashboardStudentSelectors.ts`.
 
-**Rules**
-
-- Prefer granular selectors: `useStore((s) => s.slice)`.
-- Use `useShallow` when selecting objects/arrays that must stay referentially stable for unchanged rows.
-- Keep transformation-heavy seating shaping in sync hooks / `seatingLogic.ts`, not in store actions.
-
-### Layer 3 — Vault (`src/lib/api/`, `src/lib/client.ts`)
-
-**Responsibility:** Dumb data access — parameters in, typed records out.
+### Layer 3 — Vault (`src/lib/api/`)
 
 | Module | Domain |
 |--------|--------|
-| `auth.service.ts` | Session, profile, preferred view |
-| `classes.ts` | Class records, accessibility |
+| `auth.service.ts` | Session, profile |
+| `classes.ts` | Class records |
 | `students.ts` | Roster CRUD |
 | `points.ts` | Awards, logs |
 | `skills.ts` | Skill definitions |
 | `seating.ts` | Layouts, groups, assignments |
-| `_shared/` | Auth helpers, error normalization |
 
 Shared types: `src/lib/types.ts`.
 
@@ -188,27 +211,26 @@ Shared types: `src/lib/types.ts`.
 
 ## 3. Cross-cutting integration
 
-### URL as source of truth (shareable state)
+### URL as source of truth
 
 - **Class context:** `/dashboard/classes/[classId]`
 - **Student grid vs seating:** `?view=seating` (grid is default)
 - **Seating editor:** `?mode=edit`
-- **Layout store** mirrors route state; navigations and `LeftNav` update the URL first where appropriate, then sync workers update stores.
 
 ### Optimistic UI
 
-- Point awards: `useDashboardStore.applyPointsDelta` before `lib/api/points`; rollback on failure; seating assignments patched via `useSeatingStore` + `STUDENT_EVENTS.SEATING_STUDENT_POINTS_DELTA` where needed.
-- Modal host may pass `skipRefreshAfterAward` to avoid full roster refetch when the store already reflects the change.
+- Point awards: `applyPointsDelta` before `lib/api/points`; rollback on failure.
+- `DashboardClassModalsHost` may pass `skipRefreshAfterAward` when the store already reflects the change.
 
-### Window event bus (legacy decoupling)
+### Window event bus (legacy)
 
-`src/lib/events/students.ts` still coordinates toolbars, multi-select, seating editor chrome, and post-award cleanup. New features should prefer store setters + Layer 1 hooks; use events only when a store subscription would entangle distant chrome.
+`src/lib/events/students.ts` coordinates toolbars, multi-select, and post-award cleanup. Prefer store setters + Layer 1 hooks for new features.
 
 ### Modals
 
 - Global open state: `useModalStore`
-- Mounted once at shell level: `DashboardClassModalsHost` inside `DashboardLayout`
-- Writers: selection hooks, seating view, modal action hooks — not scattered `useState` in every card
+- Mounted once: `DashboardClassModalsHost` in `DashboardLayout` (`src/modules/dashboard/`)
+- Writers: selection hooks, seating view, `useDashboardClassModalsActions`
 
 ---
 
@@ -216,33 +238,56 @@ Shared types: `src/lib/types.ts`.
 
 ```text
 src/
-  app/                    # Thin route shells
+  app/                              # Thin routes
+    page.tsx                        # → modules/landing/LandingView
+    login|signup|.../               # → modules/auth/*View
     dashboard/
-      layout.tsx          # DashboardClassesSync
-      page.tsx
+      layout.tsx                    # DashboardClassesSync
+      page.tsx                      # DashboardView + DashboardViewSwitch
       classes/[classId]/page.tsx
-    login|signup|...      # Re-export module views
-  modules/                # Tier 2 route containers & workspaces
-    auth/
+
+  modules/                          # Auth, landing, dashboard Tier 2
+    auth/                           # AuthLayout + *View (permanent)
     landing/
-    dashboard/            # DashboardView, DashboardViewSwitch
+    dashboard/                      # ViewSwitch, modal host, stage/, tools/
     classes/
     students/
     seating/
+
   components/
-    ui/                   # Tier 3 shared presentational
+    ui/                             # Shared Tier 3 (+ auth/landing)
     dashboard/
-      frame/              # Tier 1 grid, zone config, navbars
-        navbars/          # Tier 1 chrome
-      stage/              # Canvas toolbar presets
-      cards|modals|menus|forms|seating|tools/
-  hooks/                  # Layer 1 orchestration
-    sync/                 # Layer 1b URL/store workers
-    dashboard/            # Focused dashboard actions
-  stores/                 # Layer 2
-  lib/
-    api/                  # Layer 3
-    events/
-    types.ts
-    awardPointsService.ts
-    seatingLogic.ts
+      frame/                        # Tier 1
+      cards|modals|menus|forms|seating/
+      tools/Timer.tsx               # Tier 3 (overlay UI)
+      PointsLogDrawer.tsx           # Tier 3
+
+  hooks/          stores/           lib/api/
+```
+
+**Path aliases:** `@/components/*`, `@/modules/*`, `@/hooks/*`, `@/stores/*`, `@/lib/*`.
+
+---
+
+## 5. Dashboard refactor checklist
+
+| Status | Task |
+|--------|------|
+| done | Tier 1: `components/dashboard/frame/` |
+| done | Tier 3: cards, modals, menus, forms, seating widgets |
+| done | Tier 2: views/workspaces in `modules/{dashboard,classes,students,seating}` |
+| done | Move Tier 2 stragglers out of `components/dashboard/` (modal host, edit-class root, Random, SeatingGroupsCanvas, stage toolbar) |
+| — | Optional: extract hook wiring from `AwardPointsModal` / `EditSkillsModal` into modules |
+| — | **Do not** move `modules/auth/*` or `modules/landing/*` for tier-folder policy |
+
+---
+
+## 6. Quick reference
+
+```text
+Auth/Landing   →  modules/auth|landing (T1+T2) + components/ui (T3)
+Dashboard T1   →  components/dashboard/frame/
+Dashboard T2   →  modules/{dashboard,classes,students,seating}/
+Dashboard T3   →  components/dashboard/* + components/ui/
+Data layers    →  hooks/ · stores/ · lib/api/
+```

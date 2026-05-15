@@ -1,5 +1,7 @@
 # KIS-Points Prototype 1 - Cursor Rules (Dual Shell & Zustand)
 
+**Canonical reference:** `docs/architecture-plan.md` (folder map, exceptions, sync mounting).
+
 ## 1. Architectural Mandate: The Dual-Shell System
 
 You must identify the active shell before applying layout or state rules. They are visually and logically isolated.
@@ -7,45 +9,59 @@ You must identify the active shell before applying layout or state rules. They a
 ### A. Auth & Landing Shell (The Entryway)
 
 * **Scope:** `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`.
-* **Shell:** `AuthLayout.tsx`.
+* **Shell:** `@/modules/auth/AuthLayout.tsx` (auth stays in `modules/` — **not** part of the dashboard tier split).
+* **Views (Tier 2):** `@/modules/auth/*`, `@/modules/landing/LandingView.tsx`.
+* **Tier 3 UI:** `@/components/ui/auth/*`, `@/components/ui/landing/*`.
 * **Layout Logic:** Uses **Flexbox** for centering (e.g., `flex items-center justify-center`).
 * **State:** **No Global Zustand Store.** Use `useAuthFlow.ts` for local form/UI state.
-* **Session:** Directly re-verified via Layer 1 hooks and Supabase listeners.
+* **Session:** Layer 1 hook + `@/lib/api/auth.service.ts` (Layer 3).
+* **Rule:** Do not move auth views or `AuthLayout` into `components/` for folder-policy reasons.
 
 ### B. Dashboard Shell (The Workspace)
 
-* **Scope:** `/dashboard/`.
-* **Shell:** `DashboardLayout.tsx`.
-* **Layout Logic:** Uses the **7-Zone Fixed Grid System**.
-* **State:** Hydrates profile into `useUserStore.ts` and active data into `useDashboardStore.ts`.
-* **Source of Truth:** The **URL** is the primary source of truth for `classId` and `viewMode`.
+* **Scope:** `/dashboard/`, `/dashboard/classes/[classId]`.
+* **Shell (Tier 1):** `@/components/dashboard/frame/DashboardView.tsx` + `DashboardLayout.tsx`.
+* **View routing (Tier 2):** `@/modules/dashboard/DashboardViewSwitch.tsx`.
+* **Folder policy:** Dashboard **Tier 1 & 3** → `@/components/`; dashboard **Tier 2** → `@/modules/`. Auth/landing are exempt (§1.A).
+* **Modal host (Tier 2):** `@/modules/dashboard/DashboardClassModalsHost.tsx` (mounted in `DashboardLayout`).
+* **Layout Logic:** Uses the **7-Zone Fixed Grid System** (`dashboardZoneConfig.ts`).
+* **State:** `useUserStore`, `useDashboardStore`, `useLayoutStore`, `useSeatingStore`, `useModalStore`, `usePreferenceStore`.
+* **Source of Truth:** The **URL** is the primary source of truth for `classId`, `view`, and `mode`.
+* **Rule:** Do not apply dashboard grid rules to auth/landing, or auth flex rules to the dashboard workspace.
 
 ---
 
 ## 2. Visual 3-Tier / Data 3-Layer Boundaries
 
-### Tier 1: Scaffolding (The Building)
+### Tier 1: Scaffolding (The Building) — dashboard only
 
-* **Locations:** `@/components/dashboard/shell/`, `AuthLayout.tsx`.
+* **Locations:** `@/components/dashboard/frame/` (includes `navbars/`, `dashboardZoneConfig.ts`).
 * **Responsibility:** Persistent chrome and CSS Grid boundaries.
-* **Rule:** Mounts **Layer 1b Sync Workers** (e.g., `useDashboardRouteStateSync`) to keep stores aligned with the URL.
+* **Rule:** Mounts **Layer 1b sync workers** (e.g., `useDashboardRouteStateSync` in `DashboardLayout`; class/student/profile sync in `DashboardView`).
+* **Allowed:** Narrow store reads in navbars for chrome (e.g., `activeClassId`, `viewMode`). No Supabase, no mutation orchestration.
 
-### Tier 2: The Stage (The Sets)
+### Tier 2: The Stage (The Sets) — dashboard only
 
-* **Locations:** `@/modules/`, `@/components/dashboard/stage/`.
-* **Responsibility:** View orchestration and state subscription.
-* **Rule:** Use **Granular Selectors** to prevent re-renders.
-* ✅ `const students = useDashboardStore(s => s.students)`
-* ❌ `const { students } = useDashboardStore()`
-
-
+* **Locations:** `@/modules/dashboard/`, `@/modules/classes/`, `@/modules/students/`, `@/modules/seating/`.
+* **Includes:** `modules/dashboard/stage/` (canvas toolbar), `modules/dashboard/tools/Random.tsx`, `DashboardClassModalsHost`, `modules/classes/EditClassModalRoot.tsx`, `modules/seating/SeatingGroupsCanvas.tsx`.
+* **Responsibility:** View orchestration, workspace wiring, store subscription, passing props to Tier 3.
+* **Rules:**
+  * Use **granular selectors** to prevent re-renders.
+  * ✅ `const students = useDashboardStore(s => s.students)`
+  * ❌ `const { students } = useDashboardStore()`
+  * **No runtime** `@/lib/api/*` calls; type-only imports are OK.
+  * Prefer `@/stores/dashboardStudentSelectors.ts` for roster ordering/aggregates.
 
 ### Tier 3: The Actors (Pure UI)
 
-* **Locations:** `@/components/ui/`, `@/components/dashboard/cards/`.
-* **Responsibility:** Stateless presentation.
-* **Rule:** Must be **Stateless and API-Agnostic**. Data in via props, events out via callbacks.
-* **Performance Exception:** `StudentCard.tsx` may subscribe to a single slice of `useDashboardStore` via `useShallow` to prevent full grid re-renders.
+* **Locations:** `@/components/ui/`, `@/components/dashboard/{cards,modals,menus,forms,seating,tools}/`.
+* **Responsibility:** Stateless presentation. Data in via props, events out via callbacks.
+* **Rules:** No stores and no API clients by default.
+* **Documented exceptions** (see `docs/architecture-plan.md`):
+  * `StudentCard.tsx` — `useShallow` store slice for grid performance.
+  * `AwardPointsModal.tsx`, `EditSkillsModal.tsx` — hook wiring (`usePointAwarding`, `useSkillManagement`).
+  * `modals/EditClassModal.tsx` — thin façade re-exporting `modules/classes/EditClassModalRoot.tsx`.
+  * `tools/Timer.tsx` — overlay UI mounted from layout.
 
 ---
 
@@ -57,7 +73,7 @@ The Dashboard is a fixed coordinate system. Do not use these rules for Auth/Land
 * **Zones 2 & 3:** Top Bar / Header.
 * **Zones 4 & 5:** Main Canvas / Content.
 * **Zones 6 & 7:** Bottom Bar / Footer.
-* **Constraint:** Use `h-full` or `min-h-0` inside the Stage. **Never use `h-screen**` inside Dashboard content.
+* **Constraint:** Use `h-full` or `min-h-0` inside the Stage. **Never use `h-screen`** inside Dashboard content.
 
 ---
 
@@ -68,6 +84,11 @@ The Dashboard is a fixed coordinate system. Do not use these rules for Auth/Land
 * **Pattern:** UI Event → Hook → Update Zustand (Layer 2) → Persist to Supabase (Layer 3).
 * **Optimistic UI:** Always update the store immediately for point awards or roster changes. Roll back on Layer 3 failure.
 
+### Layer 1b: Route & store sync (`@/hooks/sync/`)
+
+* **Responsibility:** Renderless workers aligning URL ↔ stores (e.g., `useDashboardRouteStateSync`, `useDashboardStudentSync`, `DashboardClassesSync`).
+* **Rule:** Do not mirror shareable state with ad hoc `useEffect` in Tier 1/2 components when a sync hook exists.
+
 ### Layer 2: The Desk (`@/stores/`)
 
 * **Constraint:** **Zustand stores MUST NOT import Supabase.** They are pure data containers.
@@ -76,15 +97,15 @@ The Dashboard is a fixed coordinate system. Do not use these rules for Auth/Land
 ### Layer 3: The Vault (`@/lib/api/`)
 
 * **Constraint:** **Dumb Data Access.** Parameters in, typed records out. No React or Zustand knowledge.
+* **Rule:** Supabase clients only in Layer 3, orchestrated by Layer 1 hooks — never from Tier 2/3 UI at runtime.
 
 ---
 
 ## 5. Development Best Practices
 
 * **TypeScript:** Strictly type all props and store shapes in `@/lib/types.ts`. **Avoid `any` at all costs.**
-* **Naming Conventions:** * `use...Service.ts` for hooks handling data persistence.
-* `use...Sync.ts` for renderless workers aligning URL/State.
-
-
-* **Selectors:** Subscription to state must always use the smallest possible slice to ensure performance in large class rosters (30+ students).
-* **Absolute Positioning:** Permitted **only** for internal UI styling (icons, mascots). Must be contained within a `relative` parent that respects the Grid.
+* **Naming conventions:**
+  * `use...Service.ts` / `use...Actions.ts` — hooks handling data persistence and orchestration.
+  * `use...Sync.ts` / `*Sync.tsx` — renderless workers aligning URL/state.
+* **Selectors:** Subscribe to the smallest possible slice for large rosters (30+ students).
+* **Absolute positioning:** Permitted **only** for internal UI styling (icons, mascots). Must be contained within a `relative` parent that respects the grid.

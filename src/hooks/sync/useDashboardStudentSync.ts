@@ -16,6 +16,19 @@ export function syncStudentsByClassCacheFromStore(): void {
   studentsByClassCache.set(activeClassId, students.map((s) => ({ ...s })));
 }
 
+export function invalidateStudentsCacheForClass(classId: string): void {
+  studentsByClassCache.delete(classId);
+}
+
+/** Invalidate roster cache for a class and refetch into the store when that class is currently active. */
+export async function refreshDashboardRosterIfActive(classId: string): Promise<void> {
+  invalidateStudentsCacheForClass(classId);
+  const { activeClassId } = useDashboardStore.getState();
+  if (activeClassId === classId) {
+    await refreshDashboardStudents(true);
+  }
+}
+
 export async function refreshDashboardStudents(force = false): Promise<void> {
   const { activeClassId, setStudents, setLoadingStudents } = useDashboardStore.getState();
   if (!activeClassId) {

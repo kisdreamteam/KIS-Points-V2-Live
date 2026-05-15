@@ -13,10 +13,10 @@ import StudentsBottomNav from '@/components/dashboard/frame/navbars/StudentsBott
 import MultiSelectBottomNav from '@/components/dashboard/frame/navbars/MultiSelectBottomNav';
 import SeatingEditorBottomNavBridge from '@/components/dashboard/frame/navbars/SeatingEditorBottomNavBridge';
 import Timer from '@/components/dashboard/tools/Timer';
-import Random from '@/components/dashboard/tools/Random';
-import DashboardCanvasToolbar from '@/components/dashboard/stage/DashboardCanvasToolbar';
+import Random from '@/modules/dashboard/tools/Random';
+import DashboardCanvasToolbar from '@/modules/dashboard/stage/DashboardCanvasToolbar';
 import EditClassModal from '@/components/dashboard/modals/EditClassModal';
-import DashboardClassModalsHost from '@/components/dashboard/DashboardClassModalsHost';
+import DashboardClassModalsHost from '@/modules/dashboard/DashboardClassModalsHost';
 import type { DashboardToolbarDef } from '@/components/dashboard/frame/dashboardZoneConfig';
 import { STUDENT_EVENTS } from '@/lib/events/students';
 import { useLayoutStore, type ViewState } from '@/stores/useLayoutStore';
