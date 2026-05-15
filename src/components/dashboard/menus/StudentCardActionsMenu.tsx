@@ -56,7 +56,7 @@ export default function StudentCardActionsMenu({
     // absolute bottom-full right-0 z-[100] mb-2
     <MenuSurface
       style={portalStyle}
-      className="w-56 absolute bottom-top z-[100] -translate-y-5"
+      className="w-56 absolute bottom-top z-[100] -translate-y-5 bg-brand-cream"
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
