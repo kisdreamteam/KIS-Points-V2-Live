@@ -114,8 +114,8 @@ export default function TopNav({ currentClassName, suppressTeacherFallback = fal
           </h1>
         </div>
       </div>
-      <div className="flex items-center w-40 justify-end">
-        <div className="relative h-20 w-[160px] shrink-0">
+      <div className="flex items-center md:w-40 w-20 justify-end">
+        <div className="relative md:h-40 h-20 md:w-40 w-20 shrink-0">
           <Image
             src="/images/shared/profile-avatar-dashboard.png"
             alt="KIS Points"

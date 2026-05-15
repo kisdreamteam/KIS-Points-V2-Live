@@ -4,7 +4,7 @@ import type { CSSProperties, Dispatch, SetStateAction } from 'react';
 import type { PointLogRow } from '@/hooks/useClassPointLog';
 import { formatPointLogDateDDMMYYYY } from '@/hooks/useClassPointLog';
 
-export type ClassPointLogSlidePanelProps = {
+export type PointsLogDrawerProps = {
   isOpen: boolean;
   position: 'fixed' | 'absolute';
   rightPx: number;
@@ -22,7 +22,7 @@ export type ClassPointLogSlidePanelProps = {
   setRowsPerPage: Dispatch<SetStateAction<number>>;
 };
 
-export default function ClassPointLogSlidePanel({
+export default function PointsLogDrawer({
   isOpen,
   position,
   rightPx,
@@ -38,7 +38,7 @@ export default function ClassPointLogSlidePanel({
   rowsPerPage,
   setLogPage,
   setRowsPerPage,
-}: ClassPointLogSlidePanelProps) {
+}: PointsLogDrawerProps) {
   const style: CSSProperties = {
     position,
     top: topPx,

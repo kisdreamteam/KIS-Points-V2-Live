@@ -4,7 +4,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import CreateLayoutModal from '@/components/dashboard/modals/CreateLayoutModal';
 import EditLayoutModal from '@/components/dashboard/modals/EditLayoutModal';
-import ClassPointLogSlidePanel from '@/components/dashboard/ClassPointLogSlidePanel';
+import PointsLogDrawer from '@/components/dashboard/PointsLogDrawer';
 import LayoutManagerDrawer from '@/components/dashboard/seating/LayoutManagerDrawer';
 import SeatingCanvasDecor from '@/components/dashboard/seating/SeatingCanvasDecor';
 import SeatingGroupsCanvas from '@/components/dashboard/seating/SeatingGroupsCanvas';
@@ -96,7 +96,7 @@ export default function SeatingChartWorkspace({
 
   return (
     <div className="font-spartan w-full h-full min-h-0 bg-brand-purple relative flex flex-col">
-      <ClassPointLogSlidePanel
+      <PointsLogDrawer
         isOpen={isPointLogOpen}
         position="fixed"
         rightPx={60}

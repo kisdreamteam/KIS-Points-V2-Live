@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import ClassPointLogSlidePanel from '@/components/dashboard/ClassPointLogSlidePanel';
+import PointsLogDrawer from '@/components/dashboard/PointsLogDrawer';
 import SeatingChartView from '../seating/SeatingChartView';
 import SeatingChartEditorView from '../seating/SeatingChartEditorView';
 import StudentCardsGrid from './StudentCardsGrid';
@@ -163,7 +163,7 @@ export default function StudentsWorkspace({
       <div
         className={
           currentView === 'grid'
-            ? 'h-full min-h-0 w-full min-w-0 max-w-10xl mx-auto text-white-500 pr-[5.75rem] sm:pr-24'
+            ? 'h-full min-h-0 w-full min-w-0 max-w-10xl mx-auto text-white-500 pr-2 md:pr-1'
             : 'h-full min-h-0 w-full text-white-500'
         }
       >
@@ -180,7 +180,7 @@ export default function StudentsWorkspace({
           />
         ) : (
           <>
-            <ClassPointLogSlidePanel
+            <PointsLogDrawer
               isOpen={isPointLogOpen}
               position="fixed"
               rightPx={60}
