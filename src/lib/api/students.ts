@@ -33,6 +33,7 @@ export async function listStudentsForRandomByClassId(classId: string): Promise<S
     .from('students')
     .select('id, first_name, last_name, points, class_id, student_number, gender, avatar, has_been_picked')
     .eq('class_id', classId)
+    .eq('is_archived', false)
     .order('last_name', { ascending: true });
 
   if (error) throwApiError(error, 'listStudentsForRandomByClassId');
@@ -179,9 +180,19 @@ export async function listStudentIdsByClassId(classId: string): Promise<string[]
   const { data, error } = await supabase
     .from('students')
     .select('id')
-    .eq('class_id', classId);
+    .eq('class_id', classId)
+    .eq('is_archived', false);
   if (error) throwApiError(error, 'listStudentIdsByClassId');
   return (data || []).map((s: { id: string }) => s.id);
+}
+
+export async function archiveStudentById(studentId: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('students')
+    .update({ is_archived: true })
+    .eq('id', studentId);
+  if (error) throwApiError(error, 'archiveStudentById');
 }
 
 export async function deleteCustomPointEventsByStudentIds(studentIds: string[]): Promise<void> {

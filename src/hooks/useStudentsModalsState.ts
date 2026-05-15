@@ -2,7 +2,11 @@ import { useCallback, useState } from 'react';
 import { useModalStore } from '@/stores/useModalStore';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 
-export function useStudentsModalsState() {
+type UseStudentsModalsStateOptions = {
+  onRequestDeleteStudent?: (studentId: string, studentName: string) => void;
+};
+
+export function useStudentsModalsState(options: UseStudentsModalsStateOptions = {}) {
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   const toggleDropdown = useCallback((studentId: string, event: React.MouseEvent) => {
@@ -21,9 +25,13 @@ export function useStudentsModalsState() {
     setOpenDropdownId(null);
   }, []);
 
-  const handleDeleteStudent = useCallback(async (_studentId: string, _studentName: string) => {
-    setOpenDropdownId(null);
-  }, []);
+  const handleDeleteStudent = useCallback(
+    (studentId: string, studentName: string) => {
+      setOpenDropdownId(null);
+      options.onRequestDeleteStudent?.(studentId, studentName);
+    },
+    [options.onRequestDeleteStudent]
+  );
 
   const handleStudentClick = useCallback((studentId: string) => {
     useModalStore.getState().openModal('award_points_single', { studentId });

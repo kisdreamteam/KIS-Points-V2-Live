@@ -186,7 +186,8 @@ export async function fetchSeatingGroupsWithAssignments(
 
   byGroup.forEach((assignments, groupId) => {
     const withStudent = assignments.filter(
-      (a): a is StudentSeatAssignment & { students: Student } => a.students != null
+      (a): a is StudentSeatAssignment & { students: Student } =>
+        a.students != null && a.students.is_archived !== true
     );
     const hasNull = withStudent.some((a) => a.seat_index == null);
     const sorted = [...withStudent].sort((a, b) => {
@@ -437,6 +438,27 @@ export async function updateSeatingGroupsLayoutBatch(
   const firstErr = updateResults.find((r) => r.error)?.error;
   if (firstErr) throwApiError(firstErr, 'updateSeatingGroupsLayoutBatch');
   await broadcastByGroupIds(updates.map((u) => u.id));
+}
+
+export async function deleteStudentSeatAssignmentsByStudentId(studentId: string): Promise<void> {
+  const supabase = createClient();
+  const { data: rows, error: selectError } = await supabase
+    .from('student_seat_assignments')
+    .select('seating_group_id')
+    .eq('student_id', studentId);
+
+  if (selectError) throwApiError(selectError, 'deleteStudentSeatAssignmentsByStudentId.select');
+
+  const groupIds = [...new Set((rows ?? []).map((r) => r.seating_group_id as string))];
+  if (groupIds.length === 0) return;
+
+  const { error } = await supabase
+    .from('student_seat_assignments')
+    .delete()
+    .eq('student_id', studentId);
+
+  if (error) throwApiError(error, 'deleteStudentSeatAssignmentsByStudentId.delete');
+  await broadcastByGroupIds(groupIds);
 }
 
 export async function deleteStudentSeatAssignmentsForGroupIds(groupIds: string[]): Promise<void> {

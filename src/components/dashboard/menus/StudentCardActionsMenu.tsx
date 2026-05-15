@@ -23,6 +23,7 @@ export default function StudentCardActionsMenu({
   studentId,
   studentName,
   onEdit,
+  onDelete,
 }: StudentCardActionsMenuProps) {
   const { isMounted, portalStyle } = useAnchoredDropdownPortal({ isOpen, anchorRef });
 
@@ -81,12 +82,10 @@ export default function StudentCardActionsMenu({
       <MenuItem
         icon={deleteIcon}
         intent="danger"
-        disabled
-        aria-disabled
-        className="cursor-not-allowed opacity-50"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          onDelete?.(studentId, studentName);
         }}
       >
         Delete Student

@@ -1,12 +1,19 @@
 'use client';
 
+import type { CSSProperties } from 'react';
 import MenuSurface from '@/components/ui/menu/MenuSurface';
 
 const toggleTrackOn = 'bg-brand-purple';
 const toggleTrackOff = 'bg-gray-300';
 
+const defaultMenuClassName = 'absolute bottom-full left-0 z-[100] mb-2 min-w-[220px]';
+
 interface SeatingViewSettingsMenuProps {
   isOpen: boolean;
+  menuClassName?: string;
+  style?: CSSProperties;
+  /** When true, uses data-toolbar-view-settings-menu for toolbar portal instance */
+  isToolbarMenu?: boolean;
   showGrid: boolean;
   showFurniture: boolean;
   teachersDeskLeft: boolean;
@@ -19,6 +26,9 @@ interface SeatingViewSettingsMenuProps {
 
 export default function SeatingViewSettingsMenu({
   isOpen,
+  menuClassName = defaultMenuClassName,
+  style,
+  isToolbarMenu = false,
   showGrid,
   showFurniture,
   teachersDeskLeft,
@@ -34,8 +44,10 @@ export default function SeatingViewSettingsMenu({
 
   return (
     <MenuSurface
-      data-view-settings-menu
-      className="absolute bottom-full left-0 z-[100] mb-2 min-w-[220px]"
+      data-view-settings-menu={isToolbarMenu ? undefined : true}
+      data-toolbar-view-settings-menu={isToolbarMenu ? true : undefined}
+      className={menuClassName}
+      style={style}
       onClick={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
     >

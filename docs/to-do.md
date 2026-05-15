@@ -12,7 +12,7 @@ This document outlines the sequenced execution plan for migrating, expanding, an
 ## Phase 2: The Data & Logic (Core Features)
 *With a solid Vite foundation, we will safely expand the schema and business logic.*
 
-- [ ] **4. Implement Student Soft-Delete:** Add `is_archived: true` logic. (Crucial: Thoroughly verify how this influences the seating chart physics and `seat-index` logic in the database to prevent grid collapse).
+- [x] **4. Implement Student Soft-Delete:** Add `is_archived: true` logic. (Crucial: Thoroughly verify how this influences the seating chart physics and `seat-index` logic in the database to prevent grid collapse).
 - [ ] **5. Add Settings Feature:** Implement settings for scalability. Update `db-schema.md` and run any necessary data migrations.
 - [ ] **6. Additional Features (Optional):** Placeholder for any newly discovered functional or data-driven features before freezing the core logic.
 

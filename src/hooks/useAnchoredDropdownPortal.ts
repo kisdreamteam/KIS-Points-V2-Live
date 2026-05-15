@@ -2,11 +2,16 @@
 
 import { type CSSProperties, type RefObject, useCallback, useEffect, useState } from 'react';
 
+export type AnchoredDropdownPlacement = 'below' | 'leftOfAnchor';
+
 interface UseAnchoredDropdownPortalArgs {
   isOpen: boolean;
   anchorRef: RefObject<HTMLElement | null>;
+  placement?: AnchoredDropdownPlacement;
   offsetTop?: number;
   widthPx?: number;
+  gapPx?: number;
+  zIndex?: number;
 }
 
 interface PortalPosition {
@@ -17,8 +22,11 @@ interface PortalPosition {
 export function useAnchoredDropdownPortal({
   isOpen,
   anchorRef,
+  placement = 'below',
   offsetTop = 48,
   widthPx = 224,
+  gapPx = 8,
+  zIndex = 100,
 }: UseAnchoredDropdownPortalArgs) {
   const [isMounted, setIsMounted] = useState(false);
   const [position, setPosition] = useState<PortalPosition | null>(null);
@@ -31,10 +39,19 @@ export function useAnchoredDropdownPortal({
     }
 
     const rect = anchor.getBoundingClientRect();
-    const left = Math.round(rect.right - widthPx);
-    const top = Math.round(rect.top + offsetTop);
-    setPosition({ top, left });
-  }, [anchorRef, offsetTop, widthPx]);
+    if (placement === 'leftOfAnchor') {
+      setPosition({
+        top: Math.round(rect.top),
+        left: Math.round(rect.left - widthPx - gapPx),
+      });
+      return;
+    }
+
+    setPosition({
+      top: Math.round(rect.top + offsetTop),
+      left: Math.round(rect.right - widthPx),
+    });
+  }, [anchorRef, gapPx, offsetTop, placement, widthPx]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -58,7 +75,7 @@ export function useAnchoredDropdownPortal({
         position: 'fixed',
         top: position.top,
         left: position.left,
-        zIndex: 50,
+        zIndex,
       }
     : null;
 

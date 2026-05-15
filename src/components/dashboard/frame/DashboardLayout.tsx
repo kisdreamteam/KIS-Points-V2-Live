@@ -15,6 +15,7 @@ import SeatingEditorBottomNavBridge from '@/components/dashboard/frame/navbars/S
 import Timer from '@/components/dashboard/tools/Timer';
 import Random from '@/modules/dashboard/tools/Random';
 import DashboardCanvasToolbar from '@/modules/dashboard/stage/DashboardCanvasToolbar';
+import SeatingEditorCanvasToolbar from '@/modules/seating/SeatingEditorCanvasToolbar';
 import EditClassModal from '@/components/dashboard/modals/EditClassModal';
 import DashboardClassModalsHost from '@/modules/dashboard/DashboardClassModalsHost';
 import type { DashboardToolbarDef } from '@/components/dashboard/frame/dashboardZoneConfig';
@@ -78,7 +79,10 @@ function getWorkspaceZoneConfig({
     'relative w-full h-full min-h-0 overflow-y-auto overflow-x-hidden pt-1',
     showCanvasToolbar ? '' : 'col-start-1 col-end-3',
   ].filter(Boolean).join(' ');
-  const toolbarZoneCellClass = 'relative h-full min-h-0 overflow-hidden';
+  const toolbarZoneCellClass = [
+    'relative h-full min-h-0',
+    isSeatingView && isEditMode ? 'overflow-visible' : 'overflow-hidden',
+  ].join(' ');
 
   const toolbarConfig: DashboardToolbarDef = isSeatingView
     ? {
@@ -261,7 +265,11 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
 
                 {zoneConfig.showCanvasToolbar && (
                   <div className={zoneConfig.toolbarZoneCellClass}>
-                    <DashboardCanvasToolbar toolbarConfig={toolbarConfig} />
+                    {zoneConfig.isSeatingView && isEditMode ? (
+                      <SeatingEditorCanvasToolbar toolbarConfig={toolbarConfig} />
+                    ) : (
+                      <DashboardCanvasToolbar toolbarConfig={toolbarConfig} />
+                    )}
                   </div>
                 )}
               </div>

@@ -20,6 +20,7 @@ export interface Student {
   student_number: number | null; // Integer type in database
   gender: string | null; // Optional, nullable
   class_id: string;
+  is_archived?: boolean;
 }
 
 // You can add other types here as we need them

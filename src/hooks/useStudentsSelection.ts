@@ -85,6 +85,15 @@ export function useStudentsSelection() {
     });
   }, []);
 
+  const removeFromSelection = useCallback((studentId: string) => {
+    setSelectedStudentIds((prev) => {
+      if (!prev.includes(studentId)) return prev;
+      const next = prev.filter((id) => id !== studentId);
+      emitSelectionCountChanged({ count: next.length });
+      return next;
+    });
+  }, []);
+
   const handleAwardComplete = useCallback((selectedIds: string[], type: 'classes' | 'students') => {
     if (type === 'students') {
       localStorage.setItem('lastSelectedStudents', JSON.stringify(selectedIds));
@@ -122,6 +131,7 @@ export function useStudentsSelection() {
     awardPoints,
     inverseSelect,
     handleSelectStudent,
+    removeFromSelection,
     handleAwardComplete,
   };
 }

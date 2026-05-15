@@ -59,6 +59,7 @@ interface SeatingStore {
   addStudentToGroup: (studentId: string, groupId: string) => void;
   resetForClassSwitch: () => void;
   patchGroupAssignmentsForPointsDelta: (studentIds: string[], delta: number) => void;
+  removeStudentFromSeatingState: (studentId: string) => void;
 }
 
 const initialViewSettings = {
@@ -180,6 +181,31 @@ export const useSeatingStore = create<SeatingStore>((set, get) => ({
         });
       }
       return touched ? { groupAssignmentsById: nextAssignments } : {};
+    });
+  },
+
+  removeStudentFromSeatingState: (studentId) => {
+    set((s) => {
+      const nextAssignments: Record<string, GroupAssignment[]> = {};
+      let assignmentsTouched = false;
+      for (const [gid, list] of Object.entries(s.groupAssignmentsById)) {
+        const filtered = list.filter((ga) => ga.student.id !== studentId);
+        if (filtered.length !== list.length) assignmentsTouched = true;
+        nextAssignments[gid] = filtered;
+      }
+      const nextUnseated = s.unseatedStudents.filter((st) => st.id !== studentId);
+      const unseatedTouched = nextUnseated.length !== s.unseatedStudents.length;
+      const clearSelection = s.selectedStudentForGroup?.id === studentId;
+
+      if (!assignmentsTouched && !unseatedTouched && !clearSelection) {
+        return {};
+      }
+
+      return {
+        ...(assignmentsTouched ? { groupAssignmentsById: nextAssignments } : {}),
+        ...(unseatedTouched ? { unseatedStudents: nextUnseated } : {}),
+        ...(clearSelection ? { selectedStudentForGroup: null } : {}),
+      };
     });
   },
 }));

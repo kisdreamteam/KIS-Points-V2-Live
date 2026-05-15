@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import PointsLogDrawer from '@/components/dashboard/PointsLogDrawer';
 import SeatingChartView from '../seating/SeatingChartView';
@@ -9,7 +9,9 @@ import StudentCardsGrid from './StudentCardsGrid';
 import LoadingState from '@/components/ui/LoadingState';
 import ErrorState from '@/components/ui/ErrorState';
 import EmptyState from '@/components/ui/EmptyState';
+import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import { refreshDashboardStudents } from '@/hooks/sync/useDashboardStudentSync';
+import { useArchiveStudent } from '@/hooks/useArchiveStudent';
 import { useClassPointLog } from '@/hooks/useClassPointLog';
 import { useDashboardToolbarInset } from '@/hooks/useDashboardToolbarInset';
 import { useStudentsModalsState } from '@/hooks/useStudentsModalsState';
@@ -77,17 +79,7 @@ export default function StudentsWorkspace({
   const orderedStudentIds = useDashboardStore(useShallow(orderedStudentIdsSelector));
   const totalClassPoints = useDashboardStore(selectTotalClassPoints);
   const error: string | null = null;
-
-  const {
-    openDropdownId,
-    toggleDropdown,
-    closeDropdown,
-    handleEditStudent,
-    handleDeleteStudent,
-    handleStudentClick,
-    handleWholeClassClick,
-    openAddStudentsModal,
-  } = useStudentsModalsState();
+  const [studentToArchive, setStudentToArchive] = useState<{ id: string; name: string } | null>(null);
 
   const {
     isMultiSelectMode,
@@ -99,7 +91,34 @@ export default function StudentsWorkspace({
     awardPoints,
     inverseSelect,
     handleSelectStudent,
+    removeFromSelection,
   } = useStudentsSelection();
+
+  const { archiveStudent, isArchiving } = useArchiveStudent(classId, {
+    onRemoveFromSelection: removeFromSelection,
+  });
+
+  const handleRequestDeleteStudent = useCallback((studentId: string, studentName: string) => {
+    setStudentToArchive({ id: studentId, name: studentName });
+  }, []);
+
+  const {
+    openDropdownId,
+    toggleDropdown,
+    closeDropdown,
+    handleEditStudent,
+    handleDeleteStudent,
+    handleStudentClick,
+    handleWholeClassClick,
+    openAddStudentsModal,
+  } = useStudentsModalsState({ onRequestDeleteStudent: handleRequestDeleteStudent });
+
+  const handleConfirmArchiveStudent = useCallback(async () => {
+    if (!studentToArchive) return;
+    const { id, name } = studentToArchive;
+    setStudentToArchive(null);
+    await archiveStudent(id, name);
+  }, [studentToArchive, archiveStudent]);
 
   const currentClass = useMemo(() => classes.find((c) => c.id === classId) ?? null, [classes, classId]);
   const classIcon = currentClass?.icon || null;
@@ -225,6 +244,33 @@ export default function StudentsWorkspace({
           </>
         )}
       </div>
+
+      <ConfirmationModal
+        isOpen={studentToArchive !== null}
+        onClose={() => {
+          if (!isArchiving) setStudentToArchive(null);
+        }}
+        onConfirm={() => void handleConfirmArchiveStudent()}
+        title="Delete Student"
+        message={
+          studentToArchive
+            ? `Are you sure you want to remove "${studentToArchive.name}" from this class? They will be removed from the roster and seating chart. Point history will be preserved.`
+            : ''
+        }
+        confirmText={isArchiving ? 'Removing...' : 'Delete Student'}
+        cancelText="Cancel"
+        confirmButtonColor="red"
+        icon={
+          <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+        }
+      />
     </div>
   );
 }

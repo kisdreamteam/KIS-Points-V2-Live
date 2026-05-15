@@ -11,12 +11,14 @@ export type CanvasToolbarAction = {
   /** When true, uses active (e.g. purple) button styling */
   active?: boolean;
   /** When muted and inactive, uses gray inactive styling */
-  variant?: 'default' | 'muted';
+  variant?: 'default' | 'muted' | 'danger';
 };
 
 export type CanvasToolbarProps = {
   topActions: CanvasToolbarAction[];
   bottomActions: CanvasToolbarAction[];
+  /** Rendered after top actions, before the flex spacer */
+  topSlot?: ReactNode;
   /** Extra class names for the outer pill */
   className?: string;
   /** aria-label for the toolbar region */
@@ -25,31 +27,50 @@ export type CanvasToolbarProps = {
   style?: CSSProperties;
 };
 
+const toolbarButtonBase =
+  'w-10 h-10 rounded-lg flex items-center justify-center shadow transition-colors';
+
+export function toolbarButtonClass(options?: {
+  disabled?: boolean;
+  active?: boolean;
+  variant?: 'default' | 'muted' | 'danger';
+}): string {
+  if (options?.disabled) {
+    return `${toolbarButtonBase} bg-white/60 cursor-not-allowed opacity-60`;
+  }
+  if (options?.active) {
+    return `${toolbarButtonBase} bg-purple-100 hover:bg-purple-200`;
+  }
+  if (options?.variant === 'danger') {
+    return `${toolbarButtonBase} bg-brand-pink text-white hover:brightness-95`;
+  }
+  if (options?.variant === 'muted' && !options?.active) {
+    return `${toolbarButtonBase} bg-gray-200 hover:bg-gray-300 opacity-75`;
+  }
+  return `${toolbarButtonBase} bg-white/90 hover:bg-white`;
+}
+
 function buttonClass(action: CanvasToolbarAction): string {
-  const base =
-    'w-10 h-10 rounded-lg flex items-center justify-center shadow transition-colors';
-  if (action.disabled) {
-    return `${base} bg-white/60 cursor-not-allowed opacity-60`;
-  }
-  if (action.active) {
-    return `${base} bg-purple-100 hover:bg-purple-200`;
-  }
-  if (action.variant === 'muted' && !action.active) {
-    return `${base} bg-gray-200 hover:bg-gray-300 opacity-75`;
-  }
-  return `${base} bg-white/90 hover:bg-white`;
+  return toolbarButtonClass({
+    disabled: action.disabled,
+    active: action.active,
+    variant: action.variant,
+  });
 }
 
 export default function CanvasToolbar({
   topActions,
   bottomActions,
+  topSlot,
   className = '',
   'aria-label': ariaLabel = 'Canvas actions',
   style,
 }: CanvasToolbarProps) {
+  const overflowClass = topSlot ? 'overflow-visible' : 'overflow-hidden';
+
   return (
     <div
-      className={`flex min-h-0 flex-col gap-2 overflow-hidden p-2 bg-white/80 border-0 border-top-brand-purple ${className}`}
+      className={`flex min-h-0 flex-col gap-2 ${overflowClass} p-2 bg-white/80 border-0 border-top-brand-purple ${className}`}
       style={style}
       aria-label={ariaLabel}
     >
@@ -66,6 +87,7 @@ export default function CanvasToolbar({
           {action.icon}
         </button>
       ))}
+      {topSlot}
       <div className="min-h-0 flex-1" aria-hidden="true" />
       {bottomActions.map((action) => (
         <button
@@ -83,4 +105,3 @@ export default function CanvasToolbar({
     </div>
   );
 }
-
