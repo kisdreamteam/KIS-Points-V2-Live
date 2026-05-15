@@ -43,7 +43,7 @@ You must identify the active shell before applying layout or state rules. They a
 ### Tier 2: The Stage (The Sets) — dashboard only
 
 * **Locations:** `@/modules/dashboard/`, `@/modules/classes/`, `@/modules/students/`, `@/modules/seating/`.
-* **Includes:** `modules/dashboard/stage/` (canvas toolbar), `modules/dashboard/tools/Random.tsx`, `DashboardClassModalsHost`, `modules/classes/EditClassModalRoot.tsx`, `modules/seating/SeatingGroupsCanvas.tsx`.
+* **Includes:** `modules/dashboard/stage/` (`DashboardCanvasToolbar`, presets), `modules/seating/SeatingEditorCanvasToolbar.tsx`, `modules/dashboard/tools/Random.tsx`, `DashboardClassModalsHost`, `modules/classes/EditClassModalRoot.tsx`, `modules/seating/SeatingGroupsCanvas.tsx`.
 * **Responsibility:** View orchestration, workspace wiring, store subscription, passing props to Tier 3.
 * **Rules:**
   * Use **granular selectors** to prevent re-renders.
@@ -54,7 +54,7 @@ You must identify the active shell before applying layout or state rules. They a
 
 ### Tier 3: The Actors (Pure UI)
 
-* **Locations:** `@/components/ui/`, `@/components/dashboard/{cards,modals,menus,forms,seating,tools}/`.
+* **Locations:** `@/components/ui/` (includes `CanvasToolbar.tsx`), `@/components/dashboard/{cards,modals,menus,forms,seating,tools}/`.
 * **Responsibility:** Stateless presentation. Data in via props, events out via callbacks.
 * **Rules:** No stores and no API clients by default.
 * **Documented exceptions** (see `docs/architecture-plan.md`):
@@ -109,3 +109,36 @@ The Dashboard is a fixed coordinate system. Do not use these rules for Auth/Land
   * `use...Sync.ts` / `*Sync.tsx` — renderless workers aligning URL/state.
 * **Selectors:** Subscribe to the smallest possible slice for large rosters (30+ students).
 * **Absolute positioning:** Permitted **only** for internal UI styling (icons, mascots). Must be contained within a `relative` parent that respects the grid.
+
+---
+
+## 6. Seating editor canvas toolbar (Dashboard)
+
+Applies when URL/layout reflect **seating chart + edit mode** (`?view=seating` + `?mode=edit`, `useLayoutStore.isEditMode`).
+
+* **Mount (Tier 1):** `DashboardLayout` renders `SeatingEditorCanvasToolbar` in the canvas toolbar column instead of `DashboardCanvasToolbar`. Toolbar column uses `overflow-visible` in edit mode.
+* **Left nav:** `SeatingEditorLeftNav` replaces default left nav (layout list).
+* **Footer:** Keep `StudentsBottomNav` — pass `buttonsDisabled={isSeatingView && isEditMode}`. **Do not** reintroduce `SeatingEditorBottomNav`.
+* **Stage (Tier 2):** `StudentsWorkspace` → `SeatingChartEditorView` while editing; `SeatingChartView` when not.
+
+### Toolbar ownership
+
+| Piece | Location |
+|-------|----------|
+| Toolbar orchestration | `modules/seating/SeatingEditorCanvasToolbar.tsx` (Tier 2) |
+| Toolbar shell | `components/ui/CanvasToolbar.tsx` (Tier 3) |
+| Preset actions (Close, layout manager, …) | `modules/dashboard/stage/canvasToolbarPresets.tsx` + `hooks/dashboard/useCanvasToolbarActions.ts` |
+| Editor settings/groups/randomize | `hooks/useSeatingEditBottomNav.ts` (name is legacy; powers toolbar, not a bottom nav) |
+| Menu UI | `components/dashboard/menus/SeatingViewSettingsMenu.tsx`, `SeatingSettingsMenu.tsx`, `SeatingEditorAddGroupsMenu.tsx` |
+
+### Portaled dropdowns
+
+* Render menus with `createPortal(..., document.body)` and position via `useAnchoredDropdownPortal`.
+* **Top-slot menus** (View Settings): `placement: 'leftOfAnchorDown'`.
+* **Bottom-slot menus** (Settings, Add Groups): `placement: 'leftOfAnchorAbove'`.
+* Pass `isToolbarMenu`, `menuClassName`, and portal `style` into Tier 3 menus; do not rely on `absolute bottom-full` inside the toolbar column.
+* Close other bottom-slot menus when opening one (avoid stacked portaled menus).
+
+### Exit edit mode
+
+Toolbar Close (X) dispatches `STAGE_CLOSE_EDITOR` → `useSeatingChart.ts` / route sync clears `isEditMode` → `SeatingChartView` + enabled `StudentsBottomNav`.

@@ -68,7 +68,7 @@ Auth is **not** subject to the dashboard `components/` vs `modules/` tier split.
 | `frame/DashboardView.tsx` | Sync worker host + `DashboardLayout` |
 | `frame/DashboardLayout.tsx` | 7-zone grid, nav slots, mounts modal host & tools |
 | `frame/dashboardZoneConfig.ts` | Zone / toolbar definitions |
-| `frame/navbars/*` | Left/top/bottom nav, seating editor chrome |
+| `frame/navbars/*` | Left/top/bottom nav (`StudentsBottomNav`, `SeatingEditorLeftNav`, etc.) |
 
 Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, `viewMode`) because they are shell chrome, not workspace orchestration.
 
@@ -96,7 +96,7 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 | `modules/dashboard/` | `DashboardViewSwitch.tsx`, `DashboardClassModalsHost.tsx`, `stage/DashboardCanvasToolbar.tsx`, `stage/canvasToolbarPresets.tsx`, `tools/Random.tsx` |
 | `modules/classes/` | `ClassesView.tsx`, `ClassesWorkspace.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx` |
 | `modules/students/` | `StudentsView.tsx`, `StudentsWorkspace.tsx`, `StudentCardsGrid.tsx` |
-| `modules/seating/` | `SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`, `SeatingChartEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx` |
+| `modules/seating/` | `SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`, `SeatingChartEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx`, `SeatingEditorCanvasToolbar.tsx` |
 
 **Rules**
 
@@ -155,11 +155,12 @@ components/ui/            # shared atoms + auth/landing chrome
 | Class CRUD / archive | `useClassActions.ts`, `useClassManagement.ts`, `useClassesWorkspaceActions.ts` |
 | Student modals / selection | `useStudentsModalsState.ts`, `useStudentsSelection.ts`, `useDashboardClassModalsActions.ts` |
 | Random student tool | `useRandomStudentFlow.ts` |
-| Seating editor | `useSeatingChart.ts`, `useSeatingLayoutManager.ts`, `useSeatingEditBottomNav.ts` |
+| Seating editor canvas | `useSeatingChart.ts`, `useSeatingLayoutManager.ts`, `useSeatingEditBottomNav.ts` (toolbar; not a bottom nav) |
 | Session / logout | `useDashboardSessionActions.ts` |
 | Auth forms | `useAuthFlow.ts` |
-| Canvas toolbar | `hooks/dashboard/useCanvasToolbarActions.ts` |
-| UI utilities | `useAnchoredDropdownPortal.ts`, `useSortedStudents.ts`, `useClassPointLog.ts`, `useStudentsUrlState.ts`, `useStudentsToolbarEvents.ts`, `useDashboardToolbarInset.ts`, `useSkillManagement.ts`, `useAvailableIcons.ts` |
+| Canvas toolbar | `hooks/dashboard/useCanvasToolbarActions.ts` (preset actions via window events) |
+| Seating editor toolbar state/actions | `useSeatingEditBottomNav.ts` (view settings, groups, auto-assign/randomize; consumed by `SeatingEditorCanvasToolbar`) |
+| UI utilities | `useAnchoredDropdownPortal.ts` (portaled dropdown positioning), `useSortedStudents.ts`, `useClassPointLog.ts`, `useStudentsUrlState.ts`, `useStudentsToolbarEvents.ts`, `useDashboardToolbarInset.ts`, `useSkillManagement.ts`, `useAvailableIcons.ts` |
 
 Pure helpers (no React): `src/lib/awardPointsService.ts`, `src/lib/seatingLogic.ts`, `src/lib/iconUtils.ts`.
 
@@ -232,6 +233,56 @@ Shared types: `src/lib/types.ts`.
 - Mounted once: `DashboardClassModalsHost` in `DashboardLayout` (`src/modules/dashboard/`)
 - Writers: selection hooks, seating view, `useDashboardClassModalsActions`
 
+### Seating editor chrome (`?view=seating` + `?mode=edit`)
+
+When `useLayoutStore.isEditMode` is true on the seating chart view, `DashboardLayout` swaps several zone mounts:
+
+| Zone / area | View mode | Edit mode |
+|-------------|-----------|-----------|
+| Left nav | Default `LeftNav` | `SeatingEditorLeftNav` |
+| Canvas toolbar column | `DashboardCanvasToolbar` (layout manager, teacher view, etc.) | `SeatingEditorCanvasToolbar` |
+| Footer | `StudentsBottomNav` | `StudentsBottomNav` with `buttonsDisabled={true}` |
+| Main stage (Tier 2) | `SeatingChartView` | `SeatingChartEditorView` (via `StudentsWorkspace`) |
+
+**There is no `SeatingEditorBottomNav`.** Editor actions that previously lived in a dedicated bottom bar now live on the right-rail canvas toolbar. The standard students bottom nav remains visible but non-interactive until the user exits edit mode (toolbar Close / URL without `mode=edit`).
+
+#### `SeatingEditorCanvasToolbar` (Tier 2 — `modules/seating/`)
+
+Orchestrates the editor toolbar using:
+
+- **Tier 3 shell:** `components/ui/CanvasToolbar.tsx` (`topSlot`, `bottomSlot`, `topActions`, `bottomActions`)
+- **Layer 1:** `useSeatingEditBottomNav()` (settings toggles, group actions, emits `STUDENT_EVENTS` consumed by `useSeatingChart.ts`), `useCanvasToolbarActions()` (Close and other preset buttons from `canvasToolbarPresets.tsx`)
+- **Tier 3 menus:** `SeatingViewSettingsMenu`, `SeatingSettingsMenu`, `SeatingEditorAddGroupsMenu` in `components/dashboard/menus/`
+
+**Button layout (top → bottom on the rail):**
+
+| Region | Controls |
+|--------|----------|
+| `topActions` | Close editor (X) |
+| `topSlot` | View Settings, Auto Assign, Randomize |
+| `bottomSlot` | Settings, Add Groups |
+| `bottomActions` | Add group (single, `variant: 'danger'` / brand pink) |
+
+Props from layout: `toolbarConfig`, `classId`, `onEditClass` (for Edit Class in Settings menu).
+
+#### Portaled toolbar menus
+
+Dropdowns are **not** absolutely positioned inside the toolbar pill (avoids clipping). `SeatingEditorCanvasToolbar` uses `createPortal` + `useAnchoredDropdownPortal`:
+
+| Menu | Anchor region | Placement | Opens |
+|------|---------------|-----------|-------|
+| View Settings | `topSlot` | `leftOfAnchorDown` | Downward, into canvas |
+| Settings, Add Groups | `bottomSlot` | `leftOfAnchorAbove` | Upward, into canvas |
+
+Horizontal positioning for `leftOfAnchorDown` / `leftOfAnchorAbove`: menu right edge sits `gapPx` left of the button’s left edge (`left = rect.left - widthPx - gapPx`), so menus sit in the canvas area rather than hugging the viewport’s right edge.
+
+**Tier 3 menu pattern for toolbar instances:** pass `isToolbarMenu`, `menuClassName` (e.g. `min-w-[220px]`), and portal `style`. Default `menuClassName` on each menu keeps `absolute bottom-full …` for any non-toolbar inline use.
+
+#### Shared UI
+
+- `components/ui/CanvasToolbar.tsx` — reusable vertical toolbar; also used by `DashboardCanvasToolbar`
+- `modules/dashboard/stage/canvasToolbarPresets.tsx` — maps `ToolbarActionId` → icons + `STUDENT_EVENTS` dispatches
+
 ---
 
 ## 4. Directory map (as implemented)
@@ -252,10 +303,10 @@ src/
     dashboard/                      # ViewSwitch, modal host, stage/, tools/
     classes/
     students/
-    seating/
+    seating/                        # + SeatingEditorCanvasToolbar.tsx
 
   components/
-    ui/                             # Shared Tier 3 (+ auth/landing)
+    ui/                             # Shared Tier 3 (+ auth/landing, CanvasToolbar)
     dashboard/
       frame/                        # Tier 1
       cards|modals|menus|forms|seating/
@@ -277,6 +328,7 @@ src/
 | done | Tier 3: cards, modals, menus, forms, seating widgets |
 | done | Tier 2: views/workspaces in `modules/{dashboard,classes,students,seating}` |
 | done | Move Tier 2 stragglers out of `components/dashboard/` (modal host, edit-class root, Random, SeatingGroupsCanvas, stage toolbar) |
+| done | Seating editor controls on `SeatingEditorCanvasToolbar`; removed `SeatingEditorBottomNav` / bridge; footer uses `StudentsBottomNav` + `buttonsDisabled` in edit mode |
 | — | Optional: extract hook wiring from `AwardPointsModal` / `EditSkillsModal` into modules |
 | — | **Do not** move `modules/auth/*` or `modules/landing/*` for tier-folder policy |
 
@@ -290,4 +342,5 @@ Dashboard T1   →  components/dashboard/frame/
 Dashboard T2   →  modules/{dashboard,classes,students,seating}/
 Dashboard T3   →  components/dashboard/* + components/ui/
 Data layers    →  hooks/ · stores/ · lib/api/
+Seating edit   →  SeatingEditorCanvasToolbar + portaled menus; StudentsBottomNav disabled
 ```
