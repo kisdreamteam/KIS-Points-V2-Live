@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLayoutStore } from '@/stores/useLayoutStore';
-import ClassesView from '@/components/dashboard/ClassesView';
+import ClassesView from '@/modules/classes/ClassesView';
 import StudentsView from '../students/StudentsView';
 
 export default function DashboardViewSwitch() {

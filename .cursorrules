@@ -1,82 +1,90 @@
-# KIS-Points Prototype 1 - Cursor Rules (Grid & Zustand)
+# KIS-Points Prototype 1 - Cursor Rules (Dual Shell & Zustand)
 
 ## 1. Architectural Mandate: The Dual-Shell System
 
-The application operates under two distinct visual and logical paradigms. You must identify which layout is active before applying layout or state rules.
+You must identify the active shell before applying layout or state rules. They are visually and logically isolated.
 
-### A. Auth Layout (The Entryway)
+### A. Auth & Landing Shell (The Entryway)
 
-* **Location:** `@/modules/auth/`, `@/app/(auth)/`.
+* **Scope:** `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`.
 * **Shell:** `AuthLayout.tsx`.
 * **Layout Logic:** Uses **Flexbox** for centering (e.g., `flex items-center justify-center`).
-* **State:** Uses `useAuthStore.ts` (Layer 2). Handles session, loading states for login/signup, and password reset flows.
-* **Scope:** Landing page and the 4 auth pages (Login, SignUp, Forgot Password, Reset Password).
+* **State:** **No Global Zustand Store.** Use `useAuthFlow.ts` for local form/UI state.
+* **Session:** Directly re-verified via Layer 1 hooks and Supabase listeners.
 
-### B. Dashboard Layout (The Workspace)
+### B. Dashboard Shell (The Workspace)
 
-* **Location:** `@/modules/dashboard/`, `@/app/dashboard/`.
+* **Scope:** `/dashboard/`.
 * **Shell:** `DashboardLayout.tsx`.
-* **Layout Logic:** Uses the **7-Zone CSS Grid System**.
-* **State:** Uses `useDashboardStore.ts` and `useDashboardUIStore.ts` (Layer 2).
-* **Scope:** All authenticated teacher views (Classes, Students, Seating).
+* **Layout Logic:** Uses the **7-Zone Fixed Grid System**.
+* **State:** Hydrates profile into `useUserStore.ts` and active data into `useDashboardStore.ts`.
+* **Source of Truth:** The **URL** is the primary source of truth for `classId` and `viewMode`.
 
 ---
 
-## 2. The 3-Tier Visual / 3-Layer Data System
+## 2. Visual 3-Tier / Data 3-Layer Boundaries
 
-### Tier 1: Scaffolding (The Buildings)
+### Tier 1: Scaffolding (The Building)
 
-* **Auth Shell:** Centered, restricted width (`max-w-md`), focus on readability.
-* **Dashboard Shell:** Persistent **7-Zone CSS Grid** (`grid-cols-[19rem_1fr]`). Located in `@/components/dashboard/frame/`.
+* **Locations:** `@/components/dashboard/shell/`, `AuthLayout.tsx`.
+* **Responsibility:** Persistent chrome and CSS Grid boundaries.
+* **Rule:** Mounts **Layer 1b Sync Workers** (e.g., `useDashboardRouteStateSync`) to keep stores aligned with the URL.
 
 ### Tier 2: The Stage (The Sets)
 
-* **Dashboard Views:** Located in `@/modules/`. Use **Explicit Row Locking** (e.g., `grid-rows-[auto_1fr_auto]`) to prevent layout shift.
-* **Auth Views:** Simple containers for forms and marketing copy.
+* **Locations:** `@/modules/`, `@/components/dashboard/stage/`.
+* **Responsibility:** View orchestration and state subscription.
+* **Rule:** Use **Granular Selectors** to prevent re-renders.
+* ✅ `const students = useDashboardStore(s => s.students)`
+* ❌ `const { students } = useDashboardStore()`
+
+
 
 ### Tier 3: The Actors (Pure UI)
 
-* **Rules:** Atomic components (`StudentCard`, `Input`, `Button`). Found in `@/components/ui/`.
-* **Constraint:** Must be context-agnostic. A button should look the same in the Login page as it does in the Dashboard.
+* **Locations:** `@/components/ui/`, `@/components/dashboard/cards/`.
+* **Responsibility:** Stateless presentation.
+* **Rule:** Must be **Stateless and API-Agnostic**. Data in via props, events out via callbacks.
+* **Performance Exception:** `StudentCard.tsx` may subscribe to a single slice of `useDashboardStore` via `useShallow` to prevent full grid re-renders.
 
 ---
 
 ## 3. The 7-Zone Fixed Grid (Dashboard Only)
 
-Components in the Dashboard must be assigned to zones. `AuthLayout` is exempt from this coordinate system.
+The Dashboard is a fixed coordinate system. Do not use these rules for Auth/Landing pages.
 
-* **Zone 1:** Left Nav.
-* **Zones 2/3:** Header.
-* **Zones 4/5:** Canvas.
-* **Zones 6/7:** Footer.
-* **Merging:** `ClassesView` merges Zone 4/5/6/7 into a single large canvas. `StudentView` utilizes all zones for toolbars.
-
----
-
-## 4. Strict State & Layout Rules
-
-* 🚫 **REACT CONTEXT IS FORBIDDEN** for global application state.
-* ✅ **ISOLATED STORES:**
-* **Auth State:** `useAuthStore` manages identity and auth-flow UI.
-* **Dashboard State:** `useDashboardDataStore` (students/classes) and `useDashboardUIStore` (activeView/sidebar).
-
-
-* ✅ **LAYOUT SPECIFICITY:** * Use **Flexbox** for Auth/Landing.
-* Use **CSS Grid** for Dashboard Shells.
-
-
-* 🚫 **NO "FLOATING" HEIGHTS:** Inside the Dashboard, components must use `h-full` or `min-h-0`. Never use `h-screen`.
-* ✅ **URL SYNC:** Shareable state (active class, active view) must be mirrored from the URL to Zustand via `@/hooks/sync/` workers.
-* 🎯 **STRICT SELECTORS:** Always use granular selectors to prevent re-renders.
-* `const profile = useAuthStore(state => state.profile)`
-
-
+* **Zone 1:** Persistent Left Nav.
+* **Zones 2 & 3:** Top Bar / Header.
+* **Zones 4 & 5:** Main Canvas / Content.
+* **Zones 6 & 7:** Bottom Bar / Footer.
+* **Constraint:** Use `h-full` or `min-h-0` inside the Stage. **Never use `h-screen**` inside Dashboard content.
 
 ---
 
-## 5. General Best Practices
+## 4. Strict Data Flow Rules
 
-* **TypeScript:** Strictly type all props and store shapes in `@/lib/types.ts`. **No `any**`.
-* **Layer 1 Orchestration:** All Supabase interactions must be wrapped in Layer 1 hooks (e.g., `useLoginService`, `useAwardPointsService`).
-* **Optimistic UI:** Dashboard mutations must update Layer 2 immediately before Layer 3 confirms.
-* **Tier 3 Purity:** Components in `@/components/ui/` must not import stores or API clients; they receive data via props only.
+### Layer 1: Orchestrators (`@/hooks/`)
+
+* **Pattern:** UI Event → Hook → Update Zustand (Layer 2) → Persist to Supabase (Layer 3).
+* **Optimistic UI:** Always update the store immediately for point awards or roster changes. Roll back on Layer 3 failure.
+
+### Layer 2: The Desk (`@/stores/`)
+
+* **Constraint:** **Zustand stores MUST NOT import Supabase.** They are pure data containers.
+* **Forbidden:** React Context is strictly forbidden for global application state.
+
+### Layer 3: The Vault (`@/lib/api/`)
+
+* **Constraint:** **Dumb Data Access.** Parameters in, typed records out. No React or Zustand knowledge.
+
+---
+
+## 5. Development Best Practices
+
+* **TypeScript:** Strictly type all props and store shapes in `@/lib/types.ts`. **Avoid `any` at all costs.**
+* **Naming Conventions:** * `use...Service.ts` for hooks handling data persistence.
+* `use...Sync.ts` for renderless workers aligning URL/State.
+
+
+* **Selectors:** Subscription to state must always use the smallest possible slice to ensure performance in large class rosters (30+ students).
+* **Absolute Positioning:** Permitted **only** for internal UI styling (icons, mascots). Must be contained within a `relative` parent that respects the Grid.

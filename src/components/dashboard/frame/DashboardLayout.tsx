@@ -75,7 +75,7 @@ function getWorkspaceZoneConfig({
   const mainSectionRowClass = showTopNav ? 'row-start-2 row-end-3' : 'row-start-1 row-end-3';
   const mainSectionGridColsClass = 'grid-cols-[1fr_auto]';
   const canvasZoneCellClass = [
-    'relative w-full h-full min-h-0 overflow-y-auto overflow-x-hidden pt-2',
+    'relative w-full h-full min-h-0 overflow-y-auto overflow-x-hidden pt-1',
     showCanvasToolbar ? '' : 'col-start-1 col-end-3',
   ].filter(Boolean).join(' ');
   const toolbarZoneCellClass = 'relative h-full min-h-0 overflow-hidden';
@@ -218,7 +218,7 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
             )}
           </div>
         </aside>
-        <main className="h-full overflow-hidden pl-1 pr-1 pt-1">
+        <main className="h-full overflow-hidden pl-1 pr-1 mt-0">
           <div
             className={[
               'grid h-full min-h-0 grid-rows-[auto_1fr_auto] gap-0',
@@ -243,7 +243,7 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
             >
               <div
                 className={[
-                  'grid h-full min-h-0',
+                  'grid h-full min-h-0 -mt-0',
                   zoneConfig.mainSectionGridColsClass,
                 ].join(' ')}
               >

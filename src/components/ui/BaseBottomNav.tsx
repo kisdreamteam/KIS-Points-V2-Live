@@ -15,7 +15,8 @@ export default function BaseBottomNav({
     <div
       data-bottom-nav
       className={[
-        'relative w-full shrink-0 h-20 font-spartan bg-white border-t border-brand-purple',
+        // border-t border-brand-purple
+        'relative w-full shrink-0 h-20 font-spartan bg-white',
         'flex items-center px-4',
         className,
       ]

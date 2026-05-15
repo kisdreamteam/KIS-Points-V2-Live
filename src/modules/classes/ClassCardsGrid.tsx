@@ -1,5 +1,5 @@
-import ClassCard from './cards/ClassCard';
-import AddClassCard from './cards/AddClassCard';
+import ClassCard from '@/components/dashboard/cards/ClassCard';
+import AddClassCard from '@/components/dashboard/cards/AddClassCard';
 
 interface Class {
   id: string;
@@ -39,7 +39,7 @@ export default function ClassCardsGrid({
     <div
       className="grid gap-6 ml-2"
       style={{
-        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))'
+        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
       }}
     >
       {classes.map((cls) => (
@@ -60,4 +60,3 @@ export default function ClassCardsGrid({
     </div>
   );
 }
-

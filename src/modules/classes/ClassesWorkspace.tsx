@@ -8,7 +8,7 @@ import { refreshDashboardClassesForUserAction } from '@/hooks/sync/useDashboardC
 import { useClassesWorkspaceActions } from '@/hooks/useClassesWorkspaceActions';
 import LoadingState from '@/components/ui/LoadingState';
 import EmptyState from '@/components/ui/EmptyState';
-import ClassCardsGrid from '@/components/dashboard/ClassCardsGrid';
+import ClassCardsGrid from './ClassCardsGrid';
 import type { ClassRecord } from '@/lib/api/classes';
 
 type ClassesWorkspaceProps = {

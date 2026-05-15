@@ -183,7 +183,7 @@ export default function StudentsWorkspace({
             <ClassPointLogSlidePanel
               isOpen={isPointLogOpen}
               position="fixed"
-              rightPx={72}
+              rightPx={60}
               topPx={toolbarInset.top}
               bottomPx={toolbarInset.bottom}
               zIndex={35}

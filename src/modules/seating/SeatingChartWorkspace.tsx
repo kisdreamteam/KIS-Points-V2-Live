@@ -100,8 +100,8 @@ export default function SeatingChartWorkspace({
         isOpen={isPointLogOpen}
         position="fixed"
         rightPx={60}
-        topPx={9}
-        bottomPx={70}
+        topPx={3}
+        bottomPx={80}
         zIndex={40}
         logTotalCount={logTotalCount}
         pointLogError={pointLogError}
@@ -117,8 +117,8 @@ export default function SeatingChartWorkspace({
         isOpen={isLayoutManagerOpen}
         position="fixed"
         rightPx={60}
-        topPx={9}
-        bottomPx={70}
+        topPx={3}
+        bottomPx={80}
         zIndex={35}
         layouts={layouts}
         selectedLayoutId={selectedLayoutId}
@@ -126,9 +126,9 @@ export default function SeatingChartWorkspace({
         onRenameLayout={onRenameLayoutInline}
         onDeleteLayout={onDeleteLayoutInline}
       />
-
+      {/* Style whiteboard instide the container */}
       <div
-        className="bg-brand-cream pt-1 overflow-hidden min-h-0 h-full w-full relative flex-1"
+        className="bg-brand-cream mt-0 overflow-hidden min-h-0 h-full w-full relative flex-1"
         style={{ zIndex: 1 }}
       >
         {isLoadingLayouts && (

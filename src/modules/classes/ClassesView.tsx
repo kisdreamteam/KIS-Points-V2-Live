@@ -1,6 +1,6 @@
 'use client';
 
-import ClassesWorkspace from '../../modules/classes/ClassesWorkspace';
+import ClassesWorkspace from './ClassesWorkspace';
 import { useClassActions } from '@/hooks/useClassActions';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
