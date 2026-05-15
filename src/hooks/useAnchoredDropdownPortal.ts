@@ -2,7 +2,11 @@
 
 import { type CSSProperties, type RefObject, useCallback, useEffect, useState } from 'react';
 
-export type AnchoredDropdownPlacement = 'below' | 'leftOfAnchor';
+export type AnchoredDropdownPlacement =
+  | 'below'
+  | 'leftOfAnchor'
+  | 'leftOfAnchorDown'
+  | 'leftOfAnchorAbove';
 
 interface UseAnchoredDropdownPortalArgs {
   isOpen: boolean;
@@ -17,6 +21,7 @@ interface UseAnchoredDropdownPortalArgs {
 interface PortalPosition {
   top: number;
   left: number;
+  transform?: string;
 }
 
 export function useAnchoredDropdownPortal({
@@ -43,6 +48,23 @@ export function useAnchoredDropdownPortal({
       setPosition({
         top: Math.round(rect.top),
         left: Math.round(rect.left - widthPx - gapPx),
+      });
+      return;
+    }
+
+    if (placement === 'leftOfAnchorDown') {
+      setPosition({
+        top: Math.round(rect.top),
+        left: Math.round(rect.left - widthPx - gapPx),
+      });
+      return;
+    }
+
+    if (placement === 'leftOfAnchorAbove') {
+      setPosition({
+        top: Math.round(rect.bottom),
+        left: Math.round(rect.left - widthPx - gapPx),
+        transform: `translateY(calc(-100% - ${gapPx}px))`,
       });
       return;
     }
@@ -75,6 +97,7 @@ export function useAnchoredDropdownPortal({
         position: 'fixed',
         top: position.top,
         left: position.left,
+        transform: position.transform,
         zIndex,
       }
     : null;

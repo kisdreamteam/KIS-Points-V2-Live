@@ -19,6 +19,8 @@ export type CanvasToolbarProps = {
   bottomActions: CanvasToolbarAction[];
   /** Rendered after top actions, before the flex spacer */
   topSlot?: ReactNode;
+  /** Rendered after the flex spacer, before bottom actions */
+  bottomSlot?: ReactNode;
   /** Extra class names for the outer pill */
   className?: string;
   /** aria-label for the toolbar region */
@@ -62,11 +64,12 @@ export default function CanvasToolbar({
   topActions,
   bottomActions,
   topSlot,
+  bottomSlot,
   className = '',
   'aria-label': ariaLabel = 'Canvas actions',
   style,
 }: CanvasToolbarProps) {
-  const overflowClass = topSlot ? 'overflow-visible' : 'overflow-hidden';
+  const overflowClass = topSlot || bottomSlot ? 'overflow-visible' : 'overflow-hidden';
 
   return (
     <div
@@ -89,6 +92,7 @@ export default function CanvasToolbar({
       ))}
       {topSlot}
       <div className="min-h-0 flex-1" aria-hidden="true" />
+      {bottomSlot}
       {bottomActions.map((action) => (
         <button
           key={action.id}

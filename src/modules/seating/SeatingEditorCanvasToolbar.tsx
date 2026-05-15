@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import CanvasToolbar, { toolbarButtonClass, type CanvasToolbarAction } from '@/components/ui/CanvasToolbar';
+import SeatingEditorAddGroupsMenu from '@/components/dashboard/menus/SeatingEditorAddGroupsMenu';
+import SeatingSettingsMenu from '@/components/dashboard/menus/SeatingSettingsMenu';
 import IconAddPlus from '@/components/ui/icons/iconAddPlus';
 import SeatingViewSettingsMenu from '@/components/dashboard/menus/SeatingViewSettingsMenu';
 import IconAutoAssign from '@/components/ui/icons/iconAutoAssign';
@@ -13,13 +15,21 @@ import { useCanvasToolbarActions } from '@/hooks/dashboard/useCanvasToolbarActio
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 import { useSeatingEditBottomNav } from '@/hooks/useSeatingEditBottomNav';
 
-const toolbarViewSettingsMenuClassName = 'min-w-[220px]';
+const toolbarMenuClassName = 'min-w-[220px]';
+const TOOLBAR_TOP_MENU_PLACEMENT = 'leftOfAnchorDown' as const;
+const TOOLBAR_BOTTOM_MENU_PLACEMENT = 'leftOfAnchorAbove' as const;
 
 type SeatingEditorCanvasToolbarProps = {
   toolbarConfig: DashboardToolbarDef;
+  classId?: string | null;
+  onEditClass?: () => void;
 };
 
-export default function SeatingEditorCanvasToolbar({ toolbarConfig }: SeatingEditorCanvasToolbarProps) {
+export default function SeatingEditorCanvasToolbar({
+  toolbarConfig,
+  classId = null,
+  onEditClass,
+}: SeatingEditorCanvasToolbarProps) {
   const { topActions } = useCanvasToolbarActions(toolbarConfig);
   const {
     showGrid,
@@ -33,6 +43,8 @@ export default function SeatingEditorCanvasToolbar({ toolbarConfig }: SeatingEdi
     onAutoAssignSeats,
     onRandomize,
     onAddGroups,
+    onClearAllGroups,
+    onDeleteAllGroups,
   } = useSeatingEditBottomNav();
 
   const addGroupBottomActions = useMemo<CanvasToolbarAction[]>(
@@ -50,36 +62,100 @@ export default function SeatingEditorCanvasToolbar({ toolbarConfig }: SeatingEdi
 
   const [isViewSettingsMenuOpen, setIsViewSettingsMenuOpen] = useState(false);
   const viewSettingsButtonRef = useRef<HTMLDivElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const viewSettingsMenuRef = useRef<HTMLDivElement>(null);
 
-  const { isMounted, portalStyle } = useAnchoredDropdownPortal({
+  const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
+  const settingsButtonRef = useRef<HTMLDivElement>(null);
+  const settingsMenuRef = useRef<HTMLDivElement>(null);
+
+  const [isAddGroupsMenuOpen, setIsAddGroupsMenuOpen] = useState(false);
+  const addGroupsButtonRef = useRef<HTMLDivElement>(null);
+  const addGroupsMenuRef = useRef<HTMLDivElement>(null);
+
+  const {
+    isMounted: isViewSettingsMounted,
+    portalStyle: viewSettingsPortalStyle,
+  } = useAnchoredDropdownPortal({
     isOpen: isViewSettingsMenuOpen,
     anchorRef: viewSettingsButtonRef,
-    placement: 'leftOfAnchor',
+    placement: TOOLBAR_TOP_MENU_PLACEMENT,
     widthPx: 220,
   });
 
+  const {
+    isMounted: isSettingsMounted,
+    portalStyle: settingsPortalStyle,
+  } = useAnchoredDropdownPortal({
+    isOpen: isSettingsMenuOpen,
+    anchorRef: settingsButtonRef,
+    placement: TOOLBAR_BOTTOM_MENU_PLACEMENT,
+    widthPx: 220,
+  });
+
+  const {
+    isMounted: isAddGroupsMounted,
+    portalStyle: addGroupsPortalStyle,
+  } = useAnchoredDropdownPortal({
+    isOpen: isAddGroupsMenuOpen,
+    anchorRef: addGroupsButtonRef,
+    placement: TOOLBAR_BOTTOM_MENU_PLACEMENT,
+    widthPx: 220,
+  });
+
+  const handleAddGroups = useCallback(
+    (numGroups: number) => {
+      onAddGroups(numGroups);
+      setIsAddGroupsMenuOpen(false);
+    },
+    [onAddGroups]
+  );
+
+  const handleClearAllGroups = useCallback(() => {
+    onClearAllGroups();
+    setIsSettingsMenuOpen(false);
+  }, [onClearAllGroups]);
+
+  const handleDeleteAllGroups = useCallback(() => {
+    onDeleteAllGroups();
+    setIsSettingsMenuOpen(false);
+  }, [onDeleteAllGroups]);
+
   useEffect(() => {
-    if (!isViewSettingsMenuOpen) return;
+    if (!isViewSettingsMenuOpen && !isSettingsMenuOpen && !isAddGroupsMenuOpen) return;
 
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
-      if (menuRef.current?.contains(target)) return;
-      if (viewSettingsButtonRef.current?.contains(target)) return;
-      setIsViewSettingsMenuOpen(false);
+
+      if (isViewSettingsMenuOpen) {
+        if (viewSettingsMenuRef.current?.contains(target)) return;
+        if (viewSettingsButtonRef.current?.contains(target)) return;
+        setIsViewSettingsMenuOpen(false);
+      }
+
+      if (isSettingsMenuOpen) {
+        if (settingsMenuRef.current?.contains(target)) return;
+        if (settingsButtonRef.current?.contains(target)) return;
+        setIsSettingsMenuOpen(false);
+      }
+
+      if (isAddGroupsMenuOpen) {
+        if (addGroupsMenuRef.current?.contains(target)) return;
+        if (addGroupsButtonRef.current?.contains(target)) return;
+        setIsAddGroupsMenuOpen(false);
+      }
     };
 
     document.addEventListener('click', handleClickOutside, true);
     return () => document.removeEventListener('click', handleClickOutside, true);
-  }, [isViewSettingsMenuOpen]);
+  }, [isViewSettingsMenuOpen, isSettingsMenuOpen, isAddGroupsMenuOpen]);
 
   const viewSettingsMenu = (
-    <div ref={menuRef}>
+    <div ref={viewSettingsMenuRef}>
       <SeatingViewSettingsMenu
         isOpen={isViewSettingsMenuOpen}
         isToolbarMenu
-        menuClassName={toolbarViewSettingsMenuClassName}
-        style={portalStyle ?? undefined}
+        menuClassName={toolbarMenuClassName}
+        style={viewSettingsPortalStyle ?? undefined}
         showGrid={showGrid}
         showFurniture={showFurniture}
         teachersDeskLeft={teachersDeskLeft}
@@ -88,6 +164,34 @@ export default function SeatingEditorCanvasToolbar({ toolbarConfig }: SeatingEdi
         onToggleShowFurniture={onToggleShowFurniture}
         onToggleTeachersDeskLeft={onToggleTeachersDeskLeft}
         onToggleColorByGender={onToggleColorByGender}
+      />
+    </div>
+  );
+
+  const settingsMenu = (
+    <div ref={settingsMenuRef}>
+      <SeatingSettingsMenu
+        isOpen={isSettingsMenuOpen}
+        isToolbarMenu
+        menuClassName={toolbarMenuClassName}
+        style={settingsPortalStyle ?? undefined}
+        classId={classId}
+        onEditClass={onEditClass}
+        onCloseMenu={() => setIsSettingsMenuOpen(false)}
+        onClearAllGroups={handleClearAllGroups}
+        onDeleteAllGroups={handleDeleteAllGroups}
+      />
+    </div>
+  );
+
+  const addGroupsMenu = (
+    <div ref={addGroupsMenuRef}>
+      <SeatingEditorAddGroupsMenu
+        isOpen={isAddGroupsMenuOpen}
+        isToolbarMenu
+        menuClassName={toolbarMenuClassName}
+        style={addGroupsPortalStyle ?? undefined}
+        onAddGroups={handleAddGroups}
       />
     </div>
   );
@@ -140,11 +244,53 @@ export default function SeatingEditorCanvasToolbar({ toolbarConfig }: SeatingEdi
             </button>
           </div>
         }
+        bottomSlot={
+          <div className="flex flex-col gap-2">
+            <div ref={settingsButtonRef}>
+              <button
+                type="button"
+                title="Settings"
+                aria-label="Settings"
+                className={toolbarButtonClass({ active: isSettingsMenuOpen })}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsAddGroupsMenuOpen(false);
+                  setIsSettingsMenuOpen((open) => !open);
+                }}
+              >
+                <IconSettingsWheel className="w-6 h-6 text-black" />
+              </button>
+            </div>
+            <div ref={addGroupsButtonRef}>
+              <button
+                type="button"
+                title="Add Groups"
+                aria-label="Add Groups"
+                className={toolbarButtonClass({ active: isAddGroupsMenuOpen })}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsSettingsMenuOpen(false);
+                  setIsAddGroupsMenuOpen((open) => !open);
+                }}
+              >
+                <IconAddPlus className="w-6 h-6 text-black" />
+              </button>
+            </div>
+          </div>
+        }
       />
       {isViewSettingsMenuOpen &&
-        isMounted &&
-        portalStyle &&
+        isViewSettingsMounted &&
+        viewSettingsPortalStyle &&
         createPortal(viewSettingsMenu, document.body)}
+      {isSettingsMenuOpen &&
+        isSettingsMounted &&
+        settingsPortalStyle &&
+        createPortal(settingsMenu, document.body)}
+      {isAddGroupsMenuOpen &&
+        isAddGroupsMounted &&
+        addGroupsPortalStyle &&
+        createPortal(addGroupsMenu, document.body)}
     </div>
   );
 }

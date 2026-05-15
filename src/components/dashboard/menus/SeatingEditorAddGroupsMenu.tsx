@@ -1,5 +1,6 @@
 'use client';
 
+import type { CSSProperties } from 'react';
 import MenuItem from '@/components/ui/menu/MenuItem';
 import MenuSurface from '@/components/ui/menu/MenuSurface';
 
@@ -11,19 +12,26 @@ interface SeatingEditorAddGroupsMenuProps {
   isOpen: boolean;
   onAddGroups: (numGroups: number) => void;
   menuClassName?: string;
+  style?: CSSProperties;
+  /** When true, uses data-toolbar-add-groups-menu for toolbar portal instance */
+  isToolbarMenu?: boolean;
 }
 
 export default function SeatingEditorAddGroupsMenu({
   isOpen,
   onAddGroups,
   menuClassName = defaultMenuClassName,
+  style,
+  isToolbarMenu = false,
 }: SeatingEditorAddGroupsMenuProps) {
   if (!isOpen) return null;
 
   return (
     <MenuSurface
-      data-add-groups-menu
+      data-add-groups-menu={isToolbarMenu ? undefined : true}
+      data-toolbar-add-groups-menu={isToolbarMenu ? true : undefined}
       className={menuClassName}
+      style={style}
       onClick={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
     >

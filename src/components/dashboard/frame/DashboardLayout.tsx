@@ -11,7 +11,6 @@ import SeatingEditorLeftNav from '@/components/dashboard/frame/navbars/SeatingEd
 import TopNav from '@/components/dashboard/frame/navbars/TopNav';
 import StudentsBottomNav from '@/components/dashboard/frame/navbars/StudentsBottomNav';
 import MultiSelectBottomNav from '@/components/dashboard/frame/navbars/MultiSelectBottomNav';
-import SeatingEditorBottomNavBridge from '@/components/dashboard/frame/navbars/SeatingEditorBottomNavBridge';
 import Timer from '@/components/dashboard/tools/Timer';
 import Random from '@/modules/dashboard/tools/Random';
 import DashboardCanvasToolbar from '@/modules/dashboard/stage/DashboardCanvasToolbar';
@@ -266,7 +265,11 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
                 {zoneConfig.showCanvasToolbar && (
                   <div className={zoneConfig.toolbarZoneCellClass}>
                     {zoneConfig.isSeatingView && isEditMode ? (
-                      <SeatingEditorCanvasToolbar toolbarConfig={toolbarConfig} />
+                      <SeatingEditorCanvasToolbar
+                        toolbarConfig={toolbarConfig}
+                        classId={classId}
+                        onEditClass={onEditClass}
+                      />
                     ) : (
                       <DashboardCanvasToolbar toolbarConfig={toolbarConfig} />
                     )}
@@ -277,13 +280,7 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
 
             {zoneConfig.showBottomNav && (
               <footer className="row-start-3 row-end-4 flex min-h-20 h-auto w-full flex-col overflow-visible relative z-20">
-                {zoneConfig.isSeatingView && isEditMode ? (
-                  <SeatingEditorBottomNavBridge
-                    currentClassName={currentClassName}
-                    classId={classId}
-                    onEditClass={onEditClass}
-                  />
-                ) : isMultiSelectMode ? (
+                {isMultiSelectMode ? (
                   <MultiSelectBottomNav />
                 ) : (
                   <StudentsBottomNav
@@ -293,6 +290,7 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
                     onTimerClick={onTimerClick}
                     onRandomClick={onRandomClick}
                     sortingDisabled={zoneConfig.isSeatingView}
+                    buttonsDisabled={zoneConfig.isSeatingView && isEditMode}
                     classId={classId}
                     onEditClass={onEditClass}
                     sortBy={sortBy}

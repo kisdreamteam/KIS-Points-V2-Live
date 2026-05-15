@@ -21,6 +21,7 @@ interface StudentsBottomNavProps {
   onTimerClick: () => void;
   onRandomClick: () => void;
   sortingDisabled?: boolean;
+  buttonsDisabled?: boolean;
   classId?: string | null;
   onEditClass?: () => void;
   sortBy: SortOption;
@@ -36,6 +37,7 @@ export default function StudentsBottomNav({
   onTimerClick,
   onRandomClick,
   sortingDisabled = false,
+  buttonsDisabled = false,
   classId = null,
   onEditClass,
   sortBy,
@@ -49,6 +51,15 @@ export default function StudentsBottomNav({
   const settingsButtonRef = useRef<HTMLDivElement>(null);
   const [isViewPopupOpen, setIsViewPopupOpen] = useState(false);
   const viewButtonRef = useRef<HTMLDivElement>(null);
+
+  const navEnabled = !buttonsDisabled;
+
+  useEffect(() => {
+    if (!buttonsDisabled) return;
+    setIsSortPopupOpen(false);
+    setIsSettingsPopupOpen(false);
+    setIsViewPopupOpen(false);
+  }, [buttonsDisabled]);
 
   useEffect(() => {
     if (!isSortPopupOpen && !isSettingsPopupOpen && !isViewPopupOpen) return;
@@ -82,9 +93,11 @@ export default function StudentsBottomNav({
               active={isViewPopupOpen}
               onClick={(e) => {
                 e.stopPropagation();
+                if (!navEnabled) return;
                 setIsViewPopupOpen(!isViewPopupOpen);
               }}
               stopPropagation={true}
+              enabled={navEnabled}
             />
             <StudentsViewMenu
               isOpen={isViewPopupOpen}
@@ -106,10 +119,11 @@ export default function StudentsBottomNav({
               active={isSortPopupOpen}
               onClick={(e) => {
                 e.stopPropagation();
-                if (!sortingDisabled) setIsSortPopupOpen(!isSortPopupOpen);
+                if (!navEnabled || sortingDisabled) return;
+                setIsSortPopupOpen(!isSortPopupOpen);
               }}
               stopPropagation={true}
-              enabled={!sortingDisabled}
+              enabled={navEnabled && !sortingDisabled}
             />
             <StudentsSortingMenu
               isOpen={isSortPopupOpen}
@@ -122,10 +136,34 @@ export default function StudentsBottomNav({
           </div>
         )}
 
-        <BotNavGrayButton icon={<IconCheckBox />} label="Multiple Select" onClick={onToggleMultiSelect} />
+        <BotNavGrayButton
+          icon={<IconCheckBox />}
+          label="Multiple Select"
+          onClick={() => {
+            if (!navEnabled) return;
+            onToggleMultiSelect();
+          }}
+          enabled={navEnabled}
+        />
 
-        <BotNavGrayButton icon={<IconRandomArrows />} label="Random" onClick={() => onRandomClick()} />
-        <BotNavGrayButton icon={<IconTimerClock />} label="Timer" onClick={() => onTimerClick()} />
+        <BotNavGrayButton
+          icon={<IconRandomArrows />}
+          label="Random"
+          onClick={() => {
+            if (!navEnabled) return;
+            onRandomClick();
+          }}
+          enabled={navEnabled}
+        />
+        <BotNavGrayButton
+          icon={<IconTimerClock />}
+          label="Timer"
+          onClick={() => {
+            if (!navEnabled) return;
+            onTimerClick();
+          }}
+          enabled={navEnabled}
+        />
 
         <div className="relative flex-shrink-0" ref={settingsButtonRef}>
           <BotNavGrayButton
@@ -134,9 +172,11 @@ export default function StudentsBottomNav({
             active={isSettingsPopupOpen}
             onClick={(e) => {
               e.stopPropagation();
+              if (!navEnabled) return;
               setIsSettingsPopupOpen(!isSettingsPopupOpen);
             }}
             stopPropagation={true}
+            enabled={navEnabled}
           />
 
           <StudentsSettingsMenu
