@@ -42,8 +42,19 @@ export function useAwardPointsService({
 }: UseAwardPointsServiceParams) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const absentStudentIds = useDashboardStore((s) => s.absentStudentIds);
 
   const mode = useMemo<AwardMode>(() => getAwardMode(context), [context]);
+
+  const toEligibleStudentIds = useCallback(
+    (studentIds: string[]) => {
+      if (mode === 'wholeClass' || mode === 'multiClass') {
+        return studentIds.filter((id) => !absentStudentIds.includes(id));
+      }
+      return studentIds;
+    },
+    [mode, absentStudentIds]
+  );
 
   const afterAwardSuccess = useCallback(
     (pointsValue: number, categoryName: string, categoryIcon?: string) => {
@@ -112,24 +123,25 @@ export function useAwardPointsService({
       const points = category.points ?? category.default_points ?? 0;
       try {
         const studentIds = await resolveAwardTargetStudentIds(context);
-        if (studentIds.length === 0) {
-          alert('No students found for the current selection.');
+        const eligibleStudentIds = toEligibleStudentIds(studentIds);
+        if (eligibleStudentIds.length === 0) {
+          alert('No present students found for the current selection.');
           return false;
         }
 
         const { applyPointsDelta } = useDashboardStore.getState();
-        applyPointsDelta(studentIds, points);
+        applyPointsDelta(eligibleStudentIds, points);
         syncStudentsByClassCacheFromStore();
 
         try {
           await awardPointsToStudents({
-            studentIds,
+            studentIds: eligibleStudentIds,
             categoryId: category.id,
             points,
             memo: '',
           });
         } catch (apiErr) {
-          applyPointsDelta(studentIds, -points);
+          applyPointsDelta(eligibleStudentIds, -points);
           syncStudentsByClassCacheFromStore();
           throw apiErr;
         }
@@ -145,7 +157,7 @@ export function useAwardPointsService({
         setIsSubmitting(false);
       }
     },
-    [afterAwardSuccess, context]
+    [afterAwardSuccess, context, toEligibleStudentIds]
   );
 
   const awardCustom = useCallback(
@@ -165,24 +177,25 @@ export function useAwardPointsService({
         }
 
         const studentIds = await resolveAwardTargetStudentIds(context);
-        if (studentIds.length === 0) {
-          alert('No students found for the current selection.');
+        const eligibleStudentIds = toEligibleStudentIds(studentIds);
+        if (eligibleStudentIds.length === 0) {
+          alert('No present students found for the current selection.');
           return false;
         }
 
         const { applyPointsDelta } = useDashboardStore.getState();
-        applyPointsDelta(studentIds, customPoints);
+        applyPointsDelta(eligibleStudentIds, customPoints);
         syncStudentsByClassCacheFromStore();
 
         try {
           await awardCustomPointsToStudents({
-            studentIds,
+            studentIds: eligibleStudentIds,
             teacherId,
             points: customPoints,
             memo: customMemo,
           });
         } catch (apiErr) {
-          applyPointsDelta(studentIds, -customPoints);
+          applyPointsDelta(eligibleStudentIds, -customPoints);
           syncStudentsByClassCacheFromStore();
           throw apiErr;
         }
@@ -198,7 +211,7 @@ export function useAwardPointsService({
         setIsSubmitting(false);
       }
     },
-    [afterAwardSuccess, context]
+    [afterAwardSuccess, context, toEligibleStudentIds]
   );
 
   return {

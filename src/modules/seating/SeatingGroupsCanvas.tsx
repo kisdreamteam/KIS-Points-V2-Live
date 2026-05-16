@@ -6,6 +6,7 @@ import type { Student } from '@/lib/types';
 import type { GroupAssignment, SeatingGroupRecord } from '@/lib/api/seating';
 import { getNextIndex, getSlotIndex } from '@/lib/seatingLogic';
 import { useSeatingStore } from '@/stores/useSeatingStore';
+import { openMultiStudentPointsAward } from '@/hooks/useBatchPointsAward';
 import { useModalStore } from '@/stores/useModalStore';
 
 type SeatingGroupsCanvasProps = {
@@ -46,7 +47,7 @@ export default function SeatingGroupsCanvas({
       return;
     }
     const studentIds = studentsInGroup.map((student) => student.id);
-    useModalStore.getState().openModal('award_points_multi', { studentIds });
+    openMultiStudentPointsAward(studentIds, { excludeAbsent: true });
   };
 
   const handleStudentClick = (student: Student) => {

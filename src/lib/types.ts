@@ -23,4 +23,11 @@ export interface Student {
   is_archived?: boolean;
 }
 
-// You can add other types here as we need them
+export interface AttendanceEvent {
+  id: string;
+  student_id: string;
+  class_id: string;
+  teacher_id: string;
+  date: string; // ISO date (YYYY-MM-DD) from Postgres `date`
+  created_at: string; // ISO timestamptz
+}

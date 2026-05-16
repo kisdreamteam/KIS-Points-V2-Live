@@ -28,9 +28,12 @@ export function useStudentsSelection() {
 
   const selectAll = useCallback(() => {
     if (isMultiSelectMode) {
-      const allIds = useDashboardStore.getState().students.map((s) => s.id);
-      setSelectedStudentIds(allIds);
-      emitSelectionCountChanged({ count: allIds.length });
+      const { students, absentStudentIds } = useDashboardStore.getState();
+      const eligibleIds = students
+        .map((s) => s.id)
+        .filter((id) => !absentStudentIds.includes(id));
+      setSelectedStudentIds(eligibleIds);
+      emitSelectionCountChanged({ count: eligibleIds.length });
     }
   }, [isMultiSelectMode]);
 

@@ -5,6 +5,12 @@ import {
   fetchStudentIdsByClassIds,
   getAuthenticatedUserId,
 } from '@/lib/api/points';
+import { useDashboardStore } from '@/stores/useDashboardStore';
+
+export function filterEligibleStudentIds(targetStudentIds: string[]): string[] {
+  const absentStudentIds = useDashboardStore.getState().absentStudentIds;
+  return targetStudentIds.filter((id) => !absentStudentIds.includes(id));
+}
 
 export type AwardMode = 'singleStudent' | 'wholeClass' | 'multiStudent' | 'multiClass';
 
@@ -31,13 +37,15 @@ export function getAwardMode(context: AwardTargetContext): AwardMode {
 export async function resolveAwardTargetStudentIds(context: AwardTargetContext): Promise<string[]> {
   const mode = getAwardMode(context);
   if (mode === 'multiClass') {
-    return fetchStudentIdsByClassIds(context.selectedClassIds ?? []);
+    const ids = await fetchStudentIdsByClassIds(context.selectedClassIds ?? []);
+    return filterEligibleStudentIds(ids);
   }
   if (mode === 'multiStudent') {
     return context.selectedStudentIds ?? [];
   }
   if (mode === 'wholeClass') {
-    return fetchStudentIdsByClassId(context.classId);
+    const ids = await fetchStudentIdsByClassId(context.classId);
+    return filterEligibleStudentIds(ids);
   }
   return context.studentId ? [context.studentId] : [];
 }

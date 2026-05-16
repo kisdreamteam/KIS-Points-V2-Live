@@ -11,12 +11,14 @@ interface DashboardStore {
   /** Filtered by dashboard viewMode (active vs archived). */
   classes: ClassRecord[];
   students: Student[];
+  absentStudentIds: string[];
   isLoadingStudents: boolean;
   isLoadingClasses: boolean;
   setActiveClassId: (id: string | null) => void;
   setAllAccessibleClasses: (classes: ClassRecord[]) => void;
   setClasses: (classes: ClassRecord[]) => void;
   setStudents: (next: DashboardSetStudents) => void;
+  setAbsentStudentIds: (ids: string[]) => void;
   setLoadingStudents: (v: boolean) => void;
   setLoadingClasses: (v: boolean) => void;
   updateStudent: (studentId: string, patch: Partial<Student>) => void;
@@ -28,6 +30,7 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
   allAccessibleClasses: [],
   classes: [],
   students: [],
+  absentStudentIds: [],
   isLoadingStudents: false,
   isLoadingClasses: true,
   setActiveClassId: (id) => set({ activeClassId: id }),
@@ -37,6 +40,7 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
     set((state) => ({
       students: typeof next === 'function' ? (next as (prev: Student[]) => Student[])(state.students) : next,
     })),
+  setAbsentStudentIds: (ids) => set({ absentStudentIds: ids }),
   setLoadingStudents: (v) => set({ isLoadingStudents: v }),
   setLoadingClasses: (v) => set({ isLoadingClasses: v }),
   updateStudent: (studentId, patch) =>

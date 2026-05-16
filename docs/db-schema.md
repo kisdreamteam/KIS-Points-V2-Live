@@ -3,7 +3,7 @@
 ## Core Architectural Rules
 1. **Optimistic UI Context:** This schema represents the "Library" (Database). Data is fetched by Layer 3 APIs and stored in the "Desk" (Zustand/React Context) for zero-latency UI updates.
 2. **Soft Deletes:** Key entities use `is_archived` to preserve historical point ledgers without hard-deleting records.
-3. **Immutability:** Event logs (`point_events`, `custom_point_events`) are append-only.
+3. **Immutability:** Event logs (`point_events`, `custom_point_events`, `attendance_events`) are append-only.
 
 ---
 
@@ -116,3 +116,18 @@ Maps a specific student to a specific seat index within a seating group.
 * `student_id` (uuid, FK to students)
 * `seating_group_id` (uuid, FK to seating_groups)
 * `seat_index` (int4, nullable) - *Determines exact desk inside the group grid*
+
+---
+
+### 5. Student Attendance
+**Table: `attendance_events`**
+Append-only daily absence log (one row per student per calendar day).
+* `id` (uuid, PK, default: gen_random_uuid())
+* `student_id` (uuid, FK to students, ON DELETE CASCADE, NOT NULL)
+* `class_id` (uuid, FK to classes, ON DELETE CASCADE, NOT NULL)
+* `teacher_id` (uuid, FK to profiles, ON DELETE RESTRICT, NOT NULL)
+* `date` (date, default: CURRENT_DATE, NOT NULL)
+* `created_at` (timestamptz, default: NOW(), NOT NULL)
+
+**Constraints:**
+* `UNIQUE(student_id, date)` — constraint name: `unique_student_absence_per_day`

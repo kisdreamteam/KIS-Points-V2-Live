@@ -1,10 +1,15 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import type { SortOption } from '@/stores/usePreferenceStore';
+import { AttendanceMenuBody } from '@/components/dashboard/menus/AttendanceMenuBody';
 import StudentsViewMenu from '@/components/dashboard/menus/StudentsViewMenu';
 import StudentsSortingMenu from '@/components/dashboard/menus/StudentsSortingMenu';
 import StudentsSettingsMenu from '@/components/dashboard/menus/StudentsSettingsMenu';
+import { useAttendanceActions } from '@/hooks/useAttendanceActions';
+import { useSortedStudents } from '@/hooks/useSortedStudents';
+import { useDashboardStore } from '@/stores/useDashboardStore';
 import IconViewDots from '@/components/ui/icons/iconViewDots';
 import IconSortingArrows from '@/components/ui/icons/iconSortingArrows';
 import IconCheckBox from '@/components/ui/icons/iconCheckBox';
@@ -52,6 +57,13 @@ export default function StudentsBottomNav({
   const settingsButtonRef = useRef<HTMLDivElement>(null);
   const [isViewPopupOpen, setIsViewPopupOpen] = useState(false);
   const viewButtonRef = useRef<HTMLDivElement>(null);
+  const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
+  const attendanceButtonRef = useRef<HTMLDivElement>(null);
+
+  const students = useDashboardStore((s) => s.students);
+  const absentStudentIds = useDashboardStore((s) => s.absentStudentIds);
+  const { sortedStudents } = useSortedStudents(students, sortBy);
+  const { toggleAttendance } = useAttendanceActions();
 
   const navEnabled = !buttonsDisabled;
 
@@ -60,13 +72,15 @@ export default function StudentsBottomNav({
     setIsSortPopupOpen(false);
     setIsSettingsPopupOpen(false);
     setIsViewPopupOpen(false);
+    setIsAttendanceOpen(false);
   }, [buttonsDisabled]);
 
   useEffect(() => {
-    if (!isSortPopupOpen && !isSettingsPopupOpen && !isViewPopupOpen) return;
+    if (!isSortPopupOpen && !isSettingsPopupOpen && !isViewPopupOpen && !isAttendanceOpen) return;
 
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
+      const attendanceMenu = document.querySelector('[data-attendance-menu]');
 
       if (isSortPopupOpen && sortButtonRef.current && !sortButtonRef.current.contains(target)) {
         setIsSortPopupOpen(false);
@@ -77,11 +91,16 @@ export default function StudentsBottomNav({
       if (isViewPopupOpen && viewButtonRef.current && !viewButtonRef.current.contains(target)) {
         setIsViewPopupOpen(false);
       }
+      if (isAttendanceOpen && !attendanceButtonRef.current?.contains(target)) {
+        if (!attendanceMenu || !attendanceMenu.contains(target)) {
+          setIsAttendanceOpen(false);
+        }
+      }
     };
 
     document.addEventListener('click', handleClickOutside, true);
     return () => document.removeEventListener('click', handleClickOutside, true);
-  }, [isSortPopupOpen, isSettingsPopupOpen, isViewPopupOpen]);
+  }, [isSortPopupOpen, isSettingsPopupOpen, isViewPopupOpen, isAttendanceOpen]);
 
   return (
     <BaseBottomNav className="overflow-visible">
@@ -147,12 +166,20 @@ export default function StudentsBottomNav({
           enabled={navEnabled}
         />
 
-        <BotNavGrayButton
-          icon={<IconAttendanceCheck />}
-          label="Attendance"
-          onClick={() => {}}
-          enabled={false}
-        />
+        <div className="relative flex-shrink-0" ref={attendanceButtonRef}>
+          <BotNavGrayButton
+            icon={<IconAttendanceCheck />}
+            label="Attendance"
+            active={isAttendanceOpen}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!navEnabled || !currentClassName) return;
+              setIsAttendanceOpen((open) => !open);
+            }}
+            stopPropagation={true}
+            enabled={navEnabled && !!currentClassName}
+          />
+        </div>
 
         <BotNavGrayButton
           icon={<IconRandomArrows />}
@@ -196,6 +223,29 @@ export default function StudentsBottomNav({
           />
         </div>
       </div>
+
+      {isAttendanceOpen &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0 z-[105]"
+              aria-hidden
+              onClick={() => setIsAttendanceOpen(false)}
+            />
+            <div
+              data-attendance-menu
+              className="fixed bottom-[5.5rem] left-3 right-3 z-[110] mx-auto max-w-lg transition-transform duration-300 ease-out translate-y-0"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <AttendanceMenuBody
+                students={sortedStudents}
+                absentStudentIds={absentStudentIds}
+                onToggleAbsence={toggleAttendance}
+              />
+            </div>
+          </>,
+          document.body
+        )}
     </BaseBottomNav>
   );
 }
