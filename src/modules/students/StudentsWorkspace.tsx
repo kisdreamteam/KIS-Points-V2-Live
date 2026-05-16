@@ -223,6 +223,7 @@ export default function StudentsWorkspace({
                 message="Students will appear here once they are added to this class."
                 buttonText="Add Your First Student"
                 onAddClick={openAddStudentsModal}
+                showStudentMascots
               />
             ) : (
               <StudentCardsGrid
