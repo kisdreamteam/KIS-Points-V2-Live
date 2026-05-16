@@ -1,13 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
 import Modal from '@/components/ui/modals/Modal';
 import EditSkillModal from '@/components/dashboard/modals/EditSkillModal';
 import EditSkillCard from '@/components/dashboard/cards/EditSkillCard';
-import { PointCategory } from '@/lib/types';
-import { useSkillManagement } from '@/hooks/useSkillManagement';
+import type { PointCategory } from '@/lib/types';
+import type { EditSkillFormSubmitPayload } from '@/components/dashboard/forms/EditSkillForm';
 
-interface EditSkillsModalProps {
+export interface EditSkillsModalProps {
   isOpen: boolean;
   onClose: () => void;
   classId: string;
@@ -17,53 +16,42 @@ interface EditSkillsModalProps {
   skillType?: 'positive' | 'negative';
 }
 
-export default function EditSkillsModal({
-  isOpen,
-  onClose,
-  classId,
-  categories,
-  isLoading: isLoadingCategories,
-  refreshCategories,
-  skillType,
-}: EditSkillsModalProps) {
-  const { archiveSkill, deletingSkillId } = useSkillManagement();
-  const [editingSkill, setEditingSkill] = useState<PointCategory | null>(null);
-  const [hoveredSkillId, setHoveredSkillId] = useState<string | null>(null);
-  const [skillToDelete, setSkillToDelete] = useState<PointCategory | null>(null);
+export interface EditSkillsModalViewProps extends EditSkillsModalProps {
+  filteredSkills: PointCategory[];
+  editingSkill: PointCategory | null;
+  setEditingSkill: (skill: PointCategory | null) => void;
+  hoveredSkillId: string | null;
+  setHoveredSkillId: (id: string | null) => void;
+  skillToDelete: PointCategory | null;
+  setSkillToDelete: (skill: PointCategory | null) => void;
+  deletingSkillId: string | null;
+  handleConfirmDelete: () => Promise<void>;
+  editSkillPositiveIcons: string[];
+  editSkillNegativeIcons: string[];
+  editSkillPositiveIconsDetecting: boolean;
+  handleEditSkillSubmit: (values: EditSkillFormSubmitPayload) => Promise<void>;
+}
 
-  const positiveSkills = useMemo(
-    () => categories.filter((category) => category.is_archived !== true && (category.points ?? category.default_points ?? 0) > 0),
-    [categories]
-  );
-
-  const negativeSkills = useMemo(
-    () => categories.filter((category) => category.is_archived !== true && (category.points ?? category.default_points ?? 0) < 0),
-    [categories]
-  );
-
-  const filteredSkills = useMemo(() => {
-    if (skillType === 'positive') return positiveSkills;
-    if (skillType === 'negative') return negativeSkills;
-    return [...positiveSkills, ...negativeSkills];
-  }, [skillType, positiveSkills, negativeSkills]);
-
-  const handleConfirmDelete = async () => {
-    if (!skillToDelete) return;
-    try {
-      await archiveSkill(skillToDelete.id, classId);
-      refreshCategories();
-      setSkillToDelete(null);
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      let errorMessage = 'An unexpected error occurred. Please try again.';
-      if (error instanceof Error) {
-        if (error.message === 'AUTH_REQUIRED') errorMessage = 'You must be logged in to delete skills.';
-        else if (error.message === 'SKILL_CLASS_MISMATCH') errorMessage = 'This skill does not belong to the current class.';
-      }
-      alert(errorMessage);
-      setSkillToDelete(null);
-    }
-  };
+export default function EditSkillsModal(props: EditSkillsModalViewProps) {
+  const {
+    isOpen,
+    onClose,
+    isLoading: isLoadingCategories,
+    skillType,
+    filteredSkills,
+    editingSkill,
+    setEditingSkill,
+    hoveredSkillId,
+    setHoveredSkillId,
+    skillToDelete,
+    setSkillToDelete,
+    deletingSkillId,
+    handleConfirmDelete,
+    editSkillPositiveIcons,
+    editSkillNegativeIcons,
+    editSkillPositiveIconsDetecting,
+    handleEditSkillSubmit,
+  } = props;
 
   return (
     <>
@@ -112,7 +100,10 @@ export default function EditSkillsModal({
         isOpen={editingSkill !== null}
         onClose={() => setEditingSkill(null)}
         skill={editingSkill}
-        refreshCategories={refreshCategories}
+        positiveIcons={editSkillPositiveIcons}
+        negativeIcons={editSkillNegativeIcons}
+        isPositiveIconsDetecting={editSkillPositiveIconsDetecting}
+        onEditSkillSubmit={handleEditSkillSubmit}
       />
 
       {skillToDelete && (
@@ -140,7 +131,12 @@ export default function EditSkillsModal({
                 <>
                   <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
                     <svg className="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
                     </svg>
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Delete Skill?</h3>
@@ -159,7 +155,7 @@ export default function EditSkillsModal({
                     </button>
                     <button
                       type="button"
-                      onClick={handleConfirmDelete}
+                      onClick={() => void handleConfirmDelete()}
                       disabled={deletingSkillId !== null}
                       className="px-6 py-2.5 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >

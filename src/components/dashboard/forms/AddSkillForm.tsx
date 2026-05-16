@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Modal from '@/components/ui/modals/Modal';
-import { useAvailablePositiveIcons, useAvailableNegativeIcons } from '@/hooks/useAvailableIcons';
 
 export type AddSkillFormSubmitValues = {
   classId: string;
@@ -19,6 +18,9 @@ interface AddSkillFormProps {
   classId: string;
   onSubmit: (values: AddSkillFormSubmitValues) => Promise<void>;
   skillType?: 'positive' | 'negative';
+  positiveIcons: string[];
+  negativeIcons: string[];
+  isPositiveIconsDetecting: boolean;
 }
 
 export default function AddSkillForm({
@@ -27,6 +29,9 @@ export default function AddSkillForm({
   classId,
   onSubmit,
   skillType = 'positive',
+  positiveIcons,
+  negativeIcons,
+  isPositiveIconsDetecting,
 }: AddSkillFormProps) {
   const [skillName, setSkillName] = useState<string>('');
   const [points, setPoints] = useState<number>(1);
@@ -38,8 +43,6 @@ export default function AddSkillForm({
   const [isIconDropdownOpen, setIsIconDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const { availableIcons: positiveIcons, isDetecting: isDetectingPositive } = useAvailablePositiveIcons();
-  const negativeIcons = useAvailableNegativeIcons();
   const availableIcons = skillType === 'positive' ? positiveIcons : negativeIcons;
 
   useEffect(() => {
@@ -106,7 +109,7 @@ export default function AddSkillForm({
               </button>
               {isIconDropdownOpen && (
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-20 w-96 max-h-[500px] overflow-y-auto">
-                  {skillType === 'positive' && isDetectingPositive ? (
+                  {skillType === 'positive' && isPositiveIconsDetecting ? (
                     <div className="flex items-center justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div></div>
                   ) : (
                     <div className="grid grid-cols-6 gap-2">

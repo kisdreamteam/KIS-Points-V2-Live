@@ -59,7 +59,8 @@ You must identify the active shell before applying layout or state rules. They a
 * **Rules:** No stores and no API clients by default.
 * **Documented exceptions** (see `docs/architecture-plan.md`):
   * `StudentCard.tsx` — `useShallow` store slice for grid performance.
-  * `AwardPointsModal.tsx`, `EditSkillsModal.tsx` — hook wiring (`usePointAwarding`, `useSkillManagement`).
+  * `EditSkillsModal.tsx` — presentational; wiring via `useEditSkillsModalController` + `modules/dashboard/EditSkillsModalHost.tsx`.
+  * `AwardPointsModal.tsx` — presentational; wiring via `useAwardPointsModalController` + `modules/dashboard/AwardPointsModalHost.tsx`.
   * `modals/EditClassModal.tsx` — thin façade re-exporting `modules/classes/EditClassModalRoot.tsx`.
   * `tools/Timer.tsx` — overlay UI mounted from layout.
 

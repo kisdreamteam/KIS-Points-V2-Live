@@ -9,12 +9,33 @@ interface AddSkillModalProps {
   classId: string;
   onSubmit: (values: AddSkillFormSubmitValues) => Promise<void>;
   skillType?: 'positive' | 'negative';
+  positiveIcons: string[];
+  negativeIcons: string[];
+  isPositiveIconsDetecting: boolean;
 }
 
-export default function AddSkillModal({ isOpen, onClose, classId, onSubmit, skillType = 'positive' }: AddSkillModalProps) {
+export default function AddSkillModal({
+  isOpen,
+  onClose,
+  classId,
+  onSubmit,
+  skillType = 'positive',
+  positiveIcons,
+  negativeIcons,
+  isPositiveIconsDetecting,
+}: AddSkillModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-2xl">
-      <AddSkillForm isOpen={isOpen} onClose={onClose} classId={classId} onSubmit={onSubmit} skillType={skillType} />
+      <AddSkillForm
+        isOpen={isOpen}
+        onClose={onClose}
+        classId={classId}
+        onSubmit={onSubmit}
+        skillType={skillType}
+        positiveIcons={positiveIcons}
+        negativeIcons={negativeIcons}
+        isPositiveIconsDetecting={isPositiveIconsDetecting}
+      />
     </Modal>
   );
 }

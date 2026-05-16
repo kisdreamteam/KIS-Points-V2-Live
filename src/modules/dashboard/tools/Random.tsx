@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { Student } from '@/lib/types';
 import Image from 'next/image';
-import AwardPointsModal from '@/components/dashboard/modals/AwardPointsModal';
+import AwardPointsModalHost from '@/modules/dashboard/AwardPointsModalHost';
 import PointsAwardedConfirmationModal from '@/components/dashboard/modals/PointsAwardedConfirmationModal';
 import { normalizeAvatarPath } from '@/lib/iconUtils';
 import { emitSeatingStudentPointsDelta } from '@/lib/events/students';
@@ -493,7 +493,7 @@ export default function Random({ onClose }: RandomProps) {
 
       {/* Award Points Modal */}
       {selectedStudent && (
-        <AwardPointsModal
+        <AwardPointsModalHost
           isOpen={isAwardPointsModalOpen}
           onClose={() => setIsAwardPointsModalOpen(false)}
           student={selectedStudent}
@@ -503,7 +503,7 @@ export default function Random({ onClose }: RandomProps) {
         />
       )}
 
-      <AwardPointsModal
+      <AwardPointsModalHost
         isOpen={isListAwardPointsModalOpen}
         onClose={() => setIsListAwardPointsModalOpen(false)}
         student={null}

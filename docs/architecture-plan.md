@@ -120,7 +120,8 @@ components/ui/            # shared atoms + auth/landing chrome
 - Default: no stores, no API clients.
 - **Documented exceptions (remain in `components/` by design):**
   - `cards/StudentCard.tsx` — `useShallow` store slice for grid performance.
-  - `modals/AwardPointsModal.tsx`, `modals/EditSkillsModal.tsx` — hook wiring (`usePointAwarding`, `useSkillManagement`); optional future extraction to modules.
+  - `modals/EditSkillsModal.tsx` — presentational; orchestration in `hooks/useEditSkillsModalController.ts` + Tier 2 `modules/dashboard/EditSkillsModalHost.tsx`.
+  - `modals/AwardPointsModal.tsx` — presentational; orchestration in `hooks/useAwardPointsModalController.ts` + Tier 2 `modules/dashboard/AwardPointsModalHost.tsx`.
   - `cards/ClassCard.tsx` — reads `viewPreference` only.
 - `modals/EditClassModal.tsx` — thin façade re-exporting `modules/classes/EditClassModalRoot.tsx`.
 
@@ -329,7 +330,8 @@ src/
 | done | Tier 2: views/workspaces in `modules/{dashboard,classes,students,seating}` |
 | done | Move Tier 2 stragglers out of `components/dashboard/` (modal host, edit-class root, Random, SeatingGroupsCanvas, stage toolbar) |
 | done | Seating editor controls on `SeatingEditorCanvasToolbar`; removed `SeatingEditorBottomNav` / bridge; footer uses `StudentsBottomNav` + `buttonsDisabled` in edit mode |
-| — | Optional: extract hook wiring from `AwardPointsModal` / `EditSkillsModal` into modules |
+| done | Optional: award-points hook wiring → `useAwardPointsModalController` + `modules/dashboard/AwardPointsModalHost`; `AwardPointsModal` Tier 3 |
+| done | Optional: edit-skills hook wiring → `useEditSkillsModalController` + `modules/dashboard/EditSkillsModalHost`; `EditSkillsModal` Tier 3 |
 | — | **Do not** move `modules/auth/*` or `modules/landing/*` for tier-folder policy |
 
 ---
