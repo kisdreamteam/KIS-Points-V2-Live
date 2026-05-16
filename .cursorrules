@@ -24,6 +24,7 @@ You must identify the active shell before applying layout or state rules. They a
 * **View routing (Tier 2):** `@/modules/dashboard/DashboardViewSwitch.tsx`.
 * **Folder policy:** Dashboard **Tier 1 & 3** → `@/components/`; dashboard **Tier 2** → `@/modules/`. Auth/landing are exempt (§1.A).
 * **Modal host (Tier 2):** `@/modules/dashboard/DashboardClassModalsHost.tsx` (mounted in `DashboardLayout`).
+* **Award / edit-skills (Tier 2 + Layer 1):** `@/modules/dashboard/AwardPointsModalHost.tsx` + `hooks/useAwardPointsModalController.ts`; `@/modules/dashboard/EditSkillsModalHost.tsx` + `hooks/useEditSkillsModalController.ts`. Prefer this **host + controller** pattern when a dashboard modal subtree needs orchestration hooks but the UI itself should stay Tier 3.
 * **Layout Logic:** Uses the **7-Zone Fixed Grid System** (`dashboardZoneConfig.ts`).
 * **State:** `useUserStore`, `useDashboardStore`, `useLayoutStore`, `useSeatingStore`, `useModalStore`, `usePreferenceStore`.
 * **Source of Truth:** The **URL** is the primary source of truth for `classId`, `view`, and `mode`.
@@ -43,8 +44,10 @@ You must identify the active shell before applying layout or state rules. They a
 ### Tier 2: The Stage (The Sets) — dashboard only
 
 * **Locations:** `@/modules/dashboard/`, `@/modules/classes/`, `@/modules/students/`, `@/modules/seating/`.
-* **Includes:** `modules/dashboard/stage/` (`DashboardCanvasToolbar`, presets), `modules/seating/SeatingEditorCanvasToolbar.tsx`, `modules/dashboard/tools/Random.tsx`, `DashboardClassModalsHost`, `modules/classes/EditClassModalRoot.tsx`, `modules/seating/SeatingGroupsCanvas.tsx`.
 * **Responsibility:** View orchestration, workspace wiring, store subscription, passing props to Tier 3.
+* **Includes:** `modules/dashboard/stage/` (`DashboardCanvasToolbar`, presets), `modules/seating/SeatingEditorCanvasToolbar.tsx`, `modules/dashboard/tools/Random.tsx`, `DashboardClassModalsHost.tsx`, **`AwardPointsModalHost.tsx`**, **`EditSkillsModalHost.tsx`**, `modules/classes/EditClassModalRoot.tsx`, `modules/seating/SeatingGroupsCanvas.tsx`.
+* **New modal flows:** If a modal needs `@/hooks` orchestration (`use*` data, mutations, icons), implement **`modules/dashboard/MyFeatureModalHost.tsx`** + **`hooks/useMyFeatureModalController.ts`**, expose `*ViewProps` next to **`components/dashboard/modals/MyFeatureModal.tsx`**. Do not bolt Layer 1 hooks onto presentational Tier 3 modals/forms by default.
+* **Nested UI:** Tier 3 modals may import and render Tier 2 **hosts** for self-contained subtrees (e.g. `AwardPointsModal` → `EditSkillsModalHost`); do not merge unrelated controller logic into a single hook.
 * **Rules:**
   * Use **granular selectors** to prevent re-renders.
   * ✅ `const students = useDashboardStore(s => s.students)`
@@ -55,8 +58,10 @@ You must identify the active shell before applying layout or state rules. They a
 ### Tier 3: The Actors (Pure UI)
 
 * **Locations:** `@/components/ui/` (includes `CanvasToolbar.tsx`), `@/components/dashboard/{cards,modals,menus,forms,seating,tools}/`.
-* **Responsibility:** Stateless presentation. Data in via props, events out via callbacks.
-* **Rules:** No stores and no API clients by default.
+* **Responsibility:** Presentational UI. Props in via props, behaviors out via callbacks. Local UI state (`useState`, refs, narrow `useEffect` for UX) allowed.
+* **Rules:** No **stores**, no **`@/hooks`** for **orchestration** (data fetch, mutations, cross-store flows), no API clients unless type-only imports. Thin modal wrappers that only compose children are OK.
+* **`forms/AddSkillForm.tsx`** and **`forms/EditSkillForm.tsx`** — **strict Tier 3:** no `@/hooks`; parent controllers (`useAwardPointsModalController`, `useEditSkillsModalController`) supply icon arrays / detecting flags / submit handlers passed through **`AddSkillModal`** / **`EditSkillModal`**.
+* **Cross-tier import:** Tier 3 under `dashboard/modals/` may import **`@/modules/dashboard/*Host`** only for nested gated flows—not for workspaces.
 * **Documented exceptions** (see `docs/architecture-plan.md`):
   * `StudentCard.tsx` — `useShallow` store slice for grid performance.
   * `EditSkillsModal.tsx` — presentational; wiring via `useEditSkillsModalController` + `modules/dashboard/EditSkillsModalHost.tsx`.
@@ -83,6 +88,7 @@ The Dashboard is a fixed coordinate system. Do not use these rules for Auth/Land
 ### Layer 1: Orchestrators (`@/hooks/`)
 
 * **Pattern:** UI Event → Hook → Update Zustand (Layer 2) → Persist to Supabase (Layer 3).
+* **Dashboard modal subgraphs:** Use dedicated **`use*ModalController`** hooks with matching **`modules/dashboard/*ModalHost.tsx`** instead of attaching orchestration hooks to Tier 3 modals/forms (see award points / edit skills).
 * **Optimistic UI:** Always update the store immediately for point awards or roster changes. Roll back on Layer 3 failure.
 
 ### Layer 1b: Route & store sync (`@/hooks/sync/`)

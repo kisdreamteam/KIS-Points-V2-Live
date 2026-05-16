@@ -8,7 +8,7 @@ Prototype 1 uses a **dual-shell** layout model and a **dual-boundary** data mode
 **Status (May 2026):**
 
 - Zustand migration is effectively complete; dashboard global state does not use React Context.
-- **Dashboard visual boundaries:** Tier 1 frame and Tier 3 actors live under `src/components/dashboard/`; Tier 2 view containers live under `src/modules/{dashboard,classes,students,seating}/`.
+- **Dashboard visual boundaries:** Tier 1 frame and Tier 3 actors live under `src/components/dashboard/`; Tier 2 view containers live under `src/modules/{dashboard,classes,students,seating}/`. **Modal flows** that need Layer 1 wiring above a presentational modal use a **Tier 2 host in `modules/dashboard/` + controller hook in `src/hooks/`** (see §1.3 / §1.4).
 - **Auth/landing:** self-contained under `src/modules/` (not subject to the dashboard `components/` vs `modules/` tier split).
 
 Related docs: `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-tier-3-layer-refactor-plan.md`.
@@ -93,16 +93,24 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 
 | Module path | Files |
 |-------------|-------|
-| `modules/dashboard/` | `DashboardViewSwitch.tsx`, `DashboardClassModalsHost.tsx`, `stage/DashboardCanvasToolbar.tsx`, `stage/canvasToolbarPresets.tsx`, `tools/Random.tsx` |
+| `modules/dashboard/` | `DashboardViewSwitch.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/DashboardCanvasToolbar.tsx`, `stage/canvasToolbarPresets.tsx`, `tools/Random.tsx` |
 | `modules/classes/` | `ClassesView.tsx`, `ClassesWorkspace.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx` |
 | `modules/students/` | `StudentsView.tsx`, `StudentsWorkspace.tsx`, `StudentCardsGrid.tsx` |
 | `modules/seating/` | `SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`, `SeatingChartEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx`, `SeatingEditorCanvasToolbar.tsx` |
+
+**Award / edit-skills modal pattern (reuse for similar features):**
+
+- **Tier 2 host** (`modules/dashboard/*Host.tsx`): thin component; calls `use*ModalController(...)`, renders Tier 3 modal with `{...viewProps}`.
+- **Layer 1 controller** (`hooks/use*ModalController.ts`): composes existing hooks (`usePointAwarding`, `useSkillManagement`, `useAvailable*Icons`, etc.); returns a single **view-props object** typed next to the modal (e.g. `AwardPointsModalViewProps`).
+- **Tier 3 modal** (`components/dashboard/modals/*`): no `@/hooks` for orchestration (except documented exceptions elsewhere); props in, callbacks out.
+- **Nested composition:** a Tier 3 modal may render another **Tier 2 host** when a subtree has its own controller (e.g. `AwardPointsModal` renders `EditSkillsModalHost`; avoid duplicating that logic in `useAwardPointsModalController`).
 
 **Rules**
 
 - Tier 2 may import Layer 1 hooks and stores; it must not call Supabase clients directly for runtime mutations.
 - Type-only imports from `@/lib/api/*` are acceptable.
 - Prefer `dashboardStudentSelectors.ts` for roster ordering/aggregates.
+- For new dashboard modal flows similar to award points / edit skills: add a **host** under `modules/dashboard/` + **controller hook** under `hooks/`, keep modal + child forms Tier 3 (no `@/stores`, no `@/hooks` inside presentational forms).
 
 ### 1.4 Tier 3 — Actors (`components/dashboard/` + `components/ui/`)
 
@@ -117,7 +125,8 @@ components/ui/            # shared atoms + auth/landing chrome
 
 **Rules**
 
-- Default: no stores, no API clients.
+- Default: no stores, no **`@/hooks`** (orchestration), no API clients. Local UI state (`useState`, refs, DOM `useEffect` for focus/click-outside) is fine.
+- **`forms/AddSkillForm.tsx`**, **`forms/EditSkillForm.tsx`**: strict Tier 3 — **no `@/hooks`**. Icon paths and detection flags (`useAvailablePositiveIcons` / static negative list) plus submit handlers (`addSkill`, `updateSkill` + refresh) are wired in **`useAwardPointsModalController`** and **`useEditSkillsModalController`**, then passed through modal shells (`AddSkillModal`, `EditSkillModal`, nested hosts as needed).
 - **Documented exceptions (remain in `components/` by design):**
   - `cards/StudentCard.tsx` — `useShallow` store slice for grid performance.
   - `modals/EditSkillsModal.tsx` — presentational; orchestration in `hooks/useEditSkillsModalController.ts` + Tier 2 `modules/dashboard/EditSkillsModalHost.tsx`.
@@ -161,6 +170,8 @@ components/ui/            # shared atoms + auth/landing chrome
 | Auth forms | `useAuthFlow.ts` |
 | Canvas toolbar | `hooks/dashboard/useCanvasToolbarActions.ts` (preset actions via window events) |
 | Seating editor toolbar state/actions | `useSeatingEditBottomNav.ts` (view settings, groups, auto-assign/randomize; consumed by `SeatingEditorCanvasToolbar`) |
+| Award points modal (controller) | `useAwardPointsModalController.ts` (composes `usePointAwarding`, `useSkillManagement`, `useAvailable*` for add-skill UX) |
+| Edit skills modal (controller) | `useEditSkillsModalController.ts` (list/delete/edit orchestration + icon picker data for `EditSkillForm`) |
 | UI utilities | `useAnchoredDropdownPortal.ts` (portaled dropdown positioning), `useSortedStudents.ts`, `useClassPointLog.ts`, `useStudentsUrlState.ts`, `useStudentsToolbarEvents.ts`, `useDashboardToolbarInset.ts`, `useSkillManagement.ts`, `useAvailableIcons.ts` |
 
 Pure helpers (no React): `src/lib/awardPointsService.ts`, `src/lib/seatingLogic.ts`, `src/lib/iconUtils.ts`.
@@ -301,7 +312,7 @@ src/
   modules/                          # Auth, landing, dashboard Tier 2
     auth/                           # AuthLayout + *View (permanent)
     landing/
-    dashboard/                      # ViewSwitch, modal host, stage/, tools/
+    dashboard/                      # ViewSwitch, class modals host, award/skills modal hosts, stage/, tools/
     classes/
     students/
     seating/                        # + SeatingEditorCanvasToolbar.tsx
@@ -330,9 +341,10 @@ src/
 | done | Tier 2: views/workspaces in `modules/{dashboard,classes,students,seating}` |
 | done | Move Tier 2 stragglers out of `components/dashboard/` (modal host, edit-class root, Random, SeatingGroupsCanvas, stage toolbar) |
 | done | Seating editor controls on `SeatingEditorCanvasToolbar`; removed `SeatingEditorBottomNav` / bridge; footer uses `StudentsBottomNav` + `buttonsDisabled` in edit mode |
-| done | Optional: award-points hook wiring → `useAwardPointsModalController` + `modules/dashboard/AwardPointsModalHost`; `AwardPointsModal` Tier 3 |
-| done | Optional: edit-skills hook wiring → `useEditSkillsModalController` + `modules/dashboard/EditSkillsModalHost`; `EditSkillsModal` Tier 3 |
-| — | **Do not** move `modules/auth/*` or `modules/landing/*` for tier-folder policy |
+| done | Award points: `useAwardPointsModalController` + `AwardPointsModalHost`; Tier 3 `AwardPointsModal` |
+| done | Edit skills list: `useEditSkillsModalController` + `EditSkillsModalHost`; Tier 3 `EditSkillsModal` |
+| done | Skill forms Tier 3: `AddSkillForm` / `EditSkillForm` have no `@/hooks`; controllers pass icons + handlers |
+| done | **Do not** move `modules/auth/*` or `modules/landing/*` for tier-folder policy |
 
 ---
 
@@ -341,8 +353,8 @@ src/
 ```text
 Auth/Landing   →  modules/auth|landing (T1+T2) + components/ui (T3)
 Dashboard T1   →  components/dashboard/frame/
-Dashboard T2   →  modules/{dashboard,classes,students,seating}/
-Dashboard T3   →  components/dashboard/* + components/ui/
+Dashboard T2   →  modules/{dashboard,classes,students,seating}/  (+ *ModalHost.tsx for gated modal flows)
+Dashboard T3   →  components/dashboard/* + components/ui/  (presentational modals/forms; compose Tier 2 hosts when needed)
 Data layers    →  hooks/ · stores/ · lib/api/
 Seating edit   →  SeatingEditorCanvasToolbar + portaled menus; StudentsBottomNav disabled
 ```
