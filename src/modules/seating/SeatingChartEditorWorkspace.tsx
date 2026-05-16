@@ -122,6 +122,12 @@ export default function SeatingChartEditorWorkspace({ classId, students }: Seati
     setIsDeleteTeamModalOpen,
     setTeamToDelete,
     handleDeleteTeamConfirmed,
+    isRandomizeModalOpen,
+    setIsRandomizeModalOpen,
+    handleRandomizeConfirmed,
+    isAutoAssignModalOpen,
+    setIsAutoAssignModalOpen,
+    handleAutoAssignConfirmed,
     successNotification,
     setSuccessNotification,
   } = seating;
@@ -657,6 +663,64 @@ export default function SeatingChartEditorWorkspace({ classId, students }: Seati
           <div className="flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
             <svg
               className="h-6 w-6 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+        }
+      />
+
+      <ConfirmationModal
+        isOpen={isRandomizeModalOpen}
+        onClose={() => setIsRandomizeModalOpen(false)}
+        onConfirm={() => {
+          if (!isRandomizing) void handleRandomizeConfirmed();
+        }}
+        title="Randomize Seats"
+        message="Are you sure you want to randomize seats?"
+        confirmText="Randomize"
+        cancelText="Cancel"
+        confirmButtonColor="purple"
+        icon={
+          <div className="flex items-center justify-center h-12 w-12 rounded-full bg-purple-100">
+            <svg
+              className="h-6 w-6 text-purple-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+        }
+      />
+
+      <ConfirmationModal
+        isOpen={isAutoAssignModalOpen}
+        onClose={() => setIsAutoAssignModalOpen(false)}
+        onConfirm={() => void handleAutoAssignConfirmed()}
+        title="Auto Assign Seats"
+        message="Are you sure you want to auto assign seats?"
+        confirmText="Assign"
+        cancelText="Cancel"
+        confirmButtonColor="purple"
+        icon={
+          <div className="flex items-center justify-center h-12 w-12 rounded-full bg-purple-100">
+            <svg
+              className="h-6 w-6 text-purple-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

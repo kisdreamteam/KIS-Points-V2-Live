@@ -204,6 +204,8 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
     const [isClearTeamModalOpen, setIsClearTeamModalOpen] = useState(false);
     const [isDeleteTeamModalOpen, setIsDeleteTeamModalOpen] = useState(false);
+    const [isRandomizeModalOpen, setIsRandomizeModalOpen] = useState(false);
+    const [isAutoAssignModalOpen, setIsAutoAssignModalOpen] = useState(false);
     const [teamToClear, setTeamToClear] = useState<SeatingGroup | null>(null);
     const [teamToDelete, setTeamToDelete] = useState<SeatingGroup | null>(null);
     const [successNotification, setSuccessNotification] = useState<{ isOpen: boolean; title: string; message: string }>({
@@ -821,7 +823,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     // Listen for randomize event
     useEffect(() => {
       const handleRandomize = () => {
-        handleRandomizeSeating();
+        setIsRandomizeModalOpen(true);
       };
 
       window.addEventListener(STUDENT_EVENTS.SEATING_RANDOMIZE, handleRandomize as EventListener);
@@ -1455,7 +1457,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     // Listen for auto assign seats event from bottom nav
     useEffect(() => {
       const handleAutoAssignSeatsEvent = () => {
-        handleAssignSeats();
+        setIsAutoAssignModalOpen(true);
       };
 
       window.addEventListener(STUDENT_EVENTS.SEATING_AUTO_ASSIGN_SEATS, handleAutoAssignSeatsEvent);
@@ -1715,6 +1717,17 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       }
     };
 
+    const handleRandomizeConfirmed = useCallback(async () => {
+      if (isRandomizing) return;
+      setIsRandomizeModalOpen(false);
+      await handleRandomizeSeating();
+    }, [isRandomizing, handleRandomizeSeating]);
+
+    const handleAutoAssignConfirmed = useCallback(async () => {
+      setIsAutoAssignModalOpen(false);
+      await handleAssignSeats();
+    }, [handleAssignSeats]);
+
     const handleClearAllGroups = () => {
       setIsClearAllModalOpen(true);
     };
@@ -1896,6 +1909,12 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     setIsClearTeamModalOpen,
     isDeleteTeamModalOpen,
     setIsDeleteTeamModalOpen,
+    isRandomizeModalOpen,
+    setIsRandomizeModalOpen,
+    isAutoAssignModalOpen,
+    setIsAutoAssignModalOpen,
+    handleRandomizeConfirmed,
+    handleAutoAssignConfirmed,
     teamToClear,
     setTeamToClear,
     teamToDelete,

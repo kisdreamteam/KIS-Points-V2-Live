@@ -11,7 +11,7 @@ import EditorAddMultipleIcon from '@/components/ui/icons/EditorAddMultipleIcon';
 import EditorAutoAssignSeatsIcon from '@/components/ui/icons/EditorAutoAssignSeatsIcon';
 import EditorRandomSeatsIcon from '@/components/ui/icons/EditorRandomSeatsIcon';
 import EditorViewPreferencesIcon from '@/components/ui/icons/EditorViewPreferencesIcon';
-import IconSettingsWheel from '@/components/ui/icons/iconSettingsWheel';
+import EditorClearGroupsIcon from '@/components/ui/icons/EditorClearGroupsIcon';
 import type { DashboardToolbarDef } from '@/components/dashboard/frame/dashboardZoneConfig';
 import { useCanvasToolbarActions } from '@/hooks/dashboard/useCanvasToolbarActions';
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
@@ -251,8 +251,8 @@ export default function SeatingEditorCanvasToolbar({
             <div ref={settingsButtonRef}>
               <button
                 type="button"
-                title="Settings"
-                aria-label="Settings"
+                title="Clear Groups"
+                aria-label="Clear Groups"
                 className={toolbarButtonClass({ active: isSettingsMenuOpen })}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -260,7 +260,7 @@ export default function SeatingEditorCanvasToolbar({
                   setIsSettingsMenuOpen((open) => !open);
                 }}
               >
-                <IconSettingsWheel className="w-6 h-6 text-black" />
+                <EditorClearGroupsIcon className="w-6 h-6 text-black" />
               </button>
             </div>
             <div ref={addGroupsButtonRef}>
