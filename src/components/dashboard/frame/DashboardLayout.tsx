@@ -208,7 +208,7 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
     <>
       <div
         className={[
-          'h-screen w-screen overflow-hidden bg-brand-purple grid transition-all duration-300 ease-in-out',
+          'h-[100dvh] md:h-screen w-screen overflow-hidden bg-brand-purple grid transition-all duration-300 ease-in-out',
           dashboardZones.dashboardGridColsClass,
         ].join(' ')}
       >
