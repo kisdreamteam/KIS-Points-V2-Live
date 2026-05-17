@@ -10,7 +10,7 @@ export default function MenuSurface({ children, className = '', ...rest }: MenuS
   return (
     <div
       className={[
-        'min-w-[200px] rounded-lg border-4 border-brand-purple bg-blue-100 py-2 shadow-lg',
+        'min-w-[200px] rounded-lg border-2 border-brand-purple bg-brand-cream/80 backdrop-blur-lg py-2 shadow-lg',
         className,
       ]
         .filter(Boolean)

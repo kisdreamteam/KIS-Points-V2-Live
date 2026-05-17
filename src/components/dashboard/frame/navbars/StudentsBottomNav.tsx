@@ -104,7 +104,7 @@ export default function StudentsBottomNav({
 
   return (
     <BaseBottomNav className="overflow-visible">
-      <div className="flex w-full min-w-0 items-center gap-4 overflow-visible">
+      <div className="flex w-full min-w-0 items-center md:gap-4 gap-2 overflow-visible">
         {currentClassName && (
           <div className="relative flex-shrink-0" ref={viewButtonRef}>
             <BotNavGrayButton
