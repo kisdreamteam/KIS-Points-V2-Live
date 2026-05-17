@@ -88,9 +88,9 @@ export default function LayoutManagerDrawer({
   };
 
   return (
-    <div className="transition-all duration-300 ease-out" style={style}>
-      <div className="h-full rounded-xl border-2 border-black bg-white shadow-lg overflow-hidden flex flex-col font-spartan">
-        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+    <div className="transition-all duration-300 ease-out " style={style}>
+      <div className="h-full rounded-xl border-2 border-black bg-brand-cream/50 backdrop-blur-lg shadow-lg overflow-hidden flex flex-col font-spartan">
+        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-brand-cream/20 backdrop-blur-lg">
           <h3 className="font-semibold text-gray-900">Layouts</h3>
           <span className="text-sm text-gray-500">{layouts.length} total</span>
         </div>
@@ -111,8 +111,8 @@ export default function LayoutManagerDrawer({
                     key={layout.id}
                     className={[
                       'px-4 py-2 border-b border-gray-100',
-                      index % 2 === 0 ? 'bg-white' : 'bg-brand-cream',
-                      isActive ? 'ring-1 ring-inset ring-purple-400' : '',
+                      index % 2 === 0 ? 'bg-white/50 backdrop-blur-sm' : 'bg-brand-cream/10 backdrop-blur-sm shadow-lg',
+                      isActive ? 'ring-5 ring-inset ring-brand-pink' : '',
                     ].join(' ')}
                     onClick={() => {
                       if (!isEditing) {

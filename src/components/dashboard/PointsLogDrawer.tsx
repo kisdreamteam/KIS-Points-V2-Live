@@ -52,9 +52,9 @@ export default function PointsLogDrawer({
   };
 
   return (
-    <div className="transition-all duration-300 ease-out" style={style}>
-      <div className="h-full rounded-xl border-2 border-black bg-white shadow-lg overflow-hidden flex flex-col">
-        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+    <div className="transition-all duration-300 ease-out bg-brand-white/10 backdrop-blur-md" style={style}>
+      <div className="h-full rounded-xl border-2 border-black bg-brand-cream/10 backdrop-blur-lg shadow-lg shadow-lg overflow-hidden flex flex-col">
+        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-brand-cream/60">
           <h3 className="font-semibold text-gray-900">Point Log</h3>
           <span className="text-sm text-gray-500">{logTotalCount} records</span>
         </div>
@@ -65,14 +65,14 @@ export default function PointsLogDrawer({
           </div>
         )}
 
-        <div className="grid grid-cols-[1.3fr_1.6fr_1fr_0.7fr] gap-3 px-4 py-2 text-xs font-semibold text-gray-600 bg-gray-50 border-b border-gray-200">
+        <div className="grid grid-cols-[1.3fr_1.6fr_1fr_0.7fr] gap-3 px-4 py-2 text-xs font-semibold text-gray-600 bg-brand-cream/60 backdrop-blur-lg shadow-lg border-b border-gray-200">
           <div>Student</div>
           <div>Point category / reason</div>
           <div>Awarded date</div>
           <div className="text-right">Points</div>
         </div>
 
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto backdrop-blur-lg shadow-lg">
           {isPointLogLoading ? (
             <div className="h-full flex items-center justify-center text-gray-500">Loading point log...</div>
           ) : pagedRows.length === 0 ? (
@@ -82,7 +82,7 @@ export default function PointsLogDrawer({
               {pagedRows.map((row, rowIndex) => (
                 <div
                   key={row.id}
-                  className={`grid grid-cols-[1.3fr_1.6fr_1fr_0.7fr] gap-3 px-4 py-2 text-sm border-b border-gray-100 ${rowIndex % 2 === 0 ? 'bg-white' : 'bg-brand-cream'}`}
+                  className={`grid grid-cols-[1.3fr_1.6fr_1fr_0.7fr] gap-3 px-4 py-2 text-sm border-b border-gray-100 ${rowIndex % 2 === 0 ? 'bg-white/50 backdrop-blur-sm' : 'bg-brand-cream/50 backdrop-blur-lg shadow-lg'}`}
                 >
                   <div className="text-gray-900 truncate">{row.studentName}</div>
                   <div className="text-gray-700 truncate">{row.reason}</div>
