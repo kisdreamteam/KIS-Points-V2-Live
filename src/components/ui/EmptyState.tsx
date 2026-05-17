@@ -49,7 +49,7 @@ export default function EmptyState({
 
       {actionButton &&
         (showStudentMascots ? (
-          <div className="mx-auto flex md:h-100 max-w-4xl items-center justify-center gap-4 px-4">
+          <div className="mx-auto flex md:max-h-150 max-w-8xl items-center justify-center gap-1 px-1">
             <div className="hidden md:flex min-w-0 flex-1 items-center justify-end">
               <Image
                 src={STUDENT_MASCOT_LEFT}
@@ -64,13 +64,13 @@ export default function EmptyState({
               <p className="mx-auto mb-8 max-w-md text-gray-400">{message}</p>
               {actionButton}
             </div>
-            <div className="hidden md:flex min-w-0 w-100 flex-1 items-center justify-start">
+            <div className="hidden md:flex min-w-0 w-100 flex-1 items-center justify-start bg-brand-cream rounded-2xl">
               <Image
                 src={STUDENT_MASCOT_RIGHT}
                 alt=""
                 width={200}
                 height={200}
-                className={mascotImageClassName}
+                className="{mascotImageClassName} md:w-200 md:h-auto"
               />
             </div>
           </div>
