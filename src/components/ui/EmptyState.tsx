@@ -52,7 +52,7 @@ export default function EmptyState({
           <div className="mx-auto flex md:max-h-150 max-w-8xl items-center justify-center gap-1 px-1">
             <div className="hidden md:flex min-w-0 flex-1 items-center justify-end">
               <Image
-                src="/images/dashboard/Emptystates/No-student-Left-Mascot.png"
+                src="/images/dashboard/Emptystates/no-student-left-mascot.png"
                 alt="left mascot"
                 width={200}
                 height={200}
@@ -66,7 +66,7 @@ export default function EmptyState({
             </div>
             <div className="hidden md:flex min-w-0 w-100 flex-1 items-center justify-start bg-brand-cream rounded-2xl">
               <Image
-                src="/images/dashboard/Emptystates/No-student-Right-Mascot.png"
+                src="/images/dashboard/Emptystates/no-student-right-mascot.png"
                 alt="right mascot"
                 width={200}
                 height={200}
