@@ -1,5 +1,5 @@
 import DashboardView from '@/components/dashboard/frame/DashboardView';
-import DashboardViewSwitch from '../../../../modules/dashboard/DashboardViewSwitch';
+import DashboardViewSwitch from '@/modules/dashboard/DashboardViewSwitch';
 
 type ClassRosterPageProps = {
   params: Promise<{

@@ -21,10 +21,10 @@ You must identify the active shell before applying layout or state rules. They a
 ### B. Dashboard Shell (The Workspace)
 
 * **Scope:** `/dashboard/`, `/dashboard/classes/[classId]`.
-* **Shell (Tier 1):** `@/components/dashboard/frame/DashboardView.tsx` + `DashboardLayout.tsx`.
+* **Shell (Tier 1):** `@/components/dashboard/frame/DashboardView.tsx` (sync workers) + `@/features/dashboard/layouts/DashboardShell.tsx` (7-zone grid; mounted from `app/dashboard/layout.tsx`).
 * **View routing (Tier 2):** `@/modules/dashboard/DashboardViewSwitch.tsx`.
 * **Folder policy:** Dashboard **Tier 1 & 3** → `@/components/`; dashboard **Tier 2** → `@/modules/`. Auth/landing are exempt (§1.A).
-* **Modal host (Tier 2):** `@/modules/dashboard/DashboardClassModalsHost.tsx` (mounted in `DashboardLayout`).
+* **Modal host (Tier 2):** `@/modules/dashboard/DashboardClassModalsHost.tsx` (mounted in `DashboardShell`).
 * **Award / edit-skills (Tier 2 + Layer 1):** `@/modules/dashboard/AwardPointsModalHost.tsx` + `hooks/useAwardPointsModalController.ts`; `@/modules/dashboard/EditSkillsModalHost.tsx` + `hooks/useEditSkillsModalController.ts`. Prefer this **host + controller** pattern when a dashboard modal subtree needs orchestration hooks but the UI itself should stay Tier 3.
 * **Layout Logic:** Uses the **7-Zone Fixed Grid System** (`dashboardZoneConfig.ts`).
 * **State:** `useUserStore`, `useDashboardStore` (includes `absentStudentIds` for daily attendance), `useLayoutStore`, `useSeatingStore`, `useModalStore`, `usePreferenceStore`.
@@ -39,7 +39,7 @@ You must identify the active shell before applying layout or state rules. They a
 
 * **Locations:** `@/components/dashboard/frame/` (includes `navbars/`, `dashboardZoneConfig.ts`).
 * **Responsibility:** Persistent chrome and CSS Grid boundaries.
-* **Rule:** Mounts **Layer 1b sync workers** (e.g., `useDashboardRouteStateSync` in `DashboardLayout`; class/student/profile sync in `DashboardView`).
+* **Rule:** `DashboardClassesSync` in `app/dashboard/layout.tsx`; `useDashboardRouteStateSync` / `useViewPreferenceSync` in `DashboardShell`; class/student/profile/filter sync in `DashboardView`.
 * **Allowed:** Narrow store reads in navbars for chrome (e.g., `activeClassId`, `viewMode`). No Supabase, no mutation orchestration.
 
 ### Tier 2: The Stage (The Sets) — dashboard only
@@ -125,7 +125,7 @@ The Dashboard is a fixed coordinate system. Do not use these rules for Auth/Land
 
 Applies when URL/layout reflect **seating chart + edit mode** (`?view=seating` + `?mode=edit`, `useLayoutStore.isEditMode`).
 
-* **Mount (Tier 1):** `DashboardLayout` renders `SeatingEditorCanvasToolbar` in the canvas toolbar column instead of `DashboardCanvasToolbar`. Toolbar column uses `overflow-visible` in edit mode.
+* **Mount (Tier 1):** `DashboardShell` renders `SeatingEditorCanvasToolbar` in the canvas toolbar column instead of `DashboardCanvasToolbar`. Toolbar column uses `overflow-visible` in edit mode.
 * **Left nav:** `SeatingEditorLeftNav` replaces default left nav (layout list).
 * **Footer:** Keep `StudentsBottomNav` — pass `buttonsDisabled={isSeatingView && isEditMode}`. **Do not** reintroduce `SeatingEditorBottomNav`.
 * **Stage (Tier 2):** `StudentsWorkspace` → `SeatingChartEditorView` while editing; `SeatingChartView` when not.

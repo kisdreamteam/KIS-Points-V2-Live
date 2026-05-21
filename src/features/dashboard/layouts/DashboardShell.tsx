@@ -40,7 +40,7 @@ type WorkspaceZoneInputs = {
   showCanvasToolbar: boolean;
 };
 
-type DashboardLayoutProps = {
+type DashboardShellProps = {
   children: ReactNode;
 };
 
@@ -143,7 +143,7 @@ function getWorkspaceZoneConfig({
   };
 }
 
-const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
+const DashboardShell: FC<DashboardShellProps> = ({ children }) => {
   const pathname = usePathname();
   const { currentClassId } = useDashboardRouteStateSync();
   const classes = useDashboardStore((s) => s.classes);
@@ -317,4 +317,4 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
   );
 };
 
-export default DashboardLayout;
+export default DashboardShell;

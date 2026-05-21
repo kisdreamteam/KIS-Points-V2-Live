@@ -5,7 +5,6 @@ import { DashboardStudentSync } from '@/hooks/sync/useDashboardStudentSync';
 import { SeatingChartDataSync } from '@/hooks/sync/useSeatingChartDataSync';
 import { DashboardProfileSync } from '@/hooks/sync/useDashboardProfileSync';
 import { DashboardClassesFilterSync } from '@/hooks/sync/useDashboardClassesFilterSync';
-import DashboardLayout from '@/components/dashboard/frame/DashboardLayout';
 
 export default function DashboardView({
   children,
@@ -18,9 +17,7 @@ export default function DashboardView({
       <SeatingChartDataSync />
       <DashboardProfileSync />
       <DashboardClassesFilterSync />
-      <DashboardLayout>
-        {children}
-      </DashboardLayout>
+      {children}
     </Suspense>
   );
 }

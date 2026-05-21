@@ -178,11 +178,11 @@ Status: Finished
 
 ---
 
-## Step 5: `DashboardLayout` route-state sync extraction
+## Step 5: `DashboardShell` route-state sync extraction
 
 Status: Finished
 
-**File:** `src/components/dashboard/frame/DashboardLayout.tsx`  
+**File:** `src/features/dashboard/layouts/DashboardShell.tsx`  
 **Issue:** layout shell contains route-state business orchestration.
 
 ### Create

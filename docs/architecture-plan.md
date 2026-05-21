@@ -67,8 +67,9 @@ Auth is **not** subject to the dashboard `components/` vs `modules/` tier split.
 
 | Path | Role |
 |------|------|
-| `frame/DashboardView.tsx` | Sync worker host + `DashboardLayout` |
-| `frame/DashboardLayout.tsx` | 7-zone grid, nav slots, mounts modal host & tools |
+| `frame/DashboardView.tsx` | Sync worker host (student/seating/profile/filter sync) |
+| `features/dashboard/layouts/DashboardShell.tsx` | 7-zone grid, nav slots, mounts modal host & tools |
+| `app/dashboard/layout.tsx` | `DashboardClassesSync` + wraps pages with `DashboardShell` |
 | `frame/dashboardZoneConfig.ts` | Zone / toolbar definitions |
 | `frame/navbars/*` | Left/top/bottom nav (`StudentsBottomNav`, `SeatingEditorLeftNav`, etc.) |
 
@@ -200,7 +201,7 @@ Pure helpers (no React): `src/lib/awardPointsService.ts` (includes `filterEligib
 - `DashboardClassesSync` — `src/app/dashboard/layout.tsx`
 - `DashboardStudentSync`, `SeatingChartDataSync`, `DashboardProfileSync`, `DashboardClassesFilterSync` — `src/components/dashboard/frame/DashboardView.tsx`
 - `AttendanceSync` — **recommended** in `DashboardView.tsx` next to `DashboardStudentSync` (hydrates absences on class load; toggles work in-session without it)
-- `useDashboardRouteStateSync`, `useViewPreferenceSync` — `src/components/dashboard/frame/DashboardLayout.tsx`
+- `useDashboardRouteStateSync`, `useViewPreferenceSync` — `src/features/dashboard/layouts/DashboardShell.tsx`
 
 ### Layer 2 — Desk (`src/stores/`)
 
@@ -297,12 +298,12 @@ Early return when no eligible students remain (`eligibleStudentIds.length === 0`
 ### Modals
 
 - Global open state: `useModalStore`
-- Mounted once: `DashboardClassModalsHost` in `DashboardLayout` (`src/modules/dashboard/`)
+- Mounted once: `DashboardClassModalsHost` in `DashboardShell` (`src/modules/dashboard/`)
 - Writers: selection hooks, seating view, `useDashboardClassModalsActions`
 
 ### Seating editor chrome (`?view=seating` + `?mode=edit`)
 
-When `useLayoutStore.isEditMode` is true on the seating chart view, `DashboardLayout` swaps several zone mounts:
+When `useLayoutStore.isEditMode` is true on the seating chart view, `DashboardShell` swaps several zone mounts:
 
 | Zone / area | View mode | Edit mode |
 |-------------|-----------|-----------|
@@ -361,9 +362,14 @@ src/
     (auth)/layout.tsx               # auth flex shell
     (auth)/login|signup|.../        # → modules/auth/*View (route group; URLs unchanged)
     dashboard/
-      layout.tsx                    # DashboardClassesSync
+      layout.tsx                    # DashboardClassesSync; Suspense + DashboardShell
       page.tsx                      # DashboardView + DashboardViewSwitch
       classes/[classId]/page.tsx
+
+  features/
+    dashboard/
+      layouts/
+        DashboardShell.tsx          # Tier 1 shell (7-zone grid)
 
   modules/                          # Auth, landing, dashboard Tier 2
     auth/                           # *View only (permanent)
@@ -384,7 +390,7 @@ src/
   hooks/          stores/           lib/api/
 ```
 
-**Path aliases:** `@/components/*`, `@/modules/*`, `@/hooks/*`, `@/stores/*`, `@/lib/*`.
+**Path aliases:** `@/components/*`, `@/modules/*`, `@/features/*`, `@/hooks/*`, `@/stores/*`, `@/lib/*`.
 
 ---
 
