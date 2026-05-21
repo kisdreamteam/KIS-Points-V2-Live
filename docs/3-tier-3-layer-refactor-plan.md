@@ -248,20 +248,16 @@ Status: Finished
 
 Status: Finished
 
-**Files:** `src/app/login/page.tsx`, `src/app/signup/page.tsx`, `src/app/forgot-password/page.tsx`, `src/app/reset-password/page.tsx`, `src/app/dashboard/classes/[classId]/page.tsx`  
+**Files:** `src/app/(auth)/layout.tsx`, `src/app/(auth)/login/page.tsx`, `src/app/(auth)/signup/page.tsx`, `src/app/(auth)/forgot-password/page.tsx`, `src/app/(auth)/reset-password/page.tsx`, `src/app/dashboard/classes/[classId]/page.tsx`  
 **Issue:** Auth route pages contained Layer 1 orchestration directly, and dynamic class route did not explicitly use route params.
 
-### Create
+### As implemented
 
-- `src/components/auth/pages/LoginPageModule.tsx`
-- `src/components/auth/pages/SignupPageModule.tsx`
-- `src/components/auth/pages/ForgotPasswordPageModule.tsx`
-- `src/components/auth/pages/ResetPasswordPageModule.tsx`
-
-### Move into modules
-
-- auth `useAuthFlow` orchestration
-- auth form state/handler prop wiring
+- Auth routes grouped under `src/app/(auth)/` (route group; URLs `/login`, `/signup`, etc. unchanged).
+- Auth flex shell: `src/app/(auth)/layout.tsx` (replaces deleted `modules/auth/AuthLayout.tsx`).
+- Tier 2: `modules/auth/*View` wire `useAuthFlow` + Tier 3 forms only (no layout wrapper in views).
+- Thin `page.tsx` files delegate to `modules/auth/*View`.
+- Historical `src/components/auth/pages/*PageModule` targets were superseded by `modules/auth/*View` — do not recreate.
 
 ### Keep in route files
 
@@ -270,7 +266,7 @@ Status: Finished
 
 ### Expected outcome
 
-- `src/app` auth pages are thin route shells.
+- `src/app` auth pages are thin route shells under `(auth)/`.
 - Dynamic class route segment explicitly participates in routing intent.
 
 ### Verify

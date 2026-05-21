@@ -1,6 +1,5 @@
 'use client';
 
-import AuthLayout from '@/modules/auth/AuthLayout';
 import SignupForm from '@/components/ui/auth/SignupForm';
 import { useAuthFlow } from '@/hooks/useAuthFlow';
 
@@ -27,27 +26,25 @@ export default function SignUpView() {
   } = useAuthFlow();
 
   return (
-    <AuthLayout>
-      <SignupForm
-        title={signupTitle}
-        firstName={signupFirstName}
-        lastName={signupLastName}
-        email={signupEmail}
-        password={signupPassword}
-        confirmPassword={signupConfirmPassword}
-        role={signupRole}
-        onTitleChange={setSignupTitle}
-        onFirstNameChange={setSignupFirstName}
-        onLastNameChange={setSignupLastName}
-        onEmailChange={setSignupEmail}
-        onPasswordChange={setSignupPassword}
-        onConfirmPasswordChange={setSignupConfirmPassword}
-        onRoleChange={setSignupRole}
-        onSubmit={handleSignup}
-        isLoading={isLoading}
-        error={error}
-        success={success}
-      />
-    </AuthLayout>
+    <SignupForm
+      title={signupTitle}
+      firstName={signupFirstName}
+      lastName={signupLastName}
+      email={signupEmail}
+      password={signupPassword}
+      confirmPassword={signupConfirmPassword}
+      role={signupRole}
+      onTitleChange={setSignupTitle}
+      onFirstNameChange={setSignupFirstName}
+      onLastNameChange={setSignupLastName}
+      onEmailChange={setSignupEmail}
+      onPasswordChange={setSignupPassword}
+      onConfirmPasswordChange={setSignupConfirmPassword}
+      onRoleChange={setSignupRole}
+      onSubmit={handleSignup}
+      isLoading={isLoading}
+      error={error}
+      success={success}
+    />
   );
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import AuthLayout from '@/modules/auth/AuthLayout';
 import ResetPasswordForm from '@/components/ui/auth/ResetPasswordForm';
 import { useAuthFlow } from '@/hooks/useAuthFlow';
 
@@ -19,19 +18,17 @@ export default function ResetPasswordView() {
   } = useAuthFlow();
 
   return (
-    <AuthLayout>
-      <ResetPasswordForm
-        password={resetPassword}
-        confirmPassword={resetConfirmPassword}
-        onPasswordChange={setResetPassword}
-        onConfirmPasswordChange={setResetConfirmPassword}
-        onSubmit={handleResetPassword}
-        isSessionChecked={isSessionChecked}
-        hasSession={hasSession}
-        isLoading={isLoading}
-        error={error}
-        success={success}
-      />
-    </AuthLayout>
+    <ResetPasswordForm
+      password={resetPassword}
+      confirmPassword={resetConfirmPassword}
+      onPasswordChange={setResetPassword}
+      onConfirmPasswordChange={setResetConfirmPassword}
+      onSubmit={handleResetPassword}
+      isSessionChecked={isSessionChecked}
+      hasSession={hasSession}
+      isLoading={isLoading}
+      error={error}
+      success={success}
+    />
   );
 }

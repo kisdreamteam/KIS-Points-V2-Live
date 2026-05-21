@@ -9,7 +9,8 @@ Prototype 1 uses a **dual-shell** layout model and a **dual-boundary** data mode
 
 - Zustand migration is effectively complete; dashboard global state does not use React Context.
 - **Dashboard visual boundaries:** Tier 1 frame and Tier 3 actors live under `src/components/dashboard/`; Tier 2 view containers live under `src/modules/{dashboard,classes,students,seating}/`. **Modal flows** that need Layer 1 wiring above a presentational modal use a **Tier 2 host in `modules/dashboard/` + controller hook in `src/hooks/`** (see §1.3 / §1.4).
-- **Auth/landing:** self-contained under `src/modules/` (not subject to the dashboard `components/` vs `modules/` tier split).
+- **Auth routes:** grouped under `src/app/(auth)/` (route group; URLs unchanged). Auth flex shell moved from `modules/auth/AuthLayout.tsx` to `src/app/(auth)/layout.tsx` (May 2026).
+- **Auth/landing (Tier 2):** views in `src/modules/auth` and `src/modules/landing` (not subject to the dashboard `components/` vs `modules/` tier split).
 - **Student attendance:** daily `attendance_events` append-only log, `absentStudentIds` in the dashboard store, bottom-nav attendance sheet, and macro point exclusions for absent students (see §2.1).
 
 Related docs: `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-tier-3-layer-refactor-plan.md`, `docs/db-schema.md`.
@@ -18,19 +19,19 @@ Related docs: `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-ti
 
 ## 0. Dual shells (identify the shell first)
 
-### A. Auth & landing shell — self-contained under `modules/`
+### A. Auth & landing shell
 
-Auth is **not** subject to the dashboard `components/` vs `modules/` tier split. Keep auth-related files where they are.
+Auth is **not** subject to the dashboard `components/` vs `modules/` tier split. **Route chrome** lives in `src/app/(auth)/`; **Tier 2 views** stay in `src/modules/auth`.
 
 | Concern | Location |
 |---------|----------|
-| Tier 1 layout | `src/modules/auth/AuthLayout.tsx` |
-| Tier 2 views | `src/modules/auth/LoginView.tsx`, `SignUpView.tsx`, `ForgotPasswordView.tsx`, `ResetPasswordView.tsx` |
+| Tier 1 layout | `src/app/(auth)/layout.tsx` |
+| Tier 2 views | `src/modules/auth/LoginView.tsx`, `SignUpView.tsx`, `ForgotPasswordView.tsx`, `ResetPasswordView.tsx` (forms only; no layout wrapper) |
 | Tier 2 landing | `src/modules/landing/LandingView.tsx` |
 | Tier 3 UI | `src/components/ui/auth/*`, `src/components/ui/landing/*` |
 | Layer 1 | `src/hooks/useAuthFlow.ts` |
 | Layer 3 | `src/lib/api/auth.service.ts` |
-| Routes | Thin `src/app/login|signup|.../page.tsx` → `@/modules/auth/*` or `@/modules/landing/*` |
+| Routes | Thin `src/app/(auth)/login|signup|.../page.tsx` → `@/modules/auth/*`; `src/app/page.tsx` → `@/modules/landing/*` |
 
 ### B. Dashboard shell — `components/` = T1 & T3, `modules/` = T2
 
@@ -58,7 +59,7 @@ Auth is **not** subject to the dashboard `components/` vs `modules/` tier split.
 | **2** | View containers, workspaces, orchestration | `src/modules/{dashboard,classes,students,seating}/` |
 | **3** | Presentational UI | `src/components/dashboard/{cards,modals,menus,forms,seating}/`, `src/components/ui/` |
 
-`src/modules/` is the permanent home for auth, landing, and dashboard Tier 2. Do not move `AuthLayout` or auth views into `components/` for folder-policy reasons.
+`src/modules/` is the permanent home for auth, landing, and dashboard Tier 2. Do not move auth views into `components/` for folder-policy reasons. Auth route chrome lives in `src/app/(auth)/layout.tsx`.
 
 ### 1.2 Tier 1 — Scaffolding (`components/dashboard/frame/`)
 
@@ -357,14 +358,15 @@ Horizontal positioning for `leftOfAnchorDown` / `leftOfAnchorAbove`: menu right 
 src/
   app/                              # Thin routes
     page.tsx                        # → modules/landing/LandingView
-    login|signup|.../               # → modules/auth/*View
+    (auth)/layout.tsx               # auth flex shell
+    (auth)/login|signup|.../        # → modules/auth/*View (route group; URLs unchanged)
     dashboard/
       layout.tsx                    # DashboardClassesSync
       page.tsx                      # DashboardView + DashboardViewSwitch
       classes/[classId]/page.tsx
 
   modules/                          # Auth, landing, dashboard Tier 2
-    auth/                           # AuthLayout + *View (permanent)
+    auth/                           # *View only (permanent)
     landing/
     dashboard/                      # ViewSwitch, class modals host, award/skills modal hosts, stage/, tools/
     classes/
@@ -408,7 +410,9 @@ src/
 ## 6. Quick reference
 
 ```text
-Auth/Landing   →  modules/auth|landing (T1+T2) + components/ui (T3)
+Auth T1        →  app/(auth)/layout.tsx
+Auth T2        →  modules/auth/*View + components/ui/auth (T3 forms)
+Landing T2     →  modules/landing/LandingView + components/ui/landing (T3)
 Dashboard T1   →  components/dashboard/frame/
 Dashboard T2   →  modules/{dashboard,classes,students,seating}/  (+ *ModalHost.tsx for gated modal flows)
 Dashboard T3   →  components/dashboard/* + components/ui/  (presentational modals/forms; compose Tier 2 hosts when needed)

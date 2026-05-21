@@ -2,7 +2,6 @@
 
 import type { FC } from 'react';
 
-import AuthLayout from '@/modules/auth/AuthLayout';
 import LoginForm from '@/components/ui/auth/LoginForm';
 import { useAuthFlow } from '@/hooks/useAuthFlow';
 
@@ -19,18 +18,16 @@ const LoginView: FC = () => {
   } = useAuthFlow();
 
   return (
-    <AuthLayout>
-      <LoginForm
-        email={loginEmail}
-        password={loginPassword}
-        onEmailChange={setLoginEmail}
-        onPasswordChange={setLoginPassword}
-        onSubmit={handleLogin}
-        isLoading={isLoading}
-        error={error}
-        success={success}
-      />
-    </AuthLayout>
+    <LoginForm
+      email={loginEmail}
+      password={loginPassword}
+      onEmailChange={setLoginEmail}
+      onPasswordChange={setLoginPassword}
+      onSubmit={handleLogin}
+      isLoading={isLoading}
+      error={error}
+      success={success}
+    />
   );
 };
 

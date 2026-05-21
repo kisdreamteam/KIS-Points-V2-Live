@@ -8,14 +8,15 @@ You must identify the active shell before applying layout or state rules. They a
 
 ### A. Auth & Landing Shell (The Entryway)
 
-* **Scope:** `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`.
-* **Shell:** `@/modules/auth/AuthLayout.tsx` (auth stays in `modules/` — **not** part of the dashboard tier split).
-* **Views (Tier 2):** `@/modules/auth/*`, `@/modules/landing/LandingView.tsx`.
+* **Scope (URLs):** `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`.
+* **Routes (filesystem):** `src/app/(auth)/login|signup|forgot-password|reset-password/page.tsx` (route group; URLs unchanged).
+* **Tier 1 (auth routes):** `src/app/(auth)/layout.tsx` (flex centering chrome; mirrors `app/dashboard/layout.tsx` owning the segment).
+* **Tier 2 views:** `@/modules/auth/*View` (wire `useAuthFlow` + Tier 3 forms only — do not reintroduce a layout wrapper in views), `@/modules/landing/LandingView.tsx`.
 * **Tier 3 UI:** `@/components/ui/auth/*`, `@/components/ui/landing/*`.
 * **Layout Logic:** Uses **Flexbox** for centering (e.g., `flex items-center justify-center`).
 * **State:** **No Global Zustand Store.** Use `useAuthFlow.ts` for local form/UI state.
 * **Session:** Layer 1 hook + `@/lib/api/auth.service.ts` (Layer 3).
-* **Rule:** Do not move auth views or `AuthLayout` into `components/` for folder-policy reasons.
+* **Rule:** Do not move auth views into `components/` for folder-policy reasons.
 
 ### B. Dashboard Shell (The Workspace)
 
