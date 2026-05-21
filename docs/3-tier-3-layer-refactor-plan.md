@@ -76,7 +76,7 @@ Status: Finished
 
 Status: Finished
 
-**File:** `src/modules/dashboard/DashboardClassModalsHost.tsx`  
+**File:** `src/features/dashboard/DashboardClassModalsHost.tsx`  
 **Issue:** modal host directly calls student APIs.
 
 ### Create
@@ -112,7 +112,7 @@ Status: Finished
 
 Status: Finished
 
-**File:** `src/modules/dashboard/tools/Random.tsx`  
+**File:** `src/features/dashboard/tools/Random.tsx`  
 **Issue:** UI tool directly performs API operations.
 
 ### Create
@@ -254,10 +254,10 @@ Status: Finished
 ### As implemented
 
 - Auth routes grouped under `src/app/(auth)/` (route group; URLs `/login`, `/signup`, etc. unchanged).
-- Auth flex shell: `src/app/(auth)/layout.tsx` (replaces deleted `modules/auth/AuthLayout.tsx`).
-- Tier 2: `modules/auth/*View` wire `useAuthFlow` + Tier 3 forms only (no layout wrapper in views).
-- Thin `page.tsx` files delegate to `modules/auth/*View`.
-- Historical `src/components/auth/pages/*PageModule` targets were superseded by `modules/auth/*View` — do not recreate.
+- Auth flex shell: `src/app/(auth)/layout.tsx` (replaces deleted `features/auth/AuthLayout.tsx`).
+- Tier 2: `features/auth/*View` wire `useAuthFlow` + Tier 3 forms only (no layout wrapper in views).
+- Thin `page.tsx` files delegate to `features/auth/*View`.
+- Historical `src/components/auth/pages/*PageModule` targets were superseded by `features/auth/*View` — do not recreate.
 
 ### Keep in route files
 

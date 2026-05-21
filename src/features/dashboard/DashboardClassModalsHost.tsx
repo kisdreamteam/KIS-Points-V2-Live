@@ -12,7 +12,7 @@ import {
 } from '@/lib/events/students';
 import { normalizeClassIconPath } from '@/lib/iconUtils';
 import AddStudentsModal from '@/components/dashboard/modals/AddStudentsModal';
-import AwardPointsModalHost from '@/modules/dashboard/AwardPointsModalHost';
+import AwardPointsModalHost from '@/features/dashboard/AwardPointsModalHost';
 import EditStudentModal from '@/components/dashboard/modals/EditStudentModal';
 import PointsAwardedConfirmationModal from '@/components/dashboard/modals/PointsAwardedConfirmationModal';
 

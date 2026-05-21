@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { Student } from '@/lib/types';
 import Image from 'next/image';
-import AwardPointsModalHost from '@/modules/dashboard/AwardPointsModalHost';
+import AwardPointsModalHost from '@/features/dashboard/AwardPointsModalHost';
 import PointsAwardedConfirmationModal from '@/components/dashboard/modals/PointsAwardedConfirmationModal';
 import { normalizeAvatarPath } from '@/lib/iconUtils';
 import { emitSeatingStudentPointsDelta } from '@/lib/events/students';

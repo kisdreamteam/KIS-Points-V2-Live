@@ -2,7 +2,7 @@
 
 import Modal from '@/components/ui/modals/Modal';
 import AddSkillModal from '@/components/dashboard/modals/AddSkillModal';
-import EditSkillsModalHost from '@/modules/dashboard/EditSkillsModalHost';
+import EditSkillsModalHost from '@/features/dashboard/EditSkillsModalHost';
 import SkillCard from '@/components/dashboard/cards/SkillCard';
 import SkillActionCard from '@/components/dashboard/cards/SkillActionCard';
 import { PointCategory, Student } from '@/lib/types';
