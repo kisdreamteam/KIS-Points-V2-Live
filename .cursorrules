@@ -8,7 +8,7 @@
 * **Stay dumb:** `page.tsx` and segment `layout.tsx` should stay ~5–10 lines — one shell or view import, one default export. No hooks, stores, Supabase, or orchestration. If a route file grows or needs hooks → move logic to `src/features/`.
 * **Dashboard split (do not collapse):** `app/dashboard/layout.tsx` → `DashboardShell` only; `app/dashboard/**/page.tsx` → `<DashboardView />` only. Do **not** hoist `DashboardView` into layout for DRY unless there is an explicit, documented architecture decision.
 * **Symmetric dashboard pages:** `page.tsx` and `classes/[classId]/page.tsx` both render `<DashboardView />` from `@/features/dashboard/DashboardView.tsx` only. Do not duplicate pathname/`key` logic or stage routing in `app/` routes.
-* **Dashboard stage entry:** `@/features/dashboard/DashboardView.tsx` — sync workers + `activeView` routing in one file. Do not split routing back into `app/` or reintroduce `DashboardViewSwitch`.
+* **Dashboard stage entry:** `@/features/dashboard/DashboardView.tsx` — sync workers + private `DashboardStageContent` (`activeView` → `ClassesView` / `StudentsView`). Render tree: `DashboardShell` → `page` → `DashboardView` → feature views. Do not split routing back into `app/` or reintroduce `DashboardViewSwitch`.
 
 ## 1. Architectural Mandate: The Dual-Shell System
 
@@ -20,7 +20,7 @@ You must identify the active shell before applying layout or state rules. They a
 * **Routes (filesystem):** `src/app/(landing)/page.tsx` → `/`; `src/app/(auth)/login|signup|forgot-password|reset-password/page.tsx` (route groups; URLs unchanged).
 * **Tier 1 (landing):** `@/features/landing/layouts/LandingShell.tsx` (pass-through for now); `src/app/(landing)/layout.tsx` imports it only.
 * **Tier 1 (auth routes):** `@/features/auth/layouts/AuthShell.tsx` (flex centering chrome); `src/app/(auth)/layout.tsx` imports it only (mirrors `app/dashboard/layout.tsx` → `DashboardShell`).
-* **Tier 2 views:** `@/features/auth/*View` (wire `useAuthFlow` + Tier 3 forms only — do not reintroduce a layout wrapper in views), `@/features/landing/LandingView.tsx`.
+* **Tier 2 views:** `@/features/auth/*View` (wire `useAuthFlow` + Tier 3 forms only — do not reintroduce a layout wrapper in views), `@/features/landing/LandingView.tsx`. Dashboard routes mirror this: `page.tsx` → `@/features/dashboard/DashboardView` only (not `LoginView`-simple — also mounts sync workers and routes to `ClassesView` / `StudentsView`).
 * **Tier 3 UI:** `@/features/auth/components/` (forms + chrome), `@/features/landing/components/`.
 * **Layout Logic:** Uses **Flexbox** for centering (e.g., `flex items-center justify-center`).
 * **State:** **No Global Zustand Store.** Use `useAuthFlow.ts` for local form/UI state.
@@ -59,7 +59,7 @@ You must identify the active shell before applying layout or state rules. They a
 
 * **Locations:** `@/features/dashboard/`, `@/features/classes/`, `@/features/students/`, `@/features/seating/`.
 * **Responsibility:** View orchestration, workspace wiring, store subscription, passing props to Tier 3.
-* **Includes:** `features/dashboard/stage/` (`dashboardToolbarConfig.ts`, `DashboardCanvasToolbar`, presets), `features/classes/components/ClassesCanvasToolbar.tsx`, `features/students/components/StudentsStageToolbar.tsx`, `features/seating/SeatingEditorCanvasToolbar.tsx`, `features/dashboard/tools/Random.tsx`, `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, **`AwardPointsModalHost.tsx`**, **`EditSkillsModalHost.tsx`**, `features/classes/EditClassModalRoot.tsx`, `features/seating/SeatingGroupsCanvas.tsx`.
+* **Includes:** **`features/dashboard/DashboardView.tsx`** (route entry: sync + `activeView` → `ClassesView` / `StudentsView`), `features/dashboard/stage/` (`dashboardToolbarConfig.ts`, `DashboardCanvasToolbar`, presets), `features/classes/components/ClassesCanvasToolbar.tsx`, `features/students/components/StudentsStageToolbar.tsx`, `features/seating/SeatingEditorCanvasToolbar.tsx`, `features/dashboard/tools/Random.tsx`, `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, **`AwardPointsModalHost.tsx`**, **`EditSkillsModalHost.tsx`**, `features/classes/EditClassModalRoot.tsx`, `features/seating/SeatingGroupsCanvas.tsx`.
 * **New modal flows:** If a modal needs `@/hooks` orchestration (`use*` data, mutations, icons), implement **`features/dashboard/MyFeatureModalHost.tsx`** + **`hooks/useMyFeatureModalController.ts`**, expose `*ViewProps` next to **`features/dashboard/components/modals/MyFeatureModal.tsx`**. Do not bolt Layer 1 hooks onto presentational Tier 3 modals/forms by default.
 * **Nested UI:** Tier 3 modals may import and render Tier 2 **hosts** for self-contained subtrees (e.g. `AwardPointsModal` → `EditSkillsModalHost`); do not merge unrelated controller logic into a single hook.
 * **Rules:**

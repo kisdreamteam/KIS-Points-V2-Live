@@ -59,6 +59,7 @@ export default function DashboardView() {
       <SeatingChartDataSync />
       <DashboardProfileSync />
       <DashboardClassesFilterSync />
+      {/* <ClassesView> and <StudentsView> are the two main views for the dashboard */}
       <DashboardStageContent key={classId ?? 'dashboard-root'} />
     </Suspense>
   );

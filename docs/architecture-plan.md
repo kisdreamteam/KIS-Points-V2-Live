@@ -12,6 +12,7 @@ Prototype 1 uses a **dual-shell** layout model and a **dual-boundary** data mode
 - **Auth routes:** grouped under `src/app/(auth)/` (route group; URLs unchanged). Auth flex shell in `src/features/auth/layouts/AuthShell.tsx`; `src/app/(auth)/layout.tsx` thin-wires the shell (mirrors dashboard + `DashboardShell`).
 - **Auth/landing (Tier 2):** views in `src/features/auth` and `src/features/landing` (not subject to the dashboard `components/` vs `features/` tier split).
 - **Student attendance:** daily `attendance_events` append-only log, `absentStudentIds` in the dashboard store, bottom-nav attendance sheet, and macro point exclusions for absent students (see §2.1).
+- **Dashboard stage entry (May 2026):** `src/features/dashboard/DashboardView.tsx` — single route-level view (sync workers + `activeView` routing). Replaces the former `frame/DashboardView.tsx` + `DashboardViewSwitch.tsx` split; matches auth/landing `page → *View` import symmetry.
 
 Related docs: `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-tier-3-layer-refactor-plan.md`, `docs/db-schema.md`, `docs/featureFirstMigrationPlan.md` (completed move from `components/dashboard` and `components/ui/{auth,landing}` → `features/*/components/`).
 
@@ -64,6 +65,33 @@ Auth and landing are **not** subject to the dashboard `components/` vs `features
 
 `getDashboardClassIdFromPath()` lives in `DashboardView.tsx` (done).
 
+**Dashboard render tree (as implemented):**
+
+```mermaid
+flowchart TD
+  layout[app/dashboard/layout.tsx]
+  shell[DashboardShell Tier1]
+  page[app/dashboard/page.tsx]
+  dv[DashboardView Tier2]
+  sync[Sync workers Layer1b]
+  stage[DashboardStageContent private]
+  classes[ClassesView]
+  students[StudentsView]
+  layout --> shell
+  page --> dv
+  shell --> page
+  dv --> sync
+  dv --> stage
+  stage --> classes
+  stage --> students
+```
+
+| Import path | Role |
+|-------------|------|
+| `@/features/dashboard/DashboardView` | **Only** import from dashboard `page.tsx` files |
+| Internal `DashboardStageContent` | `activeView` switch + class-route guard (not exported) |
+| `ClassesView` / `StudentsView` | Per-view `StageTwoColumnLayout` + workspace + toolbar |
+
 ---
 
 ## 1. Visual 3-Tier — dashboard folder policy
@@ -89,7 +117,7 @@ Auth and landing are **not** subject to the dashboard `components/` vs `features
 | `frame/dashboardZoneConfig.ts` | Shell sidebar grid + main-stage row class constants |
 | `frame/StageTwoColumnLayout.tsx` | View-owned 2-col stage (`1fr` canvas + toolbar rail) |
 | `frame/navbars/*` | Left/top/bottom nav (`BottomNav`, `SeatingEditorLeftNav`, etc.) |
-| `stage/dashboardToolbarConfig.ts` | Toolbar action defs + `buildShellToolbarConfig` |
+| `features/dashboard/stage/dashboardToolbarConfig.ts` | Toolbar action defs + `buildShellToolbarConfig` |
 
 Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, `viewMode`) because they are shell chrome, not workspace orchestration.
 
@@ -114,7 +142,7 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 
 | Module path | Files |
 |-------------|-------|
-| `features/dashboard/` | `DashboardView.tsx`, `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/DashboardCanvasToolbar.tsx`, `stage/canvasToolbarPresets.tsx`, `tools/Random.tsx` |
+| `features/dashboard/` | **`DashboardView.tsx`** (route entry: sync + `DashboardStageContent` routing), `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/DashboardCanvasToolbar.tsx`, `stage/canvasToolbarPresets.tsx`, `tools/Random.tsx` |
 | `features/classes/` | `ClassesView.tsx` (+ `ClassesCanvasToolbar`), `ClassesWorkspace.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx` |
 | `features/students/` | `StudentsView.tsx` (+ `StudentsStageToolbar`), `StudentsWorkspace.tsx`, `StudentCardsGrid.tsx` |
 | `features/seating/` | `SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`, `SeatingChartEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx`, `SeatingEditorCanvasToolbar.tsx` |
@@ -456,7 +484,7 @@ Landing T1     →  features/landing/layouts/LandingShell (+ app/(landing)/layou
 Landing T2     →  features/landing/LandingView
 Landing T3     →  features/landing/components/
 Dashboard T1   →  features/dashboard/components/frame/ + layouts/DashboardShell
-Dashboard T2   →  features/{dashboard,classes,students,seating}/  (+ *ModalHost.tsx)
+Dashboard T2   →  features/dashboard/DashboardView.tsx (stage entry) + features/{classes,students,seating}/*View + *Host.tsx
 Dashboard T3   →  features/{dashboard,classes,students,seating}/components/ + components/ui/
 Data layers    →  hooks/ · stores/ · lib/api/
 Attendance     →  attendanceService · absentStudentIds · features/students/.../AttendanceMenuBody · features/dashboard/.../BottomNav
