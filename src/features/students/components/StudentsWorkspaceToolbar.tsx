@@ -6,15 +6,15 @@ import SeatingEditorCanvasToolbar from '@/features/seating/SeatingEditorCanvasTo
 import { useLayoutStore } from '@/stores/useLayoutStore';
 import { useSeatingStore } from '@/stores/useSeatingStore';
 
-type StudentsStageToolbarProps = {
+type StudentsWorkspaceToolbarProps = {
   classId: string;
   onEditClass?: () => void;
 };
 
-export default function StudentsStageToolbar({
+export default function StudentsWorkspaceToolbar({
   classId,
   onEditClass,
-}: StudentsStageToolbarProps) {
+}: StudentsWorkspaceToolbarProps) {
   const activeView = useLayoutStore((s) => s.activeView);
   const isEditMode = useLayoutStore((s) => s.isEditMode);
   const seatingLayoutsCount = useSeatingStore((s) => s.layouts.length);

@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react';
 
-type StageTwoColumnLayoutProps = {
+type WorkspaceTwoColumnSplitProps = {
   main: ReactNode;
   toolbar: ReactNode;
   toolbarColumnClassName?: string;
 };
 
-export default function StageTwoColumnLayout({
+export default function WorkspaceTwoColumnSplit({
   main,
   toolbar,
   toolbarColumnClassName = 'overflow-hidden',
-}: StageTwoColumnLayoutProps) {
+}: WorkspaceTwoColumnSplitProps) {
   return (
     <div className="grid h-full min-h-0 grid-cols-[1fr_auto]">
       <div className="relative min-h-0 min-w-0 overflow-y-auto overflow-x-hidden pt-1">
