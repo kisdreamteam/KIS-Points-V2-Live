@@ -21,10 +21,19 @@ type RandomProps = {
 };
 
 export default function Random({ classId, onClose, registerCloseHandler }: RandomProps) {
-  const itemHeight = 250;
-  const slotWindowHeight = 750;
-  // Slot window uses p-5 (20px) — center of the *visible reel* is half of inner height, not half of outer 750px.
-  const slotPaddingPx = 20;
+  const UI_SCALE = 0.9;
+  const scalePx = (n: number) => Math.round(n * UI_SCALE);
+
+  const itemHeight = scalePx(250);
+  const slotWindowHeight = scalePx(750);
+  const slotWindowWidth = scalePx(375);
+  // Slot window padding — center of the *visible reel* is half of inner height, not half of outer window.
+  const slotPaddingPx = scalePx(20);
+  const pointsListWidth = scalePx(320);
+  const fadeOverlayHeight = scalePx(100);
+  const reelAvatarSize = scalePx(150);
+  const selectedAvatarSize = scalePx(75);
+  const listAvatarSize = scalePx(48);
   const viewportInnerHeight = slotWindowHeight - 2 * slotPaddingPx;
   const middleOfWindow = viewportInnerHeight / 2;
   const itemCenterOffset = itemHeight / 2;
@@ -286,12 +295,12 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
 
   return (
     <div className="h-full w-full flex flex-col min-h-0">
-      <div className="flex-1 min-h-0 flex flex-row items-center justify-center px-10 gap-10 overflow-auto">
+      <div className="flex-1 min-h-0 flex flex-row items-center justify-center px-9 gap-9 overflow-hidden">
         {/* Left Side - Controls and Selected Student */}
-        <div className="flex-1 flex flex-col items-center justify-center">
+        <div className="flex-1 flex flex-col items-center justify-center min-w-0">
           <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-6">Random Student Selector</h1>
-            <p className="text-white/80 text-xl mb-8">
+            <h1 className="text-4xl font-bold text-white mb-5">Random Student Selector</h1>
+            <p className="text-white/80 text-lg mb-7">
               {isLoading
                 ? 'Loading students...'
                 : totalStudents === 0
@@ -301,8 +310,8 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
                     : `Click the button to randomly select from ${availableStudents.length} students`}
             </p>
             {!isLoading && totalStudents > 0 && (
-              <div className="mb-6 flex items-center justify-center gap-4">
-                <p className="text-white/90 text-lg font-semibold">
+              <div className="mb-5 flex items-center justify-center gap-4">
+                <p className="text-white/90 text-base font-semibold">
                   {pickedStudentsCount} of {totalStudents} students picked
                 </p>
                 <button
@@ -319,30 +328,30 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
               <button
                 onClick={handleSpin}
                 disabled={isSpinning}
-                className="bg-pink-600 hover:bg-pink-700 disabled:bg-gray-500 text-white px-10 py-5 rounded-xl font-bold text-2xl transition-colors shadow-lg disabled:cursor-not-allowed"
+                className="bg-pink-600 hover:bg-pink-700 disabled:bg-gray-500 text-white px-9 py-4 rounded-xl font-bold text-xl transition-colors shadow-lg disabled:cursor-not-allowed"
               >
                 {isSpinning ? 'Spinning...' : 'Choose Random Student'}
               </button>
             )}
 
             {/* Selected Student Display */}
-            <div className="mt-10 p-8 bg-white/20 rounded-2xl backdrop-blur-sm">
+            <div className="mt-8 p-7 bg-white/20 rounded-2xl backdrop-blur-sm">
               {selectedStudent ? (
                 <>
-                  <p className="text-white text-3xl font-semibold mb-3">Selected:</p>
-                  <div className="flex items-center gap-5 justify-center mb-6">
+                  <p className="text-white text-2xl font-semibold mb-3">Selected:</p>
+                  <div className="flex items-center gap-4 justify-center mb-5">
                     <Image
                       src={normalizeAvatarPath(selectedStudent.avatar)}
                       alt={`${selectedStudent.first_name} ${selectedStudent.last_name}`}
-                      width={75}
-                      height={75}
+                      width={selectedAvatarSize}
+                      height={selectedAvatarSize}
                       className="rounded-full bg-[#FDF2F0] border-4 border-white"
                     />
-                    <p className="text-white text-5xl font-bold">{selectedStudent.first_name} {selectedStudent.last_name}</p>
+                    <p className="text-white text-4xl font-bold">{selectedStudent.first_name} {selectedStudent.last_name}</p>
                   </div>
                 </>
               ) : (
-                <p className="text-white text-2xl font-semibold mb-6 text-center">No student selected</p>
+                <p className="text-white text-xl font-semibold mb-5 text-center">No student selected</p>
               )}
               <button
                 onClick={() => {
@@ -352,14 +361,14 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
                   setIsAwardPointsModalOpen(true);
                 }}
                 disabled={!selectedStudent}
-                className="w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold text-xl transition-colors shadow-lg"
+                className="w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl font-bold text-lg transition-colors shadow-lg"
               >
                 Award Points to student
               </button>
               <button
                 onClick={handleAddStudentToPointsList}
                 disabled={!selectedStudent}
-                className="w-full mt-3 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold text-xl transition-colors shadow-lg"
+                className="w-full mt-3 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl font-bold text-lg transition-colors shadow-lg"
               >
                 Add student to the points list
               </button>
@@ -368,31 +377,40 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
         </div>
 
         {/* Right Side - Slot Machine */}
-        <div className="flex-1 flex items-center justify-center gap-8">
+        <div className="flex-1 flex items-center justify-center gap-7 min-w-0">
           {isLoading ? (
             <div className="text-center">
-              <div className="animate-spin rounded-full h-20 w-20 border-b-2 border-white mx-auto mb-4"></div>
-              <p className="text-white/80 text-xl">Loading students...</p>
+              <div className="animate-spin rounded-full h-[72px] w-[72px] border-b-2 border-white mx-auto mb-4"></div>
+              <p className="text-white/80 text-lg">Loading students...</p>
             </div>
           ) : totalStudents === 0 ? (
             <div className="text-center">
-              <p className="text-white/80 text-2xl">
+              <p className="text-white/80 text-xl">
                 No students available
               </p>
             </div>
           ) : (
-            <div className="relative">
+            <div className="relative shrink-0">
               {/* Slot Machine Frame */}
-              <div className="bg-gradient-to-b from-yellow-400 via-yellow-500 to-yellow-600 rounded-2xl p-8 shadow-2xl border-4 border-yellow-700">
+              <div className="bg-gradient-to-b from-yellow-400 via-yellow-500 to-yellow-600 rounded-2xl p-7 shadow-2xl border-4 border-yellow-700">
                 {/* Slot Window */}
-                <div className="relative bg-gray-500 rounded-lg p-5 overflow-hidden" style={{ width: '375px', height: `${slotWindowHeight}px` }}>
+                <div
+                  className="relative bg-gray-500 rounded-lg p-4 overflow-hidden"
+                  style={{ width: slotWindowWidth, height: slotWindowHeight }}
+                >
                   {/* Top and bottom gradient overlays for fade effect */}
-                  <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none" style={{ height: '100px' }}></div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" style={{ height: '100px' }}></div>
+                  <div
+                    className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none"
+                    style={{ height: fadeOverlayHeight }}
+                  ></div>
+                  <div
+                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none"
+                    style={{ height: fadeOverlayHeight }}
+                  ></div>
 
                   {/* Selection indicator lines */}
                   <div className="absolute top-1/2 left-0 right-0 transform -translate-y-1/2 z-20 pointer-events-none">
-                    <div className="border-t-4 border-b-4 border-yellow-400" style={{ height: '250px' }}></div>
+                    <div className="border-t-4 border-b-4 border-yellow-400" style={{ height: itemHeight }}></div>
                   </div>
 
                   {/* Reel Container */}
@@ -410,19 +428,19 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
                         return (
                           <div
                             key={`${student.id}-${rotation}-${index}`}
-                            className="flex flex-col items-center justify-center py-10"
+                            className="flex flex-col items-center justify-center py-8"
                             style={{ height: `${itemHeight}px` }}
                           >
-                            <div className="mb-5">
+                            <div className="mb-4">
                               <Image
                                 src={normalizeAvatarPath(student.avatar)}
                                 alt={`${student.first_name} ${student.last_name}`}
-                                width={150}
-                                height={150}
+                                width={reelAvatarSize}
+                                height={reelAvatarSize}
                                 className="rounded-full bg-[#FDF2F0] border-4 border-white shadow-lg"
                               />
                             </div>
-                            <h3 className="text-white text-2xl font-bold text-center px-5">
+                            <h3 className="text-white text-xl font-bold text-center px-4">
                               {student.first_name} {student.last_name}
                             </h3>
                           </div>
@@ -436,9 +454,12 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
           )}
 
           {!isLoading && totalStudents > 0 && (
-            <div className="w-[320px] h-[750px] bg-white/20 rounded-3xl p-5 backdrop-blur-sm flex flex-col">
-              <div className="mb-4">
-                <h3 className="text-white text-2xl font-bold">Points List</h3>
+            <div
+              className="bg-white/20 rounded-3xl p-4 backdrop-blur-sm flex flex-col shrink-0"
+              style={{ width: pointsListWidth, height: slotWindowHeight }}
+            >
+              <div className="mb-3">
+                <h3 className="text-white text-xl font-bold">Points List</h3>
                 <p className="text-white/80 text-sm">{pointsListStudents.length} students selected</p>
               </div>
 
@@ -453,8 +474,8 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
                       <Image
                         src={normalizeAvatarPath(student.avatar)}
                         alt={`${student.first_name} ${student.last_name}`}
-                        width={48}
-                        height={48}
+                        width={listAvatarSize}
+                        height={listAvatarSize}
                         className="rounded-xl border-2 border-white shrink-0"
                       />
                       <p className="text-white font-semibold text-sm flex-1 min-w-0 truncate">
@@ -467,7 +488,7 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
                         aria-label={`Remove ${student.first_name} ${student.last_name} from list`}
                         title="Remove from list"
                       >
-                        <IconNoCircleX className="w-5 h-5" strokeWidth={2.5} />
+                        <IconNoCircleX className="w-4 h-4" strokeWidth={2.5} />
                       </button>
                     </div>
                   ))
@@ -480,7 +501,7 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
                   handleOpenListAwardModal();
                 }}
                 disabled={pointsListStudents.length === 0}
-                className="mt-4 w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-bold text-base transition-colors shadow-lg"
+                className="mt-3 w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-colors shadow-lg"
               >
                 Award points to students on the list
               </button>
