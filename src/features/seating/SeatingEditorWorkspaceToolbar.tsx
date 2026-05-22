@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import CanvasToolbar, { toolbarButtonClass, type CanvasToolbarAction } from '@/components/ui/CanvasToolbar';
+import WorkspaceToolbar, { toolbarButtonClass, type WorkspaceToolbarAction } from '@/components/ui/WorkspaceToolbar';
 import SeatingEditorAddGroupsMenu from '@/features/seating/components/menus/SeatingEditorAddGroupsMenu';
 import SeatingSettingsMenu from '@/features/seating/components/menus/SeatingSettingsMenu';
 import SeatingViewSettingsMenu from '@/features/seating/components/menus/SeatingViewSettingsMenu';
@@ -13,7 +13,7 @@ import EditorRandomSeatsIcon from '@/components/ui/icons/EditorRandomSeatsIcon';
 import EditorViewPreferencesIcon from '@/components/ui/icons/EditorViewPreferencesIcon';
 import EditorClearGroupsIcon from '@/components/ui/icons/EditorClearGroupsIcon';
 import type { DashboardToolbarDef } from '@/features/dashboard/stage/dashboardToolbarConfig';
-import { useCanvasToolbarActions } from '@/hooks/dashboard/useCanvasToolbarActions';
+import { useWorkspaceToolbarActions } from '@/hooks/dashboard/useWorkspaceToolbarActions';
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 import { useSeatingEditBottomNav } from '@/hooks/useSeatingEditBottomNav';
 
@@ -21,18 +21,18 @@ const toolbarMenuClassName = 'min-w-[220px]';
 const TOOLBAR_TOP_MENU_PLACEMENT = 'leftOfAnchorDown' as const;
 const TOOLBAR_BOTTOM_MENU_PLACEMENT = 'leftOfAnchorAbove' as const;
 
-type SeatingEditorCanvasToolbarProps = {
+type SeatingEditorWorkspaceToolbarProps = {
   toolbarConfig: DashboardToolbarDef;
   classId?: string | null;
   onEditClass?: () => void;
 };
 
-export default function SeatingEditorCanvasToolbar({
+export default function SeatingEditorWorkspaceToolbar({
   toolbarConfig,
   classId = null,
   onEditClass,
-}: SeatingEditorCanvasToolbarProps) {
-  const { topActions } = useCanvasToolbarActions(toolbarConfig);
+}: SeatingEditorWorkspaceToolbarProps) {
+  const { topActions } = useWorkspaceToolbarActions(toolbarConfig);
   const {
     showGrid,
     showFurniture,
@@ -49,7 +49,7 @@ export default function SeatingEditorCanvasToolbar({
     onDeleteAllGroups,
   } = useSeatingEditBottomNav();
 
-  const addGroupBottomActions = useMemo<CanvasToolbarAction[]>(
+  const addGroupBottomActions = useMemo<WorkspaceToolbarAction[]>(
     () => [
       {
         id: 'add-group',
@@ -200,7 +200,7 @@ export default function SeatingEditorCanvasToolbar({
 
   return (
     <div data-stage-toolbar-slot className="relative h-full min-h-0 overflow-visible">
-      <CanvasToolbar
+      <WorkspaceToolbar
         className={`h-full ${toolbarConfig.className ?? ''}`}
         topActions={topActions}
         bottomActions={addGroupBottomActions}

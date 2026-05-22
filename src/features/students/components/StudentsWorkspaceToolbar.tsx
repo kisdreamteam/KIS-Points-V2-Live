@@ -1,8 +1,8 @@
 'use client';
 
-import DashboardCanvasToolbar from '@/features/dashboard/stage/DashboardCanvasToolbar';
+import DashboardWorkspaceToolbar from '@/features/dashboard/stage/DashboardWorkspaceToolbar';
 import { buildShellToolbarConfig } from '@/features/dashboard/stage/dashboardToolbarConfig';
-import SeatingEditorCanvasToolbar from '@/features/seating/SeatingEditorCanvasToolbar';
+import SeatingEditorWorkspaceToolbar from '@/features/seating/SeatingEditorWorkspaceToolbar';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 import { useSeatingStore } from '@/stores/useSeatingStore';
 
@@ -27,7 +27,7 @@ export default function StudentsWorkspaceToolbar({
 
   if (activeView === 'seating_chart' && isEditMode) {
     return (
-      <SeatingEditorCanvasToolbar
+      <SeatingEditorWorkspaceToolbar
         toolbarConfig={toolbarConfig}
         classId={classId}
         onEditClass={onEditClass}
@@ -35,5 +35,5 @@ export default function StudentsWorkspaceToolbar({
     );
   }
 
-  return <DashboardCanvasToolbar toolbarConfig={toolbarConfig} />;
+  return <DashboardWorkspaceToolbar toolbarConfig={toolbarConfig} />;
 }

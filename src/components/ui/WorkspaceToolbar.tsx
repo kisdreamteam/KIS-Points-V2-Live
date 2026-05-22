@@ -2,7 +2,7 @@
 
 import type { ReactNode, CSSProperties } from 'react';
 
-export type CanvasToolbarAction = {
+export type WorkspaceToolbarAction = {
   id: string;
   icon: ReactNode;
   title: string;
@@ -14,9 +14,9 @@ export type CanvasToolbarAction = {
   variant?: 'default' | 'muted' | 'danger';
 };
 
-export type CanvasToolbarProps = {
-  topActions: CanvasToolbarAction[];
-  bottomActions: CanvasToolbarAction[];
+export type WorkspaceToolbarProps = {
+  topActions: WorkspaceToolbarAction[];
+  bottomActions: WorkspaceToolbarAction[];
   /** Rendered after top actions, before the flex spacer */
   topSlot?: ReactNode;
   /** Rendered after the flex spacer, before bottom actions */
@@ -52,7 +52,7 @@ export function toolbarButtonClass(options?: {
   return `${toolbarButtonBase} bg-white/90 hover:bg-white`;
 }
 
-function buttonClass(action: CanvasToolbarAction): string {
+function buttonClass(action: WorkspaceToolbarAction): string {
   return toolbarButtonClass({
     disabled: action.disabled,
     active: action.active,
@@ -60,15 +60,15 @@ function buttonClass(action: CanvasToolbarAction): string {
   });
 }
 
-export default function CanvasToolbar({
+export default function WorkspaceToolbar({
   topActions,
   bottomActions,
   topSlot,
   bottomSlot,
   className = '',
-  'aria-label': ariaLabel = 'Canvas actions',
+  'aria-label': ariaLabel = 'Workspace actions',
   style,
-}: CanvasToolbarProps) {
+}: WorkspaceToolbarProps) {
   const overflowClass = topSlot || bottomSlot ? 'overflow-visible' : 'overflow-hidden';
 
   return (

@@ -1,3 +1,5 @@
+import CardsGrid from '@/components/ui/CardsGrid';
+import ScaledGridFrame from '@/components/ui/ScaledGridFrame';
 import ClassCard from '@/features/classes/components/cards/ClassCard';
 import AddClassCard from '@/features/classes/components/cards/AddClassCard';
 
@@ -36,27 +38,26 @@ export default function ClassCardsGrid({
   showDelete = false,
 }: ClassCardsGridProps) {
   return (
-    <div
-      className="grid gap-6 ml-2"
-      style={{
-        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-      }}
+    <ScaledGridFrame
+      remeasureKey={`${classes.length}-${showAddCard ? 1 : 0}-${showDelete ? 1 : 0}`}
     >
-      {classes.map((cls) => (
-        <ClassCard
-          key={cls.id}
-          classItem={cls}
-          studentCount={studentCounts[cls.id] || 0}
-          openDropdownId={openDropdownId}
-          onToggleDropdown={onToggleDropdown}
-          onEdit={onEdit}
-          onArchive={onArchive}
-          archiveButtonText={archiveButtonText}
-          onDelete={onDelete}
-          showDelete={showDelete}
-        />
-      ))}
-      {showAddCard && <AddClassCard onClick={onAddClass} />}
-    </div>
+      <CardsGrid className="ml-2">
+        {classes.map((cls) => (
+          <ClassCard
+            key={cls.id}
+            classItem={cls}
+            studentCount={studentCounts[cls.id] || 0}
+            openDropdownId={openDropdownId}
+            onToggleDropdown={onToggleDropdown}
+            onEdit={onEdit}
+            onArchive={onArchive}
+            archiveButtonText={archiveButtonText}
+            onDelete={onDelete}
+            showDelete={showDelete}
+          />
+        ))}
+        {showAddCard && <AddClassCard onClick={onAddClass} />}
+      </CardsGrid>
+    </ScaledGridFrame>
   );
 }

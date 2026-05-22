@@ -1,8 +1,8 @@
 'use client';
 
-import CanvasToolbar from '@/components/ui/CanvasToolbar';
+import WorkspaceToolbar from '@/components/ui/WorkspaceToolbar';
 import { buildShellToolbarConfig } from '@/features/dashboard/stage/dashboardToolbarConfig';
-import { useCanvasToolbarActions } from '@/hooks/dashboard/useCanvasToolbarActions';
+import { useWorkspaceToolbarActions } from '@/hooks/dashboard/useWorkspaceToolbarActions';
 
 const classesToolbarConfig = buildShellToolbarConfig({
   activeView: 'classes',
@@ -11,11 +11,11 @@ const classesToolbarConfig = buildShellToolbarConfig({
 });
 
 export default function ClassesWorkspaceToolbar() {
-  const { topActions, bottomActions } = useCanvasToolbarActions(classesToolbarConfig);
+  const { topActions, bottomActions } = useWorkspaceToolbarActions(classesToolbarConfig);
 
   return (
     <div data-stage-toolbar-slot className="h-full min-h-0 overflow-hidden">
-      <CanvasToolbar
+      <WorkspaceToolbar
         className={`h-full ${classesToolbarConfig.className}`}
         topActions={topActions}
         bottomActions={bottomActions}

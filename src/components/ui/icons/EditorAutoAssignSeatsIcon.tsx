@@ -1,5 +1,5 @@
 /**
- * Mirrors `src/assets/icons/CanvasToolbar/EditorAutoAssignSeatsIcon.svg` (multi-colored people + "A").
+ * Mirrors `src/assets/icons/WorkspaceToolbar/EditorAutoAssignSeatsIcon.svg` (multi-colored people + "A").
  */
 
 interface EditorAutoAssignSeatsIconProps {

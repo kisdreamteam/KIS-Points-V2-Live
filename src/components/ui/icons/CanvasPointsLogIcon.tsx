@@ -1,5 +1,5 @@
 /**
- * Mirrors `src/assets/icons/CanvasToolbar/CanvasPointsLogIcon.svg`.
+ * Mirrors `src/assets/icons/WorkspaceToolbar/CanvasPointsLogIcon.svg`.
  */
 
 interface CanvasPointsLogIconProps {

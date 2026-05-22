@@ -59,7 +59,7 @@ You must identify the active shell before applying layout or state rules. They a
 
 * **Locations:** `@/features/dashboard/`, `@/features/classes/`, `@/features/students/`, `@/features/seating/`.
 * **Responsibility:** View orchestration, workspace wiring, store subscription, passing props to Tier 3.
-* **Includes:** **`features/dashboard/DashboardView.tsx`** (route entry: sync + `activeView` → `ClassesWorkspace` / `StudentsWorkspace`), `features/dashboard/stage/` (`dashboardToolbarConfig.ts`, `DashboardCanvasToolbar`, presets), `features/classes/components/ClassesWorkspaceToolbar.tsx`, `features/students/components/StudentsWorkspaceToolbar.tsx`, `features/seating/SeatingEditorCanvasToolbar.tsx`, `features/dashboard/tools/Random.tsx`, `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, **`AwardPointsModalHost.tsx`**, **`EditSkillsModalHost.tsx`**, `features/classes/EditClassModalRoot.tsx`, `features/seating/SeatingGroupsCanvas.tsx`.
+* **Includes:** **`features/dashboard/DashboardView.tsx`** (route entry: sync + `activeView` → `ClassesWorkspace` / `StudentsWorkspace`), `features/dashboard/stage/` (`dashboardToolbarConfig.ts`, `DashboardWorkspaceToolbar`, presets), `features/classes/components/ClassesWorkspaceToolbar.tsx`, `features/students/components/StudentsWorkspaceToolbar.tsx`, `features/seating/SeatingEditorWorkspaceToolbar.tsx`, `features/dashboard/tools/Random.tsx`, `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, **`AwardPointsModalHost.tsx`**, **`EditSkillsModalHost.tsx`**, `features/classes/EditClassModalRoot.tsx`, `features/seating/SeatingGroupsCanvas.tsx`.
 * **New modal flows:** If a modal needs `@/hooks` orchestration (`use*` data, mutations, icons), implement **`features/dashboard/MyFeatureModalHost.tsx`** + **`hooks/useMyFeatureModalController.ts`**, expose `*ViewProps` next to **`features/dashboard/components/modals/MyFeatureModal.tsx`**. Do not bolt Layer 1 hooks onto presentational Tier 3 modals/forms by default.
 * **Nested UI:** Tier 3 modals may import and render Tier 2 **hosts** for self-contained subtrees (e.g. `AwardPointsModal` → `EditSkillsModalHost`); do not merge unrelated controller logic into a single hook.
 * **Rules:**
@@ -71,7 +71,7 @@ You must identify the active shell before applying layout or state rules. They a
 
 ### Tier 3: The Actors (Pure UI)
 
-* **Locations:** `@/components/ui/` (shared primitives, icons, `CanvasToolbar.tsx`). Feature UI: `@/features/dashboard/components/`, `@/features/classes/components/`, `@/features/students/components/`, `@/features/seating/components/`, `@/features/auth/components/`, `@/features/landing/components/`.
+* **Locations:** `@/components/ui/` (shared primitives, icons, `WorkspaceToolbar.tsx`). Feature UI: `@/features/dashboard/components/`, `@/features/classes/components/`, `@/features/students/components/`, `@/features/seating/components/`, `@/features/auth/components/`, `@/features/landing/components/`.
 * **Responsibility:** Presentational UI. Props in via props, behaviors out via callbacks. Local UI state (`useState`, refs, narrow `useEffect` for UX) allowed.
 * **Rules:** No **stores**, no **`@/hooks`** for **orchestration** (data fetch, mutations, cross-store flows), no API clients unless type-only imports. Thin modal wrappers that only compose children are OK.
 * **`forms/AddSkillForm.tsx`** and **`forms/EditSkillForm.tsx`** — **strict Tier 3:** no `@/hooks`; parent controllers (`useAwardPointsModalController`, `useEditSkillsModalController`) supply icon arrays / detecting flags / submit handlers passed through **`AddSkillModal`** / **`EditSkillModal`**.
@@ -139,7 +139,7 @@ The Dashboard is a fixed coordinate system. Do not use these rules for Auth/Land
 
 Applies when URL/layout reflect **seating chart + edit mode** (`?view=seating` + `?mode=edit`, `useLayoutStore.isEditMode`).
 
-* **Mount (Tier 1):** `DashboardShell` renders `SeatingEditorCanvasToolbar` in the canvas toolbar column instead of `DashboardCanvasToolbar`. Toolbar column uses `overflow-visible` in edit mode.
+* **Mount (Tier 1):** `DashboardShell` renders `SeatingEditorWorkspaceToolbar` in the canvas toolbar column instead of `DashboardWorkspaceToolbar`. Toolbar column uses `overflow-visible` in edit mode.
 * **Left nav:** `SeatingEditorLeftNav` replaces default left nav (layout list).
 * **Footer:** Keep `BottomNav` — pass `buttonsDisabled={isSeatingView && isEditMode}`. **Do not** reintroduce `SeatingEditorBottomNav`.
 * **Stage (Tier 2):** `StudentsWorkspaceContent` → `SeatingChartEditorView` while editing; `SeatingChartView` when not.
@@ -148,9 +148,9 @@ Applies when URL/layout reflect **seating chart + edit mode** (`?view=seating` +
 
 | Piece | Location |
 |-------|----------|
-| Toolbar orchestration | `features/seating/SeatingEditorCanvasToolbar.tsx` (Tier 2) |
-| Toolbar shell | `components/ui/CanvasToolbar.tsx` (Tier 3) |
-| Preset actions (Close, layout manager, …) | `features/dashboard/stage/canvasToolbarPresets.tsx` + `hooks/dashboard/useCanvasToolbarActions.ts` |
+| Toolbar orchestration | `features/seating/SeatingEditorWorkspaceToolbar.tsx` (Tier 2) |
+| Toolbar shell | `components/ui/WorkspaceToolbar.tsx` (Tier 3) |
+| Preset actions (Close, layout manager, …) | `features/dashboard/stage/workspaceToolbarPresets.tsx` + `hooks/dashboard/useWorkspaceToolbarActions.ts` |
 | Editor settings/groups/randomize | `hooks/useSeatingEditBottomNav.ts` (name is legacy; powers toolbar, not a bottom nav) |
 | Menu UI | `features/seating/components/menus/SeatingViewSettingsMenu.tsx`, `SeatingSettingsMenu.tsx`, `SeatingEditorAddGroupsMenu.tsx` |
 

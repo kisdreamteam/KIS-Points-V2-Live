@@ -1,5 +1,5 @@
 /**
- * Mirrors `src/assets/icons/CanvasToolbar/EditorClearGroupsIcon.svg` (clear groups / trash).
+ * Mirrors `src/assets/icons/WorkspaceToolbar/EditorClearGroupsIcon.svg` (clear groups / trash).
  */
 
 interface EditorClearGroupsIconProps {

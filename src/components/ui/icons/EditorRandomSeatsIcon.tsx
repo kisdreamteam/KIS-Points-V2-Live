@@ -1,5 +1,5 @@
 /**
- * Mirrors `src/assets/icons/CanvasToolbar/EditorRandomSeatsIcon.svg` (shuffle / random arrows).
+ * Mirrors `src/assets/icons/WorkspaceToolbar/EditorRandomSeatsIcon.svg` (shuffle / random arrows).
  */
 
 interface EditorRandomSeatsIconProps {

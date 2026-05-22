@@ -1,18 +1,18 @@
 'use client';
 
-import CanvasToolbar from '@/components/ui/CanvasToolbar';
+import WorkspaceToolbar from '@/components/ui/WorkspaceToolbar';
 import type { DashboardToolbarDef } from '@/features/dashboard/stage/dashboardToolbarConfig';
-import { useCanvasToolbarActions } from '@/hooks/dashboard/useCanvasToolbarActions';
+import { useWorkspaceToolbarActions } from '@/hooks/dashboard/useWorkspaceToolbarActions';
 
-export default function DashboardCanvasToolbar({
+export default function DashboardWorkspaceToolbar({
   toolbarConfig,
 }: {
   toolbarConfig: DashboardToolbarDef;
 }) {
-  const { topActions, bottomActions } = useCanvasToolbarActions(toolbarConfig);
+  const { topActions, bottomActions } = useWorkspaceToolbarActions(toolbarConfig);
   return (
     <div data-stage-toolbar-slot className="h-full min-h-0 overflow-hidden">
-      <CanvasToolbar
+      <WorkspaceToolbar
         className={`h-full ${toolbarConfig.className ?? ''}`}
         topActions={topActions}
         bottomActions={bottomActions}

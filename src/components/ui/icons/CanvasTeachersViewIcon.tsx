@@ -1,5 +1,5 @@
 /**
- * Mirrors `src/assets/icons/CanvasToolbar/CanvasTeachersViewIcon.svg`.
+ * Mirrors `src/assets/icons/WorkspaceToolbar/CanvasTeachersViewIcon.svg`.
  */
 
 interface CanvasTeachersViewIconProps {

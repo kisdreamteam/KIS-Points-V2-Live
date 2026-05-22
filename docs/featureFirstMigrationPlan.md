@@ -36,7 +36,7 @@ src/
       *Host.tsx
       stage/                    # Tier 2 toolbar orchestration (dashboard/seating)
   components/
-    ui/                         # shared primitives only (icons, inputs, CanvasToolbar, generic modals)
+    ui/                         # shared primitives only (icons, inputs, WorkspaceToolbar, generic modals)
 ```
 
 **Import convention after each move:**
@@ -71,7 +71,7 @@ Keep `@/components/ui/*` for shared atoms until **auth** / **landing** phases (o
 
 Until late phases, keep **cross-feature primitives** here:
 
-- `BaseCard`, `TextInput`, `Modal`, `EmptyState`, `LoadingState`, `CanvasToolbar`, `CardsGrid`, etc.
+- `BaseCard`, `TextInput`, `Modal`, `EmptyState`, `LoadingState`, `WorkspaceToolbar`, `CardsGrid`, etc.
 - `components/ui/icons/*` (used by dashboard, seating, auth)
 - `components/ui/menu/*`, `components/ui/modals/ConfirmationModal`, etc.
 
@@ -224,7 +224,7 @@ Phases **5** can merge into **1** for fewer PRs (larger blast radius).
 
 **Primary importers:**
 
-- `src/features/seating/*Workspace.tsx`, `SeatingEditorCanvasToolbar.tsx`, `SeatingGroupsCanvas.tsx`
+- `src/features/seating/*Workspace.tsx`, `SeatingEditorWorkspaceToolbar.tsx`, `SeatingGroupsCanvas.tsx`
 - `src/features/dashboard/layouts/DashboardShell.tsx`
 
 **Verify:** seating view, edit mode, layout manager, group modals, portaled menus.
@@ -292,7 +292,7 @@ Phases **5** can merge into **1** for fewer PRs (larger blast radius).
 | `ClassCard` (classes) | classes grid | 2 |
 | `AwardPointsModal` (dashboard) | hosts, Random, hooks | 5 |
 | `EditClassModal` facade (classes) | DashboardShell | 2 |
-| `CanvasToolbar` (ui) | dashboard + seating toolbars | keep in `ui/` |
+| `WorkspaceToolbar` (ui) | dashboard + seating toolbars | keep in `ui/` |
 | `ConfirmationModal` (ui) | many features | keep in `ui/` |
 
 **Rule:** Owning feature holds the file; consumers import `@/features/{owner}/components/...`.

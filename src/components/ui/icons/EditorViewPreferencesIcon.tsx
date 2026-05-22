@@ -1,5 +1,5 @@
 /**
- * Mirrors `src/assets/icons/CanvasToolbar/EditorViewPreferencesIcon.svg` (slider / view preference graphic).
+ * Mirrors `src/assets/icons/WorkspaceToolbar/EditorViewPreferencesIcon.svg` (slider / view preference graphic).
  */
 
 interface EditorViewPreferencesIconProps {

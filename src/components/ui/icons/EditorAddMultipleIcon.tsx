@@ -1,5 +1,5 @@
 /**
- * Mirrors `src/assets/icons/CanvasToolbar/EditorAddMultipleIcon.svg` (multiple plus glyphs).
+ * Mirrors `src/assets/icons/WorkspaceToolbar/EditorAddMultipleIcon.svg` (multiple plus glyphs).
  */
 
 interface EditorAddMultipleIconProps {

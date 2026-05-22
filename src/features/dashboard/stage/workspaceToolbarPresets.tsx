@@ -10,7 +10,7 @@ import type {
   ToolbarActionDef,
   ToolbarActionId,
 } from '@/features/dashboard/stage/dashboardToolbarConfig';
-import type { CanvasToolbarAction } from '@/components/ui/CanvasToolbar';
+import type { WorkspaceToolbarAction } from '@/components/ui/WorkspaceToolbar';
 import { STUDENT_EVENTS } from '@/lib/events/students';
 
 type Preset = {
@@ -61,7 +61,7 @@ const PRESETS: Record<ToolbarActionId, Preset> = {
   },
 };
 
-export function toCanvasAction(action: ToolbarActionDef): CanvasToolbarAction {
+export function toWorkspaceToolbarAction(action: ToolbarActionDef): WorkspaceToolbarAction {
   const preset = PRESETS[action.id];
   return {
     ...action,
