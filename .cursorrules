@@ -7,8 +7,8 @@
 * **Policy:** `src/app/` is the routing table only. Do **not** modify anything under `src/app/` unless the user or task **explicitly** requires a new/changed route, URL, segment `layout.tsx` wire, or a Next.js framework boundary (e.g. `Suspense` around client hooks in `app/dashboard/layout.tsx`).
 * **Stay dumb:** `page.tsx` and segment `layout.tsx` should stay ~5–10 lines — one shell or view import, one default export. No hooks, stores, Supabase, or orchestration. If a route file grows or needs hooks → move logic to `src/features/`.
 * **Dashboard split (do not collapse):** `app/dashboard/layout.tsx` → `DashboardShell` only; `app/dashboard/**/page.tsx` → `<DashboardView />` only. Do **not** hoist `DashboardView` into layout for DRY unless there is an explicit, documented architecture decision.
-* **Symmetric dashboard pages:** `page.tsx` and `classes/[classId]/page.tsx` both render `<DashboardView />`. Do **not** re-import `DashboardViewSwitch` in app routes or duplicate pathname/`key` logic in pages.
-* **Intentional Tier 1 → Tier 2 (do not “fix”):** `@/features/dashboard/components/frame/DashboardView.tsx` imports `@/features/dashboard/DashboardViewSwitch.tsx`. Frame owns sync workers, pathname-derived `key`, and stage entry. Reverting this by moving the switch back into `app/` is a regression unless explicitly requested.
+* **Symmetric dashboard pages:** `page.tsx` and `classes/[classId]/page.tsx` both render `<DashboardView />` from `@/features/dashboard/DashboardView.tsx` only. Do not duplicate pathname/`key` logic or stage routing in `app/` routes.
+* **Dashboard stage entry:** `@/features/dashboard/DashboardView.tsx` — sync workers + `activeView` routing in one file. Do not split routing back into `app/` or reintroduce `DashboardViewSwitch`.
 
 ## 1. Architectural Mandate: The Dual-Shell System
 
@@ -31,8 +31,8 @@ You must identify the active shell before applying layout or state rules. They a
 
 * **Scope:** `/dashboard/`, `/dashboard/classes/[classId]`.
 * **Shell (Tier 1):** `@/features/dashboard/layouts/DashboardShell.tsx` (7-zone grid; mounted from `app/dashboard/layout.tsx`).
-* **Frame + stage entry:** `@/features/dashboard/components/frame/DashboardView.tsx` (sync workers + mounts `DashboardViewSwitch` with pathname `key`).
-* **View routing (Tier 2):** `@/features/dashboard/DashboardViewSwitch.tsx` (rendered by `DashboardView`; not imported from `app/dashboard` pages).
+* **Stage entry (Tier 2):** `@/features/dashboard/DashboardView.tsx` — mounted from dashboard `page.tsx`; sync workers, pathname `key`, route guard, `ClassesView` / `StudentsView`.
+* **Frame (Tier 1):** `@/features/dashboard/components/frame/` — shell chrome only (`navbars/`, `StageTwoColumnLayout`, `dashboardZoneConfig`); no `DashboardView.tsx` under frame.
 * **Folder policy:** Dashboard **Tier 3** → `@/features/{dashboard,classes,students,seating}/components/`; shared atoms → `@/components/ui/`. **Tier 2** → `@/features/`.
 * **Imports (moving forward):** Use `@/features/<feature>/components/...` for feature UI. **Never** recreate `@/components/dashboard/` or `@/components/ui/auth|landing/`.
 * **Modal host (Tier 2):** `@/features/dashboard/DashboardClassModalsHost.tsx` (mounted in `DashboardShell`).
@@ -42,7 +42,7 @@ You must identify the active shell before applying layout or state rules. They a
 * **State:** `useUserStore`, `useDashboardStore` (includes `absentStudentIds` for daily attendance), `useLayoutStore`, `useSeatingStore`, `useModalStore`, `usePreferenceStore`.
 * **Source of Truth:** The **URL** is the primary source of truth for `classId`, `view`, and `mode`.
 * **Rule:** Do not apply dashboard grid rules to auth/landing, or auth flex rules to the dashboard workspace.
-* **App folder:** See **§0** — off-limits for refactors; never import `DashboardViewSwitch` from `app/dashboard/**`.
+* **App folder:** See **§0** — off-limits for refactors; dashboard pages import `DashboardView` only.
 
 ---
 
@@ -52,8 +52,7 @@ You must identify the active shell before applying layout or state rules. They a
 
 * **Locations:** `@/features/dashboard/components/frame/` (includes `navbars/`, `StageTwoColumnLayout.tsx`, `dashboardZoneConfig.ts`).
 * **Responsibility:** Persistent chrome and CSS Grid boundaries.
-* **Rule:** `DashboardClassesSync` in `DashboardShell`; `app/dashboard/layout.tsx` is Suspense + shell wire only; `useDashboardRouteStateSync` / `useViewPreferenceSync` in `DashboardShell`; class/student/profile/filter sync + `DashboardViewSwitch` in `DashboardView`; dashboard `page.tsx` files render `<DashboardView />` only.
-* **Tier 1→2 (documented):** `DashboardView` → `DashboardViewSwitch` is intentional; do not move the switch back to `app/` or “fix” the cross-tier import without an explicit architecture change request (see **§0**).
+* **Rule:** `DashboardClassesSync` in `DashboardShell`; `app/dashboard/layout.tsx` is Suspense + shell wire only; `useDashboardRouteStateSync` / `useViewPreferenceSync` in `DashboardShell`; class/student/profile/filter sync + stage routing in `@/features/dashboard/DashboardView.tsx`; dashboard `page.tsx` files render `<DashboardView />` only.
 * **Allowed:** Narrow store reads in navbars for chrome (e.g., `activeClassId`, `viewMode`). No Supabase, no mutation orchestration.
 
 ### Tier 2: The Stage (The Sets) — dashboard only

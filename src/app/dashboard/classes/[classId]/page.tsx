@@ -1,4 +1,4 @@
-import DashboardView from '@/features/dashboard/components/frame/DashboardView';
+import DashboardView from '@/features/dashboard/DashboardView';
 
 export default function ClassRosterPage() {
   return <DashboardView />;

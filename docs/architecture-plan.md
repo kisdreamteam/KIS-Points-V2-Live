@@ -44,7 +44,7 @@ Auth and landing are **not** subject to the dashboard `components/` vs `features
 | Layer 1 / 1b | `src/hooks/`, `src/hooks/sync/` |
 | Layer 2 | `src/stores/` |
 | Layer 3 | `src/lib/api/` |
-| Routes | Thin `src/app/dashboard/*/page.tsx` → `<DashboardView />` (sync + `DashboardViewSwitch`) |
+| Routes | Thin `src/app/dashboard/*/page.tsx` → `<DashboardView />` (sync + stage routing) |
 
 **Rule:** Do not apply dashboard grid/zone rules to auth/landing, or auth flex centering rules to the dashboard workspace.
 
@@ -57,12 +57,12 @@ Auth and landing are **not** subject to the dashboard `components/` vs `features
 | **Stay dumb** | `layout.tsx` / `page.tsx` should be ~5–10 lines: one shell or view import, one default export, no hooks, no stores, no Supabase. |
 | **No growth in app** | If a `page.tsx` needs hooks, sync workers, or orchestration → move it to `src/features/`. |
 | **Do not touch `app/` by default** | Do **not** change files under `src/app/` unless the task **explicitly** requires a new route, URL, segment layout wire, or framework boundary (e.g. `Suspense` for `useSearchParams`). Refactors belong in `src/features/`. |
-| **Symmetric pages** | Dashboard `page.tsx` and `classes/[classId]/page.tsx` both render `<DashboardView />` only. Do not re-import `DashboardViewSwitch` in app routes. |
-| **Layout vs page split** | `app/dashboard/layout.tsx` → `DashboardShell` (chrome). `app/dashboard/*/page.tsx` → `DashboardView` (sync + stage). Do not hoist `DashboardView` into layout without an explicit, documented win. |
+| **Symmetric pages** | Dashboard `page.tsx` and `classes/[classId]/page.tsx` both render `<DashboardView />` from `@/features/dashboard/DashboardView.tsx` only. |
+| **Layout vs page split** | `app/dashboard/layout.tsx` → `DashboardShell` (chrome). `app/dashboard/*/page.tsx` → `DashboardView` (sync + stage routing). Do not hoist `DashboardView` into layout without an explicit, documented win. |
 
-**Intentional Tier 1 → Tier 2 coupling (do not “fix”):** `DashboardView` (Tier 1 frame) imports and mounts `DashboardViewSwitch` (Tier 2). This is **by design** — thin symmetric routes, sync + `key={classId ?? 'dashboard-root'}` in one frame entry. **Forbidden:** moving `DashboardViewSwitch` back into `app/dashboard/**/page.tsx` or duplicating pathname/`key` logic in routes.
+**Dashboard stage entry:** `src/features/dashboard/DashboardView.tsx` consolidates sync workers, pathname-derived `key`, route guard, and `activeView` → `ClassesView` / `StudentsView`. Matches auth/landing `page → *View` symmetry. Do not split routing into `app/` or reintroduce `DashboardViewSwitch`.
 
-Optional follow-up: shared `getDashboardClassIdFromPath()` for `DashboardView` and `DashboardViewSwitch` to dedupe regex.
+`getDashboardClassIdFromPath()` lives in `DashboardView.tsx` (done).
 
 ---
 
@@ -80,11 +80,10 @@ Optional follow-up: shared `getDashboardClassIdFromPath()` for `DashboardView` a
 
 ### 1.2 Tier 1 — Scaffolding (`features/dashboard/components/frame/`)
 
-**Responsibility:** Persistent chrome, routing bounds, zone assignment. Mounts Layer 1b sync workers; reads layout/UI slices for chrome only (no Supabase, no mutation orchestration).
+**Responsibility:** Persistent chrome, routing bounds, zone assignment. Reads layout/UI slices for chrome only (no Supabase, no mutation orchestration). Sync + stage routing live in Tier 2 `DashboardView.tsx`.
 
 | Path | Role |
 |------|------|
-| `frame/DashboardView.tsx` | Sync worker host; **intentionally** mounts Tier 2 `DashboardViewSwitch` (`key` from pathname). Not mounted from `app/` pages. |
 | `features/dashboard/layouts/DashboardShell.tsx` | Shell grid (sidebar + top/footer chrome); main stage is `{children}` only |
 | `app/dashboard/layout.tsx` | Suspense + `DashboardShell` (thin wire); `DashboardClassesSync` mounted in shell |
 | `frame/dashboardZoneConfig.ts` | Shell sidebar grid + main-stage row class constants |
@@ -115,7 +114,7 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 
 | Module path | Files |
 |-------------|-------|
-| `features/dashboard/` | `DashboardViewSwitch.tsx`, `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/DashboardCanvasToolbar.tsx`, `stage/canvasToolbarPresets.tsx`, `tools/Random.tsx` |
+| `features/dashboard/` | `DashboardView.tsx`, `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/DashboardCanvasToolbar.tsx`, `stage/canvasToolbarPresets.tsx`, `tools/Random.tsx` |
 | `features/classes/` | `ClassesView.tsx` (+ `ClassesCanvasToolbar`), `ClassesWorkspace.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx` |
 | `features/students/` | `StudentsView.tsx` (+ `StudentsStageToolbar`), `StudentsWorkspace.tsx`, `StudentCardsGrid.tsx` |
 | `features/seating/` | `SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`, `SeatingChartEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx`, `SeatingEditorCanvasToolbar.tsx` |
@@ -221,8 +220,8 @@ Pure helpers (no React): `src/lib/awardPointsService.ts` (includes `filterEligib
 **Mounting**
 
 - `DashboardClassesSync` — `src/features/dashboard/layouts/DashboardShell.tsx`
-- `DashboardStudentSync`, `SeatingChartDataSync`, `DashboardProfileSync`, `DashboardClassesFilterSync` — `src/features/dashboard/components/frame/DashboardView.tsx`
-- `AttendanceSync` — **recommended** in `src/features/dashboard/components/frame/DashboardView.tsx` next to `DashboardStudentSync` (hydrates absences on class load; toggles work in-session without it)
+- `DashboardStudentSync`, `SeatingChartDataSync`, `DashboardProfileSync`, `DashboardClassesFilterSync` — `src/features/dashboard/DashboardView.tsx`
+- `AttendanceSync` — **recommended** in `src/features/dashboard/DashboardView.tsx` next to `DashboardStudentSync` (hydrates absences on class load; toggles work in-session without it)
 - `useDashboardRouteStateSync`, `useViewPreferenceSync` — `src/features/dashboard/layouts/DashboardShell.tsx`
 
 ### Layer 2 — Desk (`src/stores/`)
@@ -400,7 +399,7 @@ src/
     dashboard/
       layouts/DashboardShell.tsx
       components/                   # frame, cards, modals, menus, forms, tools
-      DashboardViewSwitch.tsx, DashboardToolsHost.tsx, *Host.tsx, stage/, tools/Random.tsx
+      DashboardView.tsx, DashboardToolsHost.tsx, *Host.tsx, stage/, tools/Random.tsx
     classes/                        # *View, *Workspace + components/
     students/
     seating/
@@ -442,7 +441,7 @@ src/
 | done | **Do not** move `features/auth/*` or `features/landing/*` for tier-folder policy |
 | done | Attendance: schema/types, `attendanceService`, store slice, sync, actions, `AttendanceMenuBody`, `BottomNav` portal |
 | done | Absent macro exclusions: `awardPointsService`, `useAwardPointsService`, `useStudentsSelection`, `useBatchPointsAward` |
-| done | Thin `app/` + `DashboardView` owns `DashboardViewSwitch`; do not regress (§0.1) |
+| done | Thin `app/` + consolidated `DashboardView` (sync + stage routing); do not regress (§0.1) |
 | todo | Mount `<AttendanceSync />` in `DashboardView.tsx` (recommended for class-load hydration) |
 
 ---
