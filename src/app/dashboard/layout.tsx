@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import DashboardLayoutClient from './DashboardLayoutClient';
+import DashboardShell from '@/features/dashboard/layouts/DashboardShell';
 
 export default function DashboardLayout({
   children,
@@ -14,7 +14,7 @@ export default function DashboardLayout({
         </div>
       }
     >
-      <DashboardLayoutClient>{children}</DashboardLayoutClient>
+      <DashboardShell>{children}</DashboardShell>
     </Suspense>
   );
 }

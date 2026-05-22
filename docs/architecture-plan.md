@@ -44,7 +44,7 @@ Auth and landing are **not** subject to the dashboard `components/` vs `features
 | Layer 1 / 1b | `src/hooks/`, `src/hooks/sync/` |
 | Layer 2 | `src/stores/` |
 | Layer 3 | `src/lib/api/` |
-| Routes | `src/app/dashboard/*` → `DashboardView` + `DashboardViewSwitch` (features) |
+| Routes | Thin `src/app/dashboard/*/page.tsx` → `<DashboardView />` (sync + `DashboardViewSwitch`) |
 
 **Rule:** Do not apply dashboard grid/zone rules to auth/landing, or auth flex centering rules to the dashboard workspace.
 
@@ -68,9 +68,9 @@ Auth and landing are **not** subject to the dashboard `components/` vs `features
 
 | Path | Role |
 |------|------|
-| `frame/DashboardView.tsx` | Sync worker host (student/seating/profile/filter sync) |
+| `frame/DashboardView.tsx` | Sync worker host + mounts `DashboardViewSwitch` (keyed by class route) |
 | `features/dashboard/layouts/DashboardShell.tsx` | 7-zone grid, nav slots, mounts modal host & tools |
-| `app/dashboard/layout.tsx` | `DashboardClassesSync` + wraps pages with `DashboardShell` |
+| `app/dashboard/layout.tsx` | Suspense + `DashboardShell` (thin wire); `DashboardClassesSync` mounted in shell |
 | `frame/dashboardZoneConfig.ts` | Zone / toolbar definitions |
 | `frame/navbars/*` | Left/top/bottom nav (`StudentsBottomNav`, `SeatingEditorLeftNav`, etc.) |
 
@@ -202,7 +202,7 @@ Pure helpers (no React): `src/lib/awardPointsService.ts` (includes `filterEligib
 
 **Mounting**
 
-- `DashboardClassesSync` — `src/app/dashboard/layout.tsx`
+- `DashboardClassesSync` — `src/features/dashboard/layouts/DashboardShell.tsx`
 - `DashboardStudentSync`, `SeatingChartDataSync`, `DashboardProfileSync`, `DashboardClassesFilterSync` — `src/features/dashboard/components/frame/DashboardView.tsx`
 - `AttendanceSync` — **recommended** in `src/features/dashboard/components/frame/DashboardView.tsx` next to `DashboardStudentSync` (hydrates absences on class load; toggles work in-session without it)
 - `useDashboardRouteStateSync`, `useViewPreferenceSync` — `src/features/dashboard/layouts/DashboardShell.tsx`
@@ -370,9 +370,9 @@ src/
     (auth)/layout.tsx               # thin wire → features/auth/layouts/AuthShell
     (auth)/login|signup|.../        # → features/auth/*View (route group; URLs unchanged)
     dashboard/
-      layout.tsx                    # DashboardClassesSync; Suspense + DashboardShell
-      page.tsx                      # DashboardView + DashboardViewSwitch
-      classes/[classId]/page.tsx
+      layout.tsx                    # Suspense + DashboardShell (DashboardClassesSync in shell)
+      page.tsx                      # → DashboardView
+      classes/[classId]/page.tsx    # → DashboardView
 
   features/
     auth/                           # layouts/AuthShell, *View + components/

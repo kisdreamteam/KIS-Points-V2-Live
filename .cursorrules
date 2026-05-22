@@ -22,8 +22,9 @@ You must identify the active shell before applying layout or state rules. They a
 ### B. Dashboard Shell (The Workspace)
 
 * **Scope:** `/dashboard/`, `/dashboard/classes/[classId]`.
-* **Shell (Tier 1):** `@/features/dashboard/components/frame/DashboardView.tsx` (sync workers) + `@/features/dashboard/layouts/DashboardShell.tsx` (7-zone grid; mounted from `app/dashboard/layout.tsx`).
-* **View routing (Tier 2):** `@/features/dashboard/DashboardViewSwitch.tsx`.
+* **Shell (Tier 1):** `@/features/dashboard/layouts/DashboardShell.tsx` (7-zone grid; mounted from `app/dashboard/layout.tsx`).
+* **Frame + stage entry:** `@/features/dashboard/components/frame/DashboardView.tsx` (sync workers + mounts `DashboardViewSwitch` with pathname `key`).
+* **View routing (Tier 2):** `@/features/dashboard/DashboardViewSwitch.tsx` (rendered by `DashboardView`; not imported from `app/dashboard` pages).
 * **Folder policy:** Dashboard **Tier 3** → `@/features/{dashboard,classes,students,seating}/components/`; shared atoms → `@/components/ui/`. **Tier 2** → `@/features/`.
 * **Imports (moving forward):** Use `@/features/<feature>/components/...` for feature UI. **Never** recreate `@/components/dashboard/` or `@/components/ui/auth|landing/`.
 * **Modal host (Tier 2):** `@/features/dashboard/DashboardClassModalsHost.tsx` (mounted in `DashboardShell`).
@@ -41,7 +42,7 @@ You must identify the active shell before applying layout or state rules. They a
 
 * **Locations:** `@/features/dashboard/components/frame/` (includes `navbars/`, `dashboardZoneConfig.ts`).
 * **Responsibility:** Persistent chrome and CSS Grid boundaries.
-* **Rule:** `DashboardClassesSync` in `app/dashboard/layout.tsx`; `useDashboardRouteStateSync` / `useViewPreferenceSync` in `DashboardShell`; class/student/profile/filter sync in `DashboardView`.
+* **Rule:** `DashboardClassesSync` in `DashboardShell`; `app/dashboard/layout.tsx` is Suspense + shell wire only; `useDashboardRouteStateSync` / `useViewPreferenceSync` in `DashboardShell`; class/student/profile/filter sync + `DashboardViewSwitch` in `DashboardView`; dashboard `page.tsx` files render `<DashboardView />` only.
 * **Allowed:** Narrow store reads in navbars for chrome (e.g., `activeClassId`, `viewMode`). No Supabase, no mutation orchestration.
 
 ### Tier 2: The Stage (The Sets) — dashboard only

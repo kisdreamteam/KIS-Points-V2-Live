@@ -2,7 +2,10 @@
 
 import { useCallback, useMemo, type ReactNode } from 'react';
 import { useDashboardRouteStateSync } from '@/hooks/sync/useDashboardRouteStateSync';
-import { refreshDashboardClassesForUserAction } from '@/hooks/sync/useDashboardClassesSync';
+import {
+  DashboardClassesSync,
+  refreshDashboardClassesForUserAction,
+} from '@/hooks/sync/useDashboardClassesSync';
 import { useViewPreferenceSync } from '@/hooks/sync/useViewPreferenceSync';
 import { useDashboardSessionActions } from '@/hooks/useDashboardSessionActions';
 import LeftNav from '@/features/dashboard/components/frame/navbars/LeftNav';
@@ -100,6 +103,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
 
   return (
     <>
+      <DashboardClassesSync />
       <div
         className={[
           'h-[100dvh] md:h-screen w-screen overflow-hidden bg-brand-purple grid transition-all duration-300 ease-in-out',
