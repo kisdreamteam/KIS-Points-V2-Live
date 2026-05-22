@@ -1,6 +1,8 @@
 'use client';
 
 import ClassesWorkspace from './ClassesWorkspace';
+import ClassesCanvasToolbar from '@/features/classes/components/ClassesCanvasToolbar';
+import StageTwoColumnLayout from '@/features/dashboard/components/frame/StageTwoColumnLayout';
 import { useClassActions } from '@/hooks/useClassActions';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
@@ -13,13 +15,18 @@ export default function ClassesView() {
   const { archiveClass, deleteClassPermanently } = useClassActions();
 
   return (
-    <ClassesWorkspace
-      classes={classes}
-      isLoadingClasses={isLoadingClasses}
-      hasAccessibleClasses={hasAccessibleClasses}
-      viewMode={viewMode}
-      onArchiveClassAction={archiveClass}
-      onDeleteClassAction={deleteClassPermanently}
+    <StageTwoColumnLayout
+      main={
+        <ClassesWorkspace
+          classes={classes}
+          isLoadingClasses={isLoadingClasses}
+          hasAccessibleClasses={hasAccessibleClasses}
+          viewMode={viewMode}
+          onArchiveClassAction={archiveClass}
+          onDeleteClassAction={deleteClassPermanently}
+        />
+      }
+      toolbar={<ClassesCanvasToolbar />}
     />
   );
 }

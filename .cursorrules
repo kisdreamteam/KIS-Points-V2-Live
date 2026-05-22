@@ -36,9 +36,9 @@ You must identify the active shell before applying layout or state rules. They a
 * **Folder policy:** Dashboard **Tier 3** → `@/features/{dashboard,classes,students,seating}/components/`; shared atoms → `@/components/ui/`. **Tier 2** → `@/features/`.
 * **Imports (moving forward):** Use `@/features/<feature>/components/...` for feature UI. **Never** recreate `@/components/dashboard/` or `@/components/ui/auth|landing/`.
 * **Modal host (Tier 2):** `@/features/dashboard/DashboardClassModalsHost.tsx` (mounted in `DashboardShell`).
-* **Tools host (Tier 2):** `@/features/dashboard/DashboardToolsHost.tsx` — portaled Timer via `@/components/ui/MovableToolPanel.tsx`; `BottomNav` opens via `setTimerOpen`.
+* **Tools host (Tier 2):** `@/features/dashboard/DashboardToolsHost.tsx` — Timer via `@/components/ui/MovableToolPanel.tsx`; Random via `@/components/ui/LargeToolModal.tsx` (90% viewport). `BottomNav` opens via `setTimerOpen` / `setRandomOpen`. Canvas always `{children}`.
 * **Award / edit-skills (Tier 2 + Layer 1):** `@/features/dashboard/AwardPointsModalHost.tsx` + `hooks/useAwardPointsModalController.ts`; `@/features/dashboard/EditSkillsModalHost.tsx` + `hooks/useEditSkillsModalController.ts`. Prefer this **host + controller** pattern when a dashboard modal subtree needs orchestration hooks but the UI itself should stay Tier 3.
-* **Layout Logic:** Uses the **7-Zone Fixed Grid System** (`dashboardZoneConfig.ts`).
+* **Layout Logic:** Shell chrome grid (`dashboardZoneConfig.ts`); main stage 2-column layout is **view-owned** (`StageTwoColumnLayout` + per-view toolbar).
 * **State:** `useUserStore`, `useDashboardStore` (includes `absentStudentIds` for daily attendance), `useLayoutStore`, `useSeatingStore`, `useModalStore`, `usePreferenceStore`.
 * **Source of Truth:** The **URL** is the primary source of truth for `classId`, `view`, and `mode`.
 * **Rule:** Do not apply dashboard grid rules to auth/landing, or auth flex rules to the dashboard workspace.
@@ -50,7 +50,7 @@ You must identify the active shell before applying layout or state rules. They a
 
 ### Tier 1: Scaffolding (The Building) — dashboard only
 
-* **Locations:** `@/features/dashboard/components/frame/` (includes `navbars/`, `dashboardZoneConfig.ts`).
+* **Locations:** `@/features/dashboard/components/frame/` (includes `navbars/`, `StageTwoColumnLayout.tsx`, `dashboardZoneConfig.ts`).
 * **Responsibility:** Persistent chrome and CSS Grid boundaries.
 * **Rule:** `DashboardClassesSync` in `DashboardShell`; `app/dashboard/layout.tsx` is Suspense + shell wire only; `useDashboardRouteStateSync` / `useViewPreferenceSync` in `DashboardShell`; class/student/profile/filter sync + `DashboardViewSwitch` in `DashboardView`; dashboard `page.tsx` files render `<DashboardView />` only.
 * **Tier 1→2 (documented):** `DashboardView` → `DashboardViewSwitch` is intentional; do not move the switch back to `app/` or “fix” the cross-tier import without an explicit architecture change request (see **§0**).
@@ -60,7 +60,7 @@ You must identify the active shell before applying layout or state rules. They a
 
 * **Locations:** `@/features/dashboard/`, `@/features/classes/`, `@/features/students/`, `@/features/seating/`.
 * **Responsibility:** View orchestration, workspace wiring, store subscription, passing props to Tier 3.
-* **Includes:** `features/dashboard/stage/` (`DashboardCanvasToolbar`, presets), `features/seating/SeatingEditorCanvasToolbar.tsx`, `features/dashboard/tools/Random.tsx`, `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, **`AwardPointsModalHost.tsx`**, **`EditSkillsModalHost.tsx`**, `features/classes/EditClassModalRoot.tsx`, `features/seating/SeatingGroupsCanvas.tsx`.
+* **Includes:** `features/dashboard/stage/` (`dashboardToolbarConfig.ts`, `DashboardCanvasToolbar`, presets), `features/classes/components/ClassesCanvasToolbar.tsx`, `features/students/components/StudentsStageToolbar.tsx`, `features/seating/SeatingEditorCanvasToolbar.tsx`, `features/dashboard/tools/Random.tsx`, `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, **`AwardPointsModalHost.tsx`**, **`EditSkillsModalHost.tsx`**, `features/classes/EditClassModalRoot.tsx`, `features/seating/SeatingGroupsCanvas.tsx`.
 * **New modal flows:** If a modal needs `@/hooks` orchestration (`use*` data, mutations, icons), implement **`features/dashboard/MyFeatureModalHost.tsx`** + **`hooks/useMyFeatureModalController.ts`**, expose `*ViewProps` next to **`features/dashboard/components/modals/MyFeatureModal.tsx`**. Do not bolt Layer 1 hooks onto presentational Tier 3 modals/forms by default.
 * **Nested UI:** Tier 3 modals may import and render Tier 2 **hosts** for self-contained subtrees (e.g. `AwardPointsModal` → `EditSkillsModalHost`); do not merge unrelated controller logic into a single hook.
 * **Rules:**
@@ -82,7 +82,8 @@ You must identify the active shell before applying layout or state rules. They a
   * `EditSkillsModal.tsx` — presentational; wiring via `useEditSkillsModalController` + `features/dashboard/EditSkillsModalHost.tsx`.
   * `AwardPointsModal.tsx` — presentational; wiring via `useAwardPointsModalController` + `features/dashboard/AwardPointsModalHost.tsx`.
   * `features/classes/components/modals/EditClassModal.tsx` — thin façade re-exporting `EditClassModalRoot`.
-  * `features/dashboard/components/tools/Timer.tsx` — Tier 3 timer body; mounted via `DashboardToolsHost` + `MovableToolPanel` (not canvas ternary).
+  * `features/dashboard/components/tools/Timer.tsx` — Tier 3 timer body; `DashboardToolsHost` + `MovableToolPanel`.
+  * `features/dashboard/tools/Random.tsx` — Tier 2 random tool; `DashboardToolsHost` + `LargeToolModal` (not canvas ternary).
 
 ---
 
@@ -92,7 +93,7 @@ The Dashboard is a fixed coordinate system. Do not use these rules for Auth/Land
 
 * **Zone 1:** Persistent Left Nav.
 * **Zones 2 & 3:** Top Bar / Header.
-* **Zones 4 & 5:** Main Canvas / Content.
+* **Zones 4 & 5:** Main stage — `StageTwoColumnLayout` in Tier-2 views (canvas + right toolbar rail); not split in `DashboardShell`.
 * **Zones 6 & 7:** Bottom Bar / Footer.
 * **Constraint:** Use `h-full` or `min-h-0` inside the Stage. **Never use `h-screen`** inside Dashboard content.
 

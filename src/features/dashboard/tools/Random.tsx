@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams } from 'next/navigation';
 import { Student } from '@/lib/types';
 import Image from 'next/image';
 import AwardPointsModalHost from '@/features/dashboard/AwardPointsModalHost';
@@ -14,11 +13,13 @@ import { refreshDashboardStudents } from '@/hooks/sync/useDashboardStudentSync';
 import { refreshSeatingGroupsForLayout } from '@/hooks/sync/useSeatingChartDataSync';
 import { useSeatingStore } from '@/stores/useSeatingStore';
 
-interface RandomProps {
+type RandomProps = {
+  classId: string;
   onClose: () => void;
-}
+  registerCloseHandler?: (handler: (() => void) | null) => void;
+};
 
-export default function Random({ onClose }: RandomProps) {
+export default function Random({ classId, onClose, registerCloseHandler }: RandomProps) {
   const itemHeight = 250;
   const slotWindowHeight = 750;
   // Slot window uses p-5 (20px) — center of the *visible reel* is half of inner height, not half of outer 750px.
@@ -29,8 +30,6 @@ export default function Random({ onClose }: RandomProps) {
   const baseRotations = 3;
   const maxExtraRotations = 2;
   const reelCopies = baseRotations + maxExtraRotations + 2;
-  const params = useParams();
-  const classId = (params?.classId as string | undefined) ?? '';
   const {
     students,
     isLoading,
@@ -74,6 +73,11 @@ export default function Random({ onClose }: RandomProps) {
     await refreshSeatingGroupsForLayout(selectedLayoutId);
     onClose();
   }, [onClose, refreshRandomAndDashboardStudents]);
+
+  useEffect(() => {
+    registerCloseHandler?.(() => void handleClose());
+    return () => registerCloseHandler?.(null);
+  }, [handleClose, registerCloseHandler]);
 
   // Fetch students when component mounts
   useEffect(() => {
@@ -276,28 +280,8 @@ export default function Random({ onClose }: RandomProps) {
   }, [availableStudents.length, isSpinning]);
 
   return (
-    <div className="fixed inset-0 bg-brand-purple z-50 flex items-center justify-center">
-      {/* Close Button */}
-      <button
-        onClick={() => void handleClose()}
-        className="absolute top-10 right-10 w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors z-10"
-      >
-        <svg
-          className="w-8 h-8 text-white"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
-
-      <div className="w-full h-full flex flex-row items-center justify-center px-10 gap-10">
+    <div className="h-full w-full flex flex-col min-h-0">
+      <div className="flex-1 min-h-0 flex flex-row items-center justify-center px-10 gap-10 overflow-auto">
         {/* Left Side - Controls and Selected Student */}
         <div className="flex-1 flex flex-col items-center justify-center">
           <div className="text-center">

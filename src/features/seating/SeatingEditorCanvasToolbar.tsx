@@ -12,7 +12,7 @@ import EditorAutoAssignSeatsIcon from '@/components/ui/icons/EditorAutoAssignSea
 import EditorRandomSeatsIcon from '@/components/ui/icons/EditorRandomSeatsIcon';
 import EditorViewPreferencesIcon from '@/components/ui/icons/EditorViewPreferencesIcon';
 import EditorClearGroupsIcon from '@/components/ui/icons/EditorClearGroupsIcon';
-import type { DashboardToolbarDef } from '@/features/dashboard/components/frame/dashboardZoneConfig';
+import type { DashboardToolbarDef } from '@/features/dashboard/stage/dashboardToolbarConfig';
 import { useCanvasToolbarActions } from '@/hooks/dashboard/useCanvasToolbarActions';
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 import { useSeatingEditBottomNav } from '@/hooks/useSeatingEditBottomNav';

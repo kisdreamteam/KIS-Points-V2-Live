@@ -9,7 +9,7 @@ import EditPencilIcon from '@/components/ui/icons/EditPencilIcon';
 import type {
   ToolbarActionDef,
   ToolbarActionId,
-} from '@/features/dashboard/components/frame/dashboardZoneConfig';
+} from '@/features/dashboard/stage/dashboardToolbarConfig';
 import type { CanvasToolbarAction } from '@/components/ui/CanvasToolbar';
 import { STUDENT_EVENTS } from '@/lib/events/students';
 

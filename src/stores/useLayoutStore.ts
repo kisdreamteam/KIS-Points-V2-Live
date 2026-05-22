@@ -41,6 +41,11 @@ export const useLayoutStore = create<LayoutStore>((set) => ({
         ? { isTimerOpen: true, isRandomOpen: false }
         : { isTimerOpen: false }
     ),
-  setRandomOpen: (isRandomOpen) => set({ isRandomOpen }),
+  setRandomOpen: (isRandomOpen) =>
+    set(
+      isRandomOpen
+        ? { isRandomOpen: true, isTimerOpen: false }
+        : { isRandomOpen: false }
+    ),
   setEditClassModalOpen: (isEditClassModalOpen) => set({ isEditClassModalOpen }),
 }));

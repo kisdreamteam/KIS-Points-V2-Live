@@ -25,7 +25,6 @@ interface BottomNavProps {
   currentClassName: string | null;
   currentView: 'grid' | 'seating';
   onViewChange: (view: 'grid' | 'seating') => void;
-  onRandomClick: () => void;
   sortingDisabled?: boolean;
   buttonsDisabled?: boolean;
   classId?: string | null;
@@ -41,7 +40,6 @@ export default function BottomNav({
   currentClassName,
   currentView,
   onViewChange,
-  onRandomClick,
   sortingDisabled = false,
   buttonsDisabled = false,
   classId = null,
@@ -66,6 +64,7 @@ export default function BottomNav({
   const { sortedStudents } = useSortedStudents(students, sortBy);
   const { toggleAttendance } = useAttendanceActions();
   const setTimerOpen = useLayoutStore((s) => s.setTimerOpen);
+  const setRandomOpen = useLayoutStore((s) => s.setRandomOpen);
 
   const navEnabled = !buttonsDisabled;
   const classRosterToolsEnabled = navEnabled && !!currentClassName;
@@ -192,7 +191,7 @@ export default function BottomNav({
           label="Random"
           onClick={() => {
             if (!classRosterToolsEnabled) return;
-            onRandomClick();
+            setRandomOpen(true);
           }}
           enabled={classRosterToolsEnabled}
         />

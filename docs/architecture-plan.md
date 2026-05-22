@@ -85,10 +85,12 @@ Optional follow-up: shared `getDashboardClassIdFromPath()` for `DashboardView` a
 | Path | Role |
 |------|------|
 | `frame/DashboardView.tsx` | Sync worker host; **intentionally** mounts Tier 2 `DashboardViewSwitch` (`key` from pathname). Not mounted from `app/` pages. |
-| `features/dashboard/layouts/DashboardShell.tsx` | 7-zone grid, nav slots, mounts modal host & tools |
+| `features/dashboard/layouts/DashboardShell.tsx` | Shell grid (sidebar + top/footer chrome); main stage is `{children}` only |
 | `app/dashboard/layout.tsx` | Suspense + `DashboardShell` (thin wire); `DashboardClassesSync` mounted in shell |
-| `frame/dashboardZoneConfig.ts` | Zone / toolbar definitions |
+| `frame/dashboardZoneConfig.ts` | Shell sidebar grid + main-stage row class constants |
+| `frame/StageTwoColumnLayout.tsx` | View-owned 2-col stage (`1fr` canvas + toolbar rail) |
 | `frame/navbars/*` | Left/top/bottom nav (`BottomNav`, `SeatingEditorLeftNav`, etc.) |
+| `stage/dashboardToolbarConfig.ts` | Toolbar action defs + `buildShellToolbarConfig` |
 
 Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, `viewMode`) because they are shell chrome, not workspace orchestration.
 
@@ -98,14 +100,14 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 |------|------|
 | 1 | Left nav (classes, seating layouts) |
 | 2–3 | Header / top nav |
-| 4–5 | Main canvas |
+| 4–5 | Main stage (`StageTwoColumnLayout`: workspace + canvas toolbar rail) |
 | 6–7 | Footer / bottom toolbars |
 
 **Rules**
 
 - Prefer `h-full` / `min-h-0` inside the dashboard; avoid `h-screen` in nested workspace content.
 - URL-reflected UI (`activeView`, edit mode, active class) is mirrored from the route via `src/hooks/sync/*`, not ad hoc `useEffect` in Tier 1.
-- **Timer widget:** `components/tools/Timer.tsx` (Tier 3 body) in `MovableToolPanel` via `DashboardToolsHost` (portaled; workspace stays visible). **Random** still replaces canvas until phase 2.
+- **Dashboard tools:** `DashboardToolsHost` portaled — Timer (`MovableToolPanel` + `components/tools/Timer.tsx`), Random (`LargeToolModal` + `tools/Random.tsx`, 90% viewport). Canvas always shows `{children}`.
 
 ### 1.3 Tier 2 — Stage (`features/`)
 
@@ -114,8 +116,8 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 | Module path | Files |
 |-------------|-------|
 | `features/dashboard/` | `DashboardViewSwitch.tsx`, `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/DashboardCanvasToolbar.tsx`, `stage/canvasToolbarPresets.tsx`, `tools/Random.tsx` |
-| `features/classes/` | `ClassesView.tsx`, `ClassesWorkspace.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx` |
-| `features/students/` | `StudentsView.tsx`, `StudentsWorkspace.tsx`, `StudentCardsGrid.tsx` |
+| `features/classes/` | `ClassesView.tsx` (+ `ClassesCanvasToolbar`), `ClassesWorkspace.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx` |
+| `features/students/` | `StudentsView.tsx` (+ `StudentsStageToolbar`), `StudentsWorkspace.tsx`, `StudentCardsGrid.tsx` |
 | `features/seating/` | `SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`, `SeatingChartEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx`, `SeatingEditorCanvasToolbar.tsx` |
 
 **Award / edit-skills modal pattern (reuse for similar features):**
@@ -323,19 +325,21 @@ Early return when no eligible students remain (`eligibleStudentIds.length === 0`
 
 ### Seating editor chrome (`?view=seating` + `?mode=edit`)
 
-`DashboardShell` uses a **unified chrome** grid (`grid-rows-[auto_1fr_auto]`): TopNav (zones 2–3) and the footer slot (zone 7) stay mounted on all dashboard routes; only inner content swaps (nav variant, toolbar, MultiSelect vs Students bottom nav).
+`DashboardShell` uses a **unified chrome** grid (`grid-rows-[auto_1fr_auto]`): TopNav (zones 2–3) and the footer slot (zone 7) stay mounted on all dashboard routes. The **main section** is a single `{children}` slot; Tier-2 views own the two-column stage via `StageTwoColumnLayout`.
 
-When `useLayoutStore.isEditMode` is true on the seating chart view, `DashboardShell` swaps several zone mounts:
+When `useLayoutStore.isEditMode` is true on the seating chart view, shell and views swap several mounts:
 
 | Zone / area | View mode | Edit mode |
 |-------------|-----------|-----------|
 | TopNav (header) | Always mounted | Always mounted |
-| Left nav | Default `LeftNav` | `SeatingEditorLeftNav` |
-| Canvas toolbar column | `DashboardCanvasToolbar` (layout manager, teacher view, etc.) | `SeatingEditorCanvasToolbar` |
+| Left nav (shell) | Default `LeftNav` | `SeatingEditorLeftNav` |
+| Canvas toolbar (view-owned) | `StudentsStageToolbar` → `DashboardCanvasToolbar` | `StudentsStageToolbar` → `SeatingEditorCanvasToolbar` |
 | Footer slot | Always mounted; `BottomNav` | Same slot; `BottomNav` with `buttonsDisabled={true}` |
 | Main stage (Tier 2) | `SeatingChartView` | `SeatingChartEditorView` (via `StudentsWorkspace`) |
 
-**There is no `SeatingEditorBottomNav`.** Editor actions live on the right-rail canvas toolbar. Footer stays visible always. **Timer** opens as a draggable portaled widget (`DashboardToolsHost` + `MovableToolPanel`); workspace remains visible. **Random** still replaces the canvas slot (phase 2: same widget pattern). On `/dashboard` (no class), footer renders with class-gated controls hidden inside `BottomNav`. Opening Timer clears `isRandomOpen` (`setTimerOpen` mutual exclusion).
+`/dashboard` (`ClassesView`): toolbar rail always visible; `ClassesCanvasToolbar` with all actions **disabled**.
+
+**There is no `SeatingEditorBottomNav`.** Editor actions live on the right-rail canvas toolbar. Footer stays visible always. **Timer** = draggable `MovableToolPanel`; **Random** = `LargeToolModal` (90vw × 90dvh); both via `DashboardToolsHost`; workspace always visible. On `/dashboard` (no class), footer renders with class-gated controls hidden inside `BottomNav`. `setTimerOpen` / `setRandomOpen` are mutually exclusive.
 
 #### `SeatingEditorCanvasToolbar` (Tier 2 — `features/seating/`)
 
