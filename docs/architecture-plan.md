@@ -13,7 +13,7 @@ Prototype 1 uses a **dual-shell** layout model and a **dual-boundary** data mode
 - **Auth/landing (Tier 2):** views in `src/features/auth` and `src/features/landing` (not subject to the dashboard `components/` vs `features/` tier split).
 - **Student attendance:** daily `attendance_events` append-only log, `absentStudentIds` in the dashboard store, bottom-nav attendance sheet, and macro point exclusions for absent students (see §2.1).
 
-Related docs: `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-tier-3-layer-refactor-plan.md`, `docs/db-schema.md`.
+Related docs: `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-tier-3-layer-refactor-plan.md`, `docs/db-schema.md`, `docs/featureFirstMigrationPlan.md` (phased move of `components/` → `features/*/components/`).
 
 ---
 
@@ -28,7 +28,7 @@ Auth is **not** subject to the dashboard `components/` vs `features/` tier split
 | Tier 1 layout | `src/app/(auth)/layout.tsx` |
 | Tier 2 views | `src/features/auth/LoginView.tsx`, `SignUpView.tsx`, `ForgotPasswordView.tsx`, `ResetPasswordView.tsx` (forms only; no layout wrapper) |
 | Tier 2 landing | `src/features/landing/LandingView.tsx` |
-| Tier 3 UI | `src/components/ui/auth/*`, `src/components/ui/landing/*` |
+| Tier 3 UI | `src/features/auth/components/`, `src/features/landing/components/` |
 | Layer 1 | `src/hooks/useAuthFlow.ts` |
 | Layer 3 | `src/lib/api/auth.service.ts` |
 | Routes | Thin `src/app/(auth)/login|signup|.../page.tsx` → `@/features/auth/*`; `src/app/page.tsx` → `@/features/landing/*` |
@@ -37,13 +37,13 @@ Auth is **not** subject to the dashboard `components/` vs `features/` tier split
 
 | Concern | Location |
 |---------|----------|
-| Tier 1 | `src/components/dashboard/frame/` |
+| Tier 1 | `src/features/dashboard/components/frame/` + `src/features/dashboard/layouts/DashboardShell.tsx` |
 | Tier 2 | `src/features/dashboard/`, `classes/`, `students/`, `seating/` |
-| Tier 3 | `src/components/dashboard/{cards,modals,menus,forms,seating}/` + `src/components/ui/` |
+| Tier 3 | `src/features/{dashboard,classes,students,seating}/components/` + `src/components/ui/` (shared) |
 | Layer 1 / 1b | `src/hooks/`, `src/hooks/sync/` |
 | Layer 2 | `src/stores/` |
 | Layer 3 | `src/lib/api/` |
-| Routes | `src/app/dashboard/*` → `DashboardView` (components) + `DashboardViewSwitch` (features) |
+| Routes | `src/app/dashboard/*` → `DashboardView` + `DashboardViewSwitch` (features) |
 
 **Rule:** Do not apply dashboard grid/zone rules to auth/landing, or auth flex centering rules to the dashboard workspace.
 
@@ -55,13 +55,13 @@ Auth is **not** subject to the dashboard `components/` vs `features/` tier split
 
 | Tier | Role | Location |
 |------|------|----------|
-| **1** | Scaffolding, chrome, zones | `src/components/dashboard/frame/` |
-| **2** | View containers, workspaces, orchestration | `src/features/{dashboard,classes,students,seating}/` |
-| **3** | Presentational UI | `src/components/dashboard/{cards,modals,menus,forms,seating}/`, `src/components/ui/` |
+| **1** | Scaffolding, chrome, zones | `src/features/dashboard/components/frame/`, `layouts/DashboardShell.tsx` |
+| **2** | View containers, workspaces, orchestration | `src/features/{dashboard,classes,students,seating}/` (root `*View`, `*Workspace`, hosts) |
+| **3** | Presentational UI | `src/features/{dashboard,classes,students,seating}/components/`, `src/features/auth/components/`, `src/features/landing/components/`, `src/components/ui/` |
 
 `src/features/` is the permanent home for auth, landing, and dashboard Tier 2. Do not move auth views into `components/` for folder-policy reasons. Auth route chrome lives in `src/app/(auth)/layout.tsx`.
 
-### 1.2 Tier 1 — Scaffolding (`components/dashboard/frame/`)
+### 1.2 Tier 1 — Scaffolding (`features/dashboard/components/frame/`)
 
 **Responsibility:** Persistent chrome, routing bounds, zone assignment. Mounts Layer 1b sync workers; reads layout/UI slices for chrome only (no Supabase, no mutation orchestration).
 
@@ -88,7 +88,7 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 
 - Prefer `h-full` / `min-h-0` inside the dashboard; avoid `h-screen` in nested workspace content.
 - URL-reflected UI (`activeView`, edit mode, active class) is mirrored from the route via `src/hooks/sync/*`, not ad hoc `useEffect` in Tier 1.
-- Timer overlay: `src/components/dashboard/tools/Timer.tsx` (mounted from layout).
+- Timer overlay: `src/features/dashboard/components/tools/Timer.tsx` (mounted from layout).
 
 ### 1.3 Tier 2 — Stage (`features/`)
 
@@ -105,7 +105,7 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 
 - **Tier 2 host** (`features/dashboard/*Host.tsx`): thin component; calls `use*ModalController(...)`, renders Tier 3 modal with `{...viewProps}`.
 - **Layer 1 controller** (`hooks/use*ModalController.ts`): composes existing hooks (`usePointAwarding`, `useSkillManagement`, `useAvailable*Icons`, etc.); returns a single **view-props object** typed next to the modal (e.g. `AwardPointsModalViewProps`).
-- **Tier 3 modal** (`components/dashboard/modals/*`): no `@/hooks` for orchestration (except documented exceptions elsewhere); props in, callbacks out.
+- **Tier 3 modal** (`features/dashboard/components/modals/*`): no `@/hooks` for orchestration (except documented exceptions elsewhere); props in, callbacks out.
 - **Nested composition:** a Tier 3 modal may render another **Tier 2 host** when a subtree has its own controller (e.g. `AwardPointsModal` renders `EditSkillsModalHost`; avoid duplicating that logic in `useAwardPointsModalController`).
 
 **Rules**
@@ -115,15 +115,18 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 - Prefer `dashboardStudentSelectors.ts` for roster ordering/aggregates.
 - For new dashboard modal flows similar to award points / edit skills: add a **host** under `features/dashboard/` + **controller hook** under `hooks/`, keep modal + child forms Tier 3 (no `@/stores`, no `@/hooks` inside presentational forms).
 
-### 1.4 Tier 3 — Actors (`components/dashboard/` + `components/ui/`)
+### 1.4 Tier 3 — Actors (`features/*/components/` + `components/ui/`)
 
 **Responsibility:** Presentation; props in, callbacks out.
 
 ```text
-components/dashboard/
-  cards/      modals/     menus/     forms/
-  seating/    (presentational widgets only, e.g. LayoutManagerDrawer, SeatingCanvasDecor)
-components/ui/            # shared atoms + auth/landing chrome
+features/dashboard/components/   # frame, cards, modals, menus, forms, tools, PointsLogDrawer
+features/classes/components/
+features/students/components/
+features/seating/components/
+features/auth/components/          # forms + auth chrome
+features/landing/components/
+components/ui/                     # shared atoms, icons, CanvasToolbar, generic modals
 ```
 
 **Rules**
@@ -366,27 +369,19 @@ src/
       page.tsx                      # DashboardView + DashboardViewSwitch
       classes/[classId]/page.tsx
 
-  features/                         # Tier 2 views + dashboard shell
-    auth/                           # *View only (permanent)
-    landing/
+  features/
+    auth/                           # *View + components/
+    landing/                        # LandingView + components/
     dashboard/
-      layouts/
-        DashboardShell.tsx          # Tier 1 shell (7-zone grid)
-      DashboardViewSwitch.tsx
-      *ModalHost.tsx
-      stage/
-      tools/
-    classes/
+      layouts/DashboardShell.tsx
+      components/                   # frame, cards, modals, menus, forms, tools
+      DashboardViewSwitch.tsx, *Host.tsx, stage/, tools/Random.tsx
+    classes/                        # *View, *Workspace + components/
     students/
-    seating/                        # + SeatingEditorCanvasToolbar.tsx
+    seating/
 
   components/
-    ui/                             # Shared Tier 3 (+ auth/landing, CanvasToolbar)
-    dashboard/
-      frame/                        # Tier 1
-      cards|modals|menus|forms|seating/
-      tools/Timer.tsx               # Tier 3 (overlay UI)
-      PointsLogDrawer.tsx           # Tier 3
+    ui/                             # Shared Tier 3 only (primitives, icons, CanvasToolbar)
 
   hooks/          stores/           lib/api/
 ```
@@ -399,8 +394,8 @@ src/
 
 | Status | Task |
 |--------|------|
-| done | Tier 1: `components/dashboard/frame/` |
-| done | Tier 3: cards, modals, menus, forms, seating widgets |
+| done | Tier 1: `features/dashboard/components/frame/` + `layouts/DashboardShell` |
+| done | Tier 3: `features/*/components/` (feature-first migration complete) |
 | done | Tier 2: views/workspaces in `features/{dashboard,classes,students,seating}` |
 | done | Move Tier 2 stragglers out of `components/dashboard/` (modal host, edit-class root, Random, SeatingGroupsCanvas, stage toolbar) |
 | done | Seating editor controls on `SeatingEditorCanvasToolbar`; removed `SeatingEditorBottomNav` / bridge; footer uses `StudentsBottomNav` + `buttonsDisabled` in edit mode |
@@ -418,11 +413,13 @@ src/
 
 ```text
 Auth T1        →  app/(auth)/layout.tsx
-Auth T2        →  features/auth/*View + components/ui/auth (T3 forms)
-Landing T2     →  features/landing/LandingView + components/ui/landing (T3)
-Dashboard T1   →  components/dashboard/frame/
-Dashboard T2   →  features/{dashboard,classes,students,seating}/  (+ *ModalHost.tsx for gated modal flows)
-Dashboard T3   →  components/dashboard/* + components/ui/  (presentational modals/forms; compose Tier 2 hosts when needed)
+Auth T2        →  features/auth/*View
+Auth T3        →  features/auth/components/
+Landing T2     →  features/landing/LandingView
+Landing T3     →  features/landing/components/
+Dashboard T1   →  features/dashboard/components/frame/ + layouts/DashboardShell
+Dashboard T2   →  features/{dashboard,classes,students,seating}/  (+ *ModalHost.tsx)
+Dashboard T3   →  features/{dashboard,classes,students,seating}/components/ + components/ui/
 Data layers    →  hooks/ · stores/ · lib/api/
 Attendance     →  attendanceService · absentStudentIds · AttendanceMenuBody · StudentsBottomNav
 Seating edit   →  SeatingEditorCanvasToolbar + portaled menus; StudentsBottomNav disabled

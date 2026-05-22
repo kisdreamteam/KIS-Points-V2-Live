@@ -1,7 +1,7 @@
 'use client';
 
 import CanvasToolbar from '@/components/ui/CanvasToolbar';
-import type { DashboardToolbarDef } from '@/components/dashboard/frame/dashboardZoneConfig';
+import type { DashboardToolbarDef } from '@/features/dashboard/components/frame/dashboardZoneConfig';
 import { useCanvasToolbarActions } from '@/hooks/dashboard/useCanvasToolbarActions';
 
 export default function DashboardCanvasToolbar({

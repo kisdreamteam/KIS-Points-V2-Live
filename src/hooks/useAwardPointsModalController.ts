@@ -4,8 +4,8 @@ import { useCallback } from 'react';
 import type {
   AwardPointsModalProps,
   AwardPointsModalViewProps,
-} from '@/components/dashboard/modals/AwardPointsModal';
-import type { AddSkillFormSubmitValues } from '@/components/dashboard/forms/AddSkillForm';
+} from '@/features/dashboard/components/modals/AwardPointsModal';
+import type { AddSkillFormSubmitValues } from '@/features/dashboard/components/forms/AddSkillForm';
 import { usePointAwarding } from '@/hooks/usePointAwarding';
 import { useSkillManagement } from '@/hooks/useSkillManagement';
 import { useAvailablePositiveIcons, useAvailableNegativeIcons } from '@/hooks/useAvailableIcons';

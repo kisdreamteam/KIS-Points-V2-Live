@@ -4,9 +4,9 @@ import { useCallback, useMemo, useState } from 'react';
 import type {
   EditSkillsModalProps,
   EditSkillsModalViewProps,
-} from '@/components/dashboard/modals/EditSkillsModal';
+} from '@/features/dashboard/components/modals/EditSkillsModal';
 import type { PointCategory } from '@/lib/types';
-import type { EditSkillFormSubmitPayload } from '@/components/dashboard/forms/EditSkillForm';
+import type { EditSkillFormSubmitPayload } from '@/features/dashboard/components/forms/EditSkillForm';
 import { useSkillManagement } from '@/hooks/useSkillManagement';
 import { useAvailablePositiveIcons, useAvailableNegativeIcons } from '@/hooks/useAvailableIcons';
 

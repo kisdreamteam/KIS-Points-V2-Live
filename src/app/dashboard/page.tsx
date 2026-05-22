@@ -1,4 +1,4 @@
-import DashboardView from '@/components/dashboard/frame/DashboardView';
+import DashboardView from '@/features/dashboard/components/frame/DashboardView';
 import DashboardViewSwitch from '@/features/dashboard/DashboardViewSwitch';
 
 export default function DashboardPage() {

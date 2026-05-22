@@ -6,10 +6,10 @@ import type { FC } from 'react';
 import FormLabel from '@/components/ui/FormLabel';
 import TextInput from '@/components/ui/TextInput';
 import InlineErrorText from '@/components/ui/InlineErrorText';
-import AuthBackLink from '@/components/ui/auth/AuthBackLink';
-import AuthCard from '@/components/ui/auth/AuthCard';
-import AuthFormHeader from '@/components/ui/auth/AuthFormHeader';
-import AuthPrimaryButton from '@/components/ui/auth/AuthPrimaryButton';
+import AuthBackLink from '@/features/auth/components/AuthBackLink';
+import AuthCard from '@/features/auth/components/AuthCard';
+import AuthFormHeader from '@/features/auth/components/AuthFormHeader';
+import AuthPrimaryButton from '@/features/auth/components/AuthPrimaryButton';
 import type { ForgotPasswordStep } from '@/hooks/useAuthFlow';
 
 type ForgotPasswordFormProps = {

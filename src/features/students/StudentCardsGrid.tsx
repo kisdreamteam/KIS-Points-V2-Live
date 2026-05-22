@@ -1,8 +1,8 @@
 import CardsGrid from '@/components/ui/CardsGrid';
 import ScaledGridFrame from '@/components/ui/ScaledGridFrame';
-import WholeClassCard from '@/components/dashboard/cards/WholeClassCard';
-import StudentCard from '@/components/dashboard/cards/StudentCard';
-import AddStudentCard from '@/components/dashboard/cards/AddStudentCard';
+import WholeClassCard from '@/features/students/components/cards/WholeClassCard';
+import StudentCard from '@/features/students/components/cards/StudentCard';
+import AddStudentCard from '@/features/students/components/cards/AddStudentCard';
 
 interface StudentCardsGridProps {
   orderedStudentIds: string[];

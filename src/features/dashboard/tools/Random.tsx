@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { Student } from '@/lib/types';
 import Image from 'next/image';
 import AwardPointsModalHost from '@/features/dashboard/AwardPointsModalHost';
-import PointsAwardedConfirmationModal from '@/components/dashboard/modals/PointsAwardedConfirmationModal';
+import PointsAwardedConfirmationModal from '@/features/dashboard/components/modals/PointsAwardedConfirmationModal';
 import { normalizeAvatarPath } from '@/lib/iconUtils';
 import { emitSeatingStudentPointsDelta } from '@/lib/events/students';
 import { useAwardPointsFlow } from '@/hooks/useAwardPointsFlow';

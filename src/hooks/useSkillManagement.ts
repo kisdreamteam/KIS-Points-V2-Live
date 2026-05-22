@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { archiveSkill as archiveSkillApi, createSkill as createSkillApi, updateSkill as updateSkillApi } from '@/lib/api/skills';
-import type { AddSkillFormSubmitValues } from '@/components/dashboard/forms/AddSkillForm';
+import type { AddSkillFormSubmitValues } from '@/features/dashboard/components/forms/AddSkillForm';
 
 type UpdateSkillValues = {
   skillId: string;

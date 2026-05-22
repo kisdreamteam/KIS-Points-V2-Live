@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import LandingLogo from "@/components/ui/landing/LandingLogo";
+import LandingLogo from "@/features/landing/components/LandingLogo";
 
 type LandingHeaderProps = {
   children: ReactNode;

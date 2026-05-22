@@ -11,10 +11,10 @@ import {
   emitSeatingStudentPointsDelta,
 } from '@/lib/events/students';
 import { normalizeClassIconPath } from '@/lib/iconUtils';
-import AddStudentsModal from '@/components/dashboard/modals/AddStudentsModal';
+import AddStudentsModal from '@/features/students/components/modals/AddStudentsModal';
 import AwardPointsModalHost from '@/features/dashboard/AwardPointsModalHost';
-import EditStudentModal from '@/components/dashboard/modals/EditStudentModal';
-import PointsAwardedConfirmationModal from '@/components/dashboard/modals/PointsAwardedConfirmationModal';
+import EditStudentModal from '@/features/students/components/modals/EditStudentModal';
+import PointsAwardedConfirmationModal from '@/features/dashboard/components/modals/PointsAwardedConfirmationModal';
 
 export default function DashboardClassModalsHost() {
   const pathname = usePathname();

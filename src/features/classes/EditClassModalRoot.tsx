@@ -4,13 +4,13 @@ import { useState } from 'react';
 import Modal from '@/components/ui/modals/Modal';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import SuccessNotificationModal from '@/components/ui/modals/SuccessNotificationModal';
-import AddStudentsModal from '@/components/dashboard/modals/AddStudentsModal';
-import EditClassModalTabs, { type EditClassTab } from '@/components/dashboard/forms/edit-class/EditClassModalTabs';
-import EditClassInfoTab from '@/components/dashboard/forms/edit-class/EditClassInfoTab';
-import EditClassStudentsTab from '@/components/dashboard/forms/edit-class/EditClassStudentsTab';
-import EditClassTeachersTab from '@/components/dashboard/forms/edit-class/EditClassTeachersTab';
-import EditClassSettingsTab from '@/components/dashboard/forms/edit-class/EditClassSettingsTab';
-import EditClassResetPointsDialog from '@/components/dashboard/forms/edit-class/EditClassResetPointsDialog';
+import AddStudentsModal from '@/features/students/components/modals/AddStudentsModal';
+import EditClassModalTabs, { type EditClassTab } from '@/features/classes/components/forms/edit-class/EditClassModalTabs';
+import EditClassInfoTab from '@/features/classes/components/forms/edit-class/EditClassInfoTab';
+import EditClassStudentsTab from '@/features/classes/components/forms/edit-class/EditClassStudentsTab';
+import EditClassTeachersTab from '@/features/classes/components/forms/edit-class/EditClassTeachersTab';
+import EditClassSettingsTab from '@/features/classes/components/forms/edit-class/EditClassSettingsTab';
+import EditClassResetPointsDialog from '@/features/classes/components/forms/edit-class/EditClassResetPointsDialog';
 import { useClassManagement } from '@/hooks/useClassManagement';
 
 export interface EditClassModalProps {

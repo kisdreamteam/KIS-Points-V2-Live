@@ -1,7 +1,7 @@
 'use client';
 
-import EditSkillsModal from '@/components/dashboard/modals/EditSkillsModal';
-import type { EditSkillsModalProps } from '@/components/dashboard/modals/EditSkillsModal';
+import EditSkillsModal from '@/features/dashboard/components/modals/EditSkillsModal';
+import type { EditSkillsModalProps } from '@/features/dashboard/components/modals/EditSkillsModal';
 import { useEditSkillsModalController } from '@/hooks/useEditSkillsModalController';
 
 export default function EditSkillsModalHost(props: EditSkillsModalProps) {

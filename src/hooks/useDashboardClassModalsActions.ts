@@ -9,8 +9,8 @@ import {
   insertStudentsBulk,
   updateStudentById,
 } from '@/lib/api/students';
-import type { AddStudentsFormSubmitValues } from '@/components/dashboard/forms/AddStudentsForm';
-import type { EditStudentModalSubmitValues } from '@/components/dashboard/modals/EditStudentModal';
+import type { AddStudentsFormSubmitValues } from '@/features/students/components/forms/AddStudentsForm';
+import type { EditStudentModalSubmitValues } from '@/features/students/components/modals/EditStudentModal';
 
 type UseDashboardClassModalsActionsParams = {
   currentClassId: string | null;

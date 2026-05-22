@@ -23,7 +23,7 @@ import {
   resetPointsByStudentIds,
 } from '@/lib/api/students';
 import type { Student } from '@/lib/types';
-import type { AddStudentsFormSubmitValues } from '@/components/dashboard/forms/AddStudentsForm';
+import type { AddStudentsFormSubmitValues } from '@/features/students/components/forms/AddStudentsForm';
 import { refreshDashboardRosterIfActive } from '@/hooks/sync/useDashboardStudentSync';
 
 export interface CollaboratorTeacher {

@@ -6,14 +6,14 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useShallow } from 'zustand/react/shallow';
 import { useSeatingStore } from '@/stores/useSeatingStore';
 import { Student } from '@/lib/types';
-import CreateLayoutModal from '@/components/dashboard/modals/CreateLayoutModal';
-import EditGroupModal from '@/components/dashboard/modals/EditGroupModal';
+import CreateLayoutModal from '@/features/seating/components/modals/CreateLayoutModal';
+import EditGroupModal from '@/features/seating/components/modals/EditGroupModal';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import SuccessNotificationModal from '@/components/ui/modals/SuccessNotificationModal';
 import IconSettingsWheel from '@/components/ui/icons/iconSettingsWheel';
 import IconEditPencil from '@/components/ui/icons/iconEditPencil';
-import SeatingCanvasDecor from '@/components/dashboard/seating/SeatingCanvasDecor';
-import SeatingEditorGroupSettingsMenu from '@/components/dashboard/menus/SeatingEditorGroupSettingsMenu';
+import SeatingCanvasDecor from '@/features/seating/components/seating/SeatingCanvasDecor';
+import SeatingEditorGroupSettingsMenu from '@/features/seating/components/menus/SeatingEditorGroupSettingsMenu';
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 import { useSeatingChartEditor } from '@/hooks/useSeatingChart';
 

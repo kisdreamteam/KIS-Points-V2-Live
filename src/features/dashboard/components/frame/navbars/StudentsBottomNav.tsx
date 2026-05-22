@@ -3,10 +3,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { SortOption } from '@/stores/usePreferenceStore';
-import { AttendanceMenuBody } from '@/components/dashboard/menus/AttendanceMenuBody';
-import StudentsViewMenu from '@/components/dashboard/menus/StudentsViewMenu';
-import StudentsSortingMenu from '@/components/dashboard/menus/StudentsSortingMenu';
-import StudentsSettingsMenu from '@/components/dashboard/menus/StudentsSettingsMenu';
+import { AttendanceMenuBody } from '@/features/students/components/menus/AttendanceMenuBody';
+import StudentsViewMenu from '@/features/students/components/menus/StudentsViewMenu';
+import StudentsSortingMenu from '@/features/students/components/menus/StudentsSortingMenu';
+import StudentsSettingsMenu from '@/features/students/components/menus/StudentsSettingsMenu';
 import { useAttendanceActions } from '@/hooks/useAttendanceActions';
 import { useSortedStudents } from '@/hooks/useSortedStudents';
 import { useDashboardStore } from '@/stores/useDashboardStore';

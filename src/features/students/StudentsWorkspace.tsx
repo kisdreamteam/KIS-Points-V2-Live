@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import PointsLogDrawer from '@/components/dashboard/PointsLogDrawer';
+import PointsLogDrawer from '@/features/dashboard/components/PointsLogDrawer';
 import SeatingChartView from '../seating/SeatingChartView';
 import SeatingChartEditorView from '../seating/SeatingChartEditorView';
 import StudentCardsGrid from './StudentCardsGrid';

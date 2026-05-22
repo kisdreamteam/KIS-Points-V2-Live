@@ -1,7 +1,7 @@
 'use client';
 
 import Modal from '@/components/ui/modals/Modal';
-import CreateClassForm, { type CreateClassFormValues } from '@/components/dashboard/forms/CreateClassForm';
+import CreateClassForm, { type CreateClassFormValues } from '@/features/classes/components/forms/CreateClassForm';
 
 interface CreateClassModalProps {
   isOpen: boolean;

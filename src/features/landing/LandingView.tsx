@@ -1,8 +1,8 @@
-import FeatureList from '@/components/ui/landing/FeatureList'
-import HeroTitle from '@/components/ui/landing/HeroTitle'
-import LandingHeader from '@/components/ui/landing/LandingHeader'
-import LandingMascot from '@/components/ui/landing/LandingMascot'
-import LandingNavLink from '@/components/ui/landing/LandingNavLink'
+import FeatureList from '@/features/landing/components/FeatureList'
+import HeroTitle from '@/features/landing/components/HeroTitle'
+import LandingHeader from '@/features/landing/components/LandingHeader'
+import LandingMascot from '@/features/landing/components/LandingMascot'
+import LandingNavLink from '@/features/landing/components/LandingNavLink'
 
 export default function LandingView() {
   return (

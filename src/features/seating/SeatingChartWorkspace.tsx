@@ -2,11 +2,11 @@
 
 import type { Dispatch, SetStateAction } from 'react';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
-import CreateLayoutModal from '@/components/dashboard/modals/CreateLayoutModal';
-import EditLayoutModal from '@/components/dashboard/modals/EditLayoutModal';
-import PointsLogDrawer from '@/components/dashboard/PointsLogDrawer';
-import LayoutManagerDrawer from '@/components/dashboard/seating/LayoutManagerDrawer';
-import SeatingCanvasDecor from '@/components/dashboard/seating/SeatingCanvasDecor';
+import CreateLayoutModal from '@/features/seating/components/modals/CreateLayoutModal';
+import EditLayoutModal from '@/features/seating/components/modals/EditLayoutModal';
+import PointsLogDrawer from '@/features/dashboard/components/PointsLogDrawer';
+import LayoutManagerDrawer from '@/features/seating/components/seating/LayoutManagerDrawer';
+import SeatingCanvasDecor from '@/features/seating/components/seating/SeatingCanvasDecor';
 import SeatingGroupsCanvas from '@/features/seating/SeatingGroupsCanvas';
 import type { PointLogRow } from '@/hooks/useClassPointLog';
 import type { SeatingChartRecord } from '@/lib/api/seating';

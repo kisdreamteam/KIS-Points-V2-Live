@@ -1,6 +1,6 @@
 # KIS-Points Prototype 1 - Cursor Rules (Dual Shell & Zustand)
 
-**Canonical reference:** `docs/architecture-plan.md` (folder map, exceptions, sync mounting).
+**Canonical reference:** `docs/architecture-plan.md` (folder map, exceptions, sync mounting). Feature-first component layout: `docs/featureFirstMigrationPlan.md` (complete May 2026).
 
 ## 1. Architectural Mandate: The Dual-Shell System
 
@@ -12,7 +12,7 @@ You must identify the active shell before applying layout or state rules. They a
 * **Routes (filesystem):** `src/app/(auth)/login|signup|forgot-password|reset-password/page.tsx` (route group; URLs unchanged).
 * **Tier 1 (auth routes):** `src/app/(auth)/layout.tsx` (flex centering chrome; mirrors `app/dashboard/layout.tsx` owning the segment).
 * **Tier 2 views:** `@/features/auth/*View` (wire `useAuthFlow` + Tier 3 forms only — do not reintroduce a layout wrapper in views), `@/features/landing/LandingView.tsx`.
-* **Tier 3 UI:** `@/components/ui/auth/*`, `@/components/ui/landing/*`.
+* **Tier 3 UI:** `@/features/auth/components/` (forms + chrome), `@/features/landing/components/`.
 * **Layout Logic:** Uses **Flexbox** for centering (e.g., `flex items-center justify-center`).
 * **State:** **No Global Zustand Store.** Use `useAuthFlow.ts` for local form/UI state.
 * **Session:** Layer 1 hook + `@/lib/api/auth.service.ts` (Layer 3).
@@ -21,9 +21,9 @@ You must identify the active shell before applying layout or state rules. They a
 ### B. Dashboard Shell (The Workspace)
 
 * **Scope:** `/dashboard/`, `/dashboard/classes/[classId]`.
-* **Shell (Tier 1):** `@/components/dashboard/frame/DashboardView.tsx` (sync workers) + `@/features/dashboard/layouts/DashboardShell.tsx` (7-zone grid; mounted from `app/dashboard/layout.tsx`).
+* **Shell (Tier 1):** `@/features/dashboard/components/frame/DashboardView.tsx` (sync workers) + `@/features/dashboard/layouts/DashboardShell.tsx` (7-zone grid; mounted from `app/dashboard/layout.tsx`).
 * **View routing (Tier 2):** `@/features/dashboard/DashboardViewSwitch.tsx`.
-* **Folder policy:** Dashboard **Tier 1 & 3** → `@/components/`; dashboard **Tier 2** → `@/features/`. Auth/landing are exempt (§1.A).
+* **Folder policy:** Dashboard **Tier 3** → `@/features/{dashboard,classes,students,seating}/components/`; shared atoms → `@/components/ui/`. **Tier 2** → `@/features/`.
 * **Modal host (Tier 2):** `@/features/dashboard/DashboardClassModalsHost.tsx` (mounted in `DashboardShell`).
 * **Award / edit-skills (Tier 2 + Layer 1):** `@/features/dashboard/AwardPointsModalHost.tsx` + `hooks/useAwardPointsModalController.ts`; `@/features/dashboard/EditSkillsModalHost.tsx` + `hooks/useEditSkillsModalController.ts`. Prefer this **host + controller** pattern when a dashboard modal subtree needs orchestration hooks but the UI itself should stay Tier 3.
 * **Layout Logic:** Uses the **7-Zone Fixed Grid System** (`dashboardZoneConfig.ts`).
@@ -37,7 +37,7 @@ You must identify the active shell before applying layout or state rules. They a
 
 ### Tier 1: Scaffolding (The Building) — dashboard only
 
-* **Locations:** `@/components/dashboard/frame/` (includes `navbars/`, `dashboardZoneConfig.ts`).
+* **Locations:** `@/features/dashboard/components/frame/` (includes `navbars/`, `dashboardZoneConfig.ts`).
 * **Responsibility:** Persistent chrome and CSS Grid boundaries.
 * **Rule:** `DashboardClassesSync` in `app/dashboard/layout.tsx`; `useDashboardRouteStateSync` / `useViewPreferenceSync` in `DashboardShell`; class/student/profile/filter sync in `DashboardView`.
 * **Allowed:** Narrow store reads in navbars for chrome (e.g., `activeClassId`, `viewMode`). No Supabase, no mutation orchestration.
@@ -47,7 +47,7 @@ You must identify the active shell before applying layout or state rules. They a
 * **Locations:** `@/features/dashboard/`, `@/features/classes/`, `@/features/students/`, `@/features/seating/`.
 * **Responsibility:** View orchestration, workspace wiring, store subscription, passing props to Tier 3.
 * **Includes:** `features/dashboard/stage/` (`DashboardCanvasToolbar`, presets), `features/seating/SeatingEditorCanvasToolbar.tsx`, `features/dashboard/tools/Random.tsx`, `DashboardClassModalsHost.tsx`, **`AwardPointsModalHost.tsx`**, **`EditSkillsModalHost.tsx`**, `features/classes/EditClassModalRoot.tsx`, `features/seating/SeatingGroupsCanvas.tsx`.
-* **New modal flows:** If a modal needs `@/hooks` orchestration (`use*` data, mutations, icons), implement **`features/dashboard/MyFeatureModalHost.tsx`** + **`hooks/useMyFeatureModalController.ts`**, expose `*ViewProps` next to **`components/dashboard/modals/MyFeatureModal.tsx`**. Do not bolt Layer 1 hooks onto presentational Tier 3 modals/forms by default.
+* **New modal flows:** If a modal needs `@/hooks` orchestration (`use*` data, mutations, icons), implement **`features/dashboard/MyFeatureModalHost.tsx`** + **`hooks/useMyFeatureModalController.ts`**, expose `*ViewProps` next to **`features/dashboard/components/modals/MyFeatureModal.tsx`**. Do not bolt Layer 1 hooks onto presentational Tier 3 modals/forms by default.
 * **Nested UI:** Tier 3 modals may import and render Tier 2 **hosts** for self-contained subtrees (e.g. `AwardPointsModal` → `EditSkillsModalHost`); do not merge unrelated controller logic into a single hook.
 * **Rules:**
   * Use **granular selectors** to prevent re-renders.
@@ -58,17 +58,17 @@ You must identify the active shell before applying layout or state rules. They a
 
 ### Tier 3: The Actors (Pure UI)
 
-* **Locations:** `@/components/ui/` (includes `CanvasToolbar.tsx`), `@/components/dashboard/{cards,modals,menus,forms,seating,tools}/`.
+* **Locations:** `@/components/ui/` (shared primitives, icons, `CanvasToolbar.tsx`). Feature UI: `@/features/dashboard/components/`, `@/features/classes/components/`, `@/features/students/components/`, `@/features/seating/components/`, `@/features/auth/components/`, `@/features/landing/components/`.
 * **Responsibility:** Presentational UI. Props in via props, behaviors out via callbacks. Local UI state (`useState`, refs, narrow `useEffect` for UX) allowed.
 * **Rules:** No **stores**, no **`@/hooks`** for **orchestration** (data fetch, mutations, cross-store flows), no API clients unless type-only imports. Thin modal wrappers that only compose children are OK.
 * **`forms/AddSkillForm.tsx`** and **`forms/EditSkillForm.tsx`** — **strict Tier 3:** no `@/hooks`; parent controllers (`useAwardPointsModalController`, `useEditSkillsModalController`) supply icon arrays / detecting flags / submit handlers passed through **`AddSkillModal`** / **`EditSkillModal`**.
-* **Cross-tier import:** Tier 3 under `dashboard/modals/` may import **`@/features/dashboard/*Host`** only for nested gated flows—not for workspaces.
+* **Cross-tier import:** Tier 3 modals under `features/dashboard/components/modals/` may import **`@/features/dashboard/*Host`** only for nested gated flows—not for workspaces.
 * **Documented exceptions** (see `docs/architecture-plan.md`):
   * `StudentCard.tsx` — `useShallow` store slice for grid performance.
   * `EditSkillsModal.tsx` — presentational; wiring via `useEditSkillsModalController` + `features/dashboard/EditSkillsModalHost.tsx`.
   * `AwardPointsModal.tsx` — presentational; wiring via `useAwardPointsModalController` + `features/dashboard/AwardPointsModalHost.tsx`.
-  * `modals/EditClassModal.tsx` — thin façade re-exporting `features/classes/EditClassModalRoot.tsx`.
-  * `tools/Timer.tsx` — overlay UI mounted from layout.
+  * `features/classes/components/modals/EditClassModal.tsx` — thin façade re-exporting `EditClassModalRoot`.
+  * `features/dashboard/components/tools/Timer.tsx` — overlay UI mounted from layout.
 
 ---
 

@@ -1,6 +1,6 @@
 'use client';
 
-import ResetPasswordForm from '@/components/ui/auth/ResetPasswordForm';
+import ResetPasswordForm from '@/features/auth/components/forms/ResetPasswordForm';
 import { useAuthFlow } from '@/hooks/useAuthFlow';
 
 export default function ResetPasswordView() {

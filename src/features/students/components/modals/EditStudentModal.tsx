@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Modal from '@/components/ui/modals/Modal';
-import EditStudentForm from '@/components/dashboard/forms/EditStudentForm';
+import EditStudentForm from '@/features/students/components/forms/EditStudentForm';
 import { Student } from '@/lib/types';
 import { normalizeAvatarPath } from '@/lib/iconUtils';
 

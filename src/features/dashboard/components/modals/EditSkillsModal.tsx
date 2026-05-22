@@ -1,10 +1,10 @@
 'use client';
 
 import Modal from '@/components/ui/modals/Modal';
-import EditSkillModal from '@/components/dashboard/modals/EditSkillModal';
-import EditSkillCard from '@/components/dashboard/cards/EditSkillCard';
+import EditSkillModal from '@/features/dashboard/components/modals/EditSkillModal';
+import EditSkillCard from '@/features/dashboard/components/cards/EditSkillCard';
 import type { PointCategory } from '@/lib/types';
-import type { EditSkillFormSubmitPayload } from '@/components/dashboard/forms/EditSkillForm';
+import type { EditSkillFormSubmitPayload } from '@/features/dashboard/components/forms/EditSkillForm';
 
 export interface EditSkillsModalProps {
   isOpen: boolean;

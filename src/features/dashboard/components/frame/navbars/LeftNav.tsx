@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { normalizeClassIconPath } from '@/lib/iconUtils';
 import IconTimerClock from '@/components/ui/icons/iconTimerClock';
-import LeftNavWebsitesMenu from '@/components/dashboard/LeftNavWebsitesMenu';
+import LeftNavWebsitesMenu from '@/features/dashboard/components/menus/LeftNavWebsitesMenu';
 import { useDashboardToolbarInset } from '@/hooks/useDashboardToolbarInset';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 import { useDashboardStore } from '@/stores/useDashboardStore';

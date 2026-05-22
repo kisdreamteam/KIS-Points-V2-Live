@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
-import CreateClassModal from '@/components/dashboard/modals/CreateClassModal';
-import EditClassModal from '@/components/dashboard/modals/EditClassModal';
+import CreateClassModal from '@/features/classes/components/modals/CreateClassModal';
+import EditClassModal from '@/features/classes/components/modals/EditClassModal';
 import { refreshDashboardClassesForUserAction } from '@/hooks/sync/useDashboardClassesSync';
 import { useClassesWorkspaceActions } from '@/hooks/useClassesWorkspaceActions';
 import LoadingState from '@/components/ui/LoadingState';

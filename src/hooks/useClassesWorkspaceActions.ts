@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import type { CreateClassFormValues } from '@/components/dashboard/forms/CreateClassForm';
+import type { CreateClassFormValues } from '@/features/classes/components/forms/CreateClassForm';
 import {
   createClassForCurrentUser,
   fetchStudentCountsByClassIds,

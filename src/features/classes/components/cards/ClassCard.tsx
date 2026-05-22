@@ -3,7 +3,7 @@ import { useRef } from "react";
 import { normalizeClassIconPath } from "@/lib/iconUtils";
 import IconSettingsWheel from "@/components/ui/icons/iconSettingsWheel";
 import BaseCard from "@/components/ui/BaseCard";
-import ClassCardActionsMenu from "@/components/dashboard/menus/ClassCardActionsMenu";
+import ClassCardActionsMenu from "@/features/classes/components/menus/ClassCardActionsMenu";
 import { usePreferenceStore } from "@/stores/usePreferenceStore";
 
 interface Class {

@@ -1,12 +1,12 @@
 'use client';
 
 import Modal from '@/components/ui/modals/Modal';
-import AddSkillModal from '@/components/dashboard/modals/AddSkillModal';
+import AddSkillModal from '@/features/dashboard/components/modals/AddSkillModal';
 import EditSkillsModalHost from '@/features/dashboard/EditSkillsModalHost';
-import SkillCard from '@/components/dashboard/cards/SkillCard';
-import SkillActionCard from '@/components/dashboard/cards/SkillActionCard';
+import SkillCard from '@/features/dashboard/components/cards/SkillCard';
+import SkillActionCard from '@/features/dashboard/components/cards/SkillActionCard';
 import { PointCategory, Student } from '@/lib/types';
-import type { AddSkillFormSubmitValues } from '@/components/dashboard/forms/AddSkillForm';
+import type { AddSkillFormSubmitValues } from '@/features/dashboard/components/forms/AddSkillForm';
 
 export interface AwardPointsModalProps {
   isOpen: boolean;

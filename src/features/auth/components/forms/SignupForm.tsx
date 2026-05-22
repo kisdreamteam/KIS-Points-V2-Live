@@ -7,10 +7,10 @@ import TextInput from '@/components/ui/TextInput';
 import SelectInput from '@/components/ui/SelectInput';
 import PasswordInput from '@/components/ui/PasswordInput';
 import InlineErrorText from '@/components/ui/InlineErrorText';
-import AuthBackLink from '@/components/ui/auth/AuthBackLink';
-import AuthCard from '@/components/ui/auth/AuthCard';
-import AuthFormHeader from '@/components/ui/auth/AuthFormHeader';
-import AuthPrimaryButton from '@/components/ui/auth/AuthPrimaryButton';
+import AuthBackLink from '@/features/auth/components/AuthBackLink';
+import AuthCard from '@/features/auth/components/AuthCard';
+import AuthFormHeader from '@/features/auth/components/AuthFormHeader';
+import AuthPrimaryButton from '@/features/auth/components/AuthPrimaryButton';
 
 type SignupFormProps = {
   title: string;

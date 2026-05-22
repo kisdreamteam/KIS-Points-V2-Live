@@ -1,7 +1,7 @@
 'use client';
 
 import Modal from '@/components/ui/modals/Modal';
-import EditSkillForm, { type EditSkillFormSubmitPayload } from '@/components/dashboard/forms/EditSkillForm';
+import EditSkillForm, { type EditSkillFormSubmitPayload } from '@/features/dashboard/components/forms/EditSkillForm';
 import { PointCategory } from '@/lib/types';
 
 interface EditSkillModalProps {

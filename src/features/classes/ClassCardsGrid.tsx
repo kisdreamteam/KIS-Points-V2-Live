@@ -1,5 +1,5 @@
-import ClassCard from '@/components/dashboard/cards/ClassCard';
-import AddClassCard from '@/components/dashboard/cards/AddClassCard';
+import ClassCard from '@/features/classes/components/cards/ClassCard';
+import AddClassCard from '@/features/classes/components/cards/AddClassCard';
 
 interface Class {
   id: string;

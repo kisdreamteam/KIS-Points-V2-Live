@@ -7,11 +7,11 @@ import FormLabel from '@/components/ui/FormLabel';
 import TextInput from '@/components/ui/TextInput';
 import PasswordInput from '@/components/ui/PasswordInput';
 import InlineErrorText from '@/components/ui/InlineErrorText';
-import AuthBackLink from '@/components/ui/auth/AuthBackLink';
-import AuthCard from '@/components/ui/auth/AuthCard';
-import AuthFormHeader from '@/components/ui/auth/AuthFormHeader';
-import AuthFormFooter from '@/components/ui/auth/AuthFormFooter';
-import AuthPrimaryButton from '@/components/ui/auth/AuthPrimaryButton';
+import AuthBackLink from '@/features/auth/components/AuthBackLink';
+import AuthCard from '@/features/auth/components/AuthCard';
+import AuthFormHeader from '@/features/auth/components/AuthFormHeader';
+import AuthFormFooter from '@/features/auth/components/AuthFormFooter';
+import AuthPrimaryButton from '@/features/auth/components/AuthPrimaryButton';
 
 type LoginFormProps = {
   email: string;
