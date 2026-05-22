@@ -10,6 +10,7 @@ import StudentsSettingsMenu from '@/features/students/components/menus/StudentsS
 import { useAttendanceActions } from '@/hooks/useAttendanceActions';
 import { useSortedStudents } from '@/hooks/useSortedStudents';
 import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useLayoutStore } from '@/stores/useLayoutStore';
 import IconViewDots from '@/components/ui/icons/iconViewDots';
 import IconSortingArrows from '@/components/ui/icons/iconSortingArrows';
 import IconCheckBox from '@/components/ui/icons/iconCheckBox';
@@ -20,11 +21,10 @@ import IconSettingsWheel from '@/components/ui/icons/iconSettingsWheel';
 import BotNavGrayButton from '@/components/ui/BotNavGrayButton';
 import BaseBottomNav from '@/components/ui/BaseBottomNav';
 
-interface StudentsBottomNavProps {
+interface BottomNavProps {
   currentClassName: string | null;
   currentView: 'grid' | 'seating';
   onViewChange: (view: 'grid' | 'seating') => void;
-  onTimerClick: () => void;
   onRandomClick: () => void;
   sortingDisabled?: boolean;
   buttonsDisabled?: boolean;
@@ -37,11 +37,10 @@ interface StudentsBottomNavProps {
   seatingLayoutsCount?: number;
 }
 
-export default function StudentsBottomNav({
+export default function BottomNav({
   currentClassName,
   currentView,
   onViewChange,
-  onTimerClick,
   onRandomClick,
   sortingDisabled = false,
   buttonsDisabled = false,
@@ -52,7 +51,7 @@ export default function StudentsBottomNav({
   onLogout,
   onToggleMultiSelect,
   seatingLayoutsCount = 0,
-}: StudentsBottomNavProps) {
+}: BottomNavProps) {
   const [isSortPopupOpen, setIsSortPopupOpen] = useState(false);
   const sortButtonRef = useRef<HTMLDivElement>(null);
   const [isSettingsPopupOpen, setIsSettingsPopupOpen] = useState(false);
@@ -66,6 +65,7 @@ export default function StudentsBottomNav({
   const absentStudentIds = useDashboardStore((s) => s.absentStudentIds);
   const { sortedStudents } = useSortedStudents(students, sortBy);
   const { toggleAttendance } = useAttendanceActions();
+  const setTimerOpen = useLayoutStore((s) => s.setTimerOpen);
 
   const navEnabled = !buttonsDisabled;
   const classRosterToolsEnabled = navEnabled && !!currentClassName;
@@ -201,7 +201,7 @@ export default function StudentsBottomNav({
           label="Timer"
           onClick={() => {
             if (!classRosterToolsEnabled) return;
-            onTimerClick();
+            setTimerOpen(true);
           }}
           enabled={classRosterToolsEnabled}
         />

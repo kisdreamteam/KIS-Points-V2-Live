@@ -48,6 +48,22 @@ Auth and landing are **not** subject to the dashboard `components/` vs `features
 
 **Rule:** Do not apply dashboard grid/zone rules to auth/landing, or auth flex centering rules to the dashboard workspace.
 
+### 0.1 Thin `src/app/` policy (frozen)
+
+`src/app/` is the **routing table only**. Product logic, shells, sync, and view switching live under `src/features/`.
+
+| Rule | Detail |
+|------|--------|
+| **Stay dumb** | `layout.tsx` / `page.tsx` should be ~5–10 lines: one shell or view import, one default export, no hooks, no stores, no Supabase. |
+| **No growth in app** | If a `page.tsx` needs hooks, sync workers, or orchestration → move it to `src/features/`. |
+| **Do not touch `app/` by default** | Do **not** change files under `src/app/` unless the task **explicitly** requires a new route, URL, segment layout wire, or framework boundary (e.g. `Suspense` for `useSearchParams`). Refactors belong in `src/features/`. |
+| **Symmetric pages** | Dashboard `page.tsx` and `classes/[classId]/page.tsx` both render `<DashboardView />` only. Do not re-import `DashboardViewSwitch` in app routes. |
+| **Layout vs page split** | `app/dashboard/layout.tsx` → `DashboardShell` (chrome). `app/dashboard/*/page.tsx` → `DashboardView` (sync + stage). Do not hoist `DashboardView` into layout without an explicit, documented win. |
+
+**Intentional Tier 1 → Tier 2 coupling (do not “fix”):** `DashboardView` (Tier 1 frame) imports and mounts `DashboardViewSwitch` (Tier 2). This is **by design** — thin symmetric routes, sync + `key={classId ?? 'dashboard-root'}` in one frame entry. **Forbidden:** moving `DashboardViewSwitch` back into `app/dashboard/**/page.tsx` or duplicating pathname/`key` logic in routes.
+
+Optional follow-up: shared `getDashboardClassIdFromPath()` for `DashboardView` and `DashboardViewSwitch` to dedupe regex.
+
 ---
 
 ## 1. Visual 3-Tier — dashboard folder policy
@@ -68,11 +84,11 @@ Auth and landing are **not** subject to the dashboard `components/` vs `features
 
 | Path | Role |
 |------|------|
-| `frame/DashboardView.tsx` | Sync worker host + mounts `DashboardViewSwitch` (keyed by class route) |
+| `frame/DashboardView.tsx` | Sync worker host; **intentionally** mounts Tier 2 `DashboardViewSwitch` (`key` from pathname). Not mounted from `app/` pages. |
 | `features/dashboard/layouts/DashboardShell.tsx` | 7-zone grid, nav slots, mounts modal host & tools |
 | `app/dashboard/layout.tsx` | Suspense + `DashboardShell` (thin wire); `DashboardClassesSync` mounted in shell |
 | `frame/dashboardZoneConfig.ts` | Zone / toolbar definitions |
-| `frame/navbars/*` | Left/top/bottom nav (`StudentsBottomNav`, `SeatingEditorLeftNav`, etc.) |
+| `frame/navbars/*` | Left/top/bottom nav (`BottomNav`, `SeatingEditorLeftNav`, etc.) |
 
 Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, `viewMode`) because they are shell chrome, not workspace orchestration.
 
@@ -89,7 +105,7 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 
 - Prefer `h-full` / `min-h-0` inside the dashboard; avoid `h-screen` in nested workspace content.
 - URL-reflected UI (`activeView`, edit mode, active class) is mirrored from the route via `src/hooks/sync/*`, not ad hoc `useEffect` in Tier 1.
-- Timer overlay: `src/features/dashboard/components/tools/Timer.tsx` (mounted from layout).
+- **Timer widget:** `components/tools/Timer.tsx` (Tier 3 body) in `MovableToolPanel` via `DashboardToolsHost` (portaled; workspace stays visible). **Random** still replaces canvas until phase 2.
 
 ### 1.3 Tier 2 — Stage (`features/`)
 
@@ -97,7 +113,7 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 
 | Module path | Files |
 |-------------|-------|
-| `features/dashboard/` | `DashboardViewSwitch.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/DashboardCanvasToolbar.tsx`, `stage/canvasToolbarPresets.tsx`, `tools/Random.tsx` |
+| `features/dashboard/` | `DashboardViewSwitch.tsx`, `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/DashboardCanvasToolbar.tsx`, `stage/canvasToolbarPresets.tsx`, `tools/Random.tsx` |
 | `features/classes/` | `ClassesView.tsx`, `ClassesWorkspace.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx` |
 | `features/students/` | `StudentsView.tsx`, `StudentsWorkspace.tsx`, `StudentCardsGrid.tsx` |
 | `features/seating/` | `SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`, `SeatingChartEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx`, `SeatingEditorCanvasToolbar.tsx` |
@@ -146,7 +162,7 @@ components/ui/                     # shared atoms, icons, CanvasToolbar, generic
 | File | Notes |
 |------|-------|
 | `features/dashboard/components/PointsLogDrawer.tsx` | Props only; workspace owns data |
-| `features/students/components/menus/AttendanceMenuBody.tsx` | Props only; checkbox roster for daily absences (wired from `StudentsBottomNav`) |
+| `features/students/components/menus/AttendanceMenuBody.tsx` | Props only; checkbox roster for daily absences (wired from `BottomNav`) |
 
 ---
 
@@ -245,11 +261,11 @@ Shared types: `src/lib/types.ts` (includes `AttendanceEvent`).
 | Layer 1 | `useAttendanceActions.ts` | `toggleAttendance(studentId)`: optimistic store update → API → silent rollback on failure |
 | Layer 1b | `useAttendanceSync.ts`, `AttendanceSync` | On `classId` change: clear `absentStudentIds`, then fetch today’s absences |
 | Tier 3 | `features/students/components/menus/AttendanceMenuBody.tsx` | Props: `students`, `absentStudentIds`, `onToggleAbsence`; checkbox checked = **absent**; no stores/API |
-| Tier 1 chrome | `features/dashboard/components/frame/navbars/StudentsBottomNav.tsx` | Attendance button, `createPortal` bottom sheet (`data-attendance-menu`), composes actions + store |
+| Tier 1 chrome | `features/dashboard/components/frame/navbars/BottomNav.tsx` | Attendance button, `createPortal` bottom sheet (`data-attendance-menu`), composes actions + store |
 
 ```mermaid
 flowchart LR
-  nav[StudentsBottomNav]
+  nav[BottomNav]
   actions[useAttendanceActions]
   sync[AttendanceSync]
   store[useDashboardStore]
@@ -316,10 +332,10 @@ When `useLayoutStore.isEditMode` is true on the seating chart view, `DashboardSh
 | TopNav (header) | Always mounted | Always mounted |
 | Left nav | Default `LeftNav` | `SeatingEditorLeftNav` |
 | Canvas toolbar column | `DashboardCanvasToolbar` (layout manager, teacher view, etc.) | `SeatingEditorCanvasToolbar` |
-| Footer slot | Always mounted; `StudentsBottomNav` | Same slot; `StudentsBottomNav` with `buttonsDisabled={true}` |
+| Footer slot | Always mounted; `BottomNav` | Same slot; `BottomNav` with `buttonsDisabled={true}` |
 | Main stage (Tier 2) | `SeatingChartView` | `SeatingChartEditorView` (via `StudentsWorkspace`) |
 
-**There is no `SeatingEditorBottomNav`.** Editor actions live on the right-rail canvas toolbar. Footer stays visible during Timer/Random overlays (canvas-only replacement). On `/dashboard` (no class), footer renders with class-gated controls hidden inside `StudentsBottomNav`.
+**There is no `SeatingEditorBottomNav`.** Editor actions live on the right-rail canvas toolbar. Footer stays visible always. **Timer** opens as a draggable portaled widget (`DashboardToolsHost` + `MovableToolPanel`); workspace remains visible. **Random** still replaces the canvas slot (phase 2: same widget pattern). On `/dashboard` (no class), footer renders with class-gated controls hidden inside `BottomNav`. Opening Timer clears `isRandomOpen` (`setTimerOpen` mutual exclusion).
 
 #### `SeatingEditorCanvasToolbar` (Tier 2 — `features/seating/`)
 
@@ -364,7 +380,7 @@ Horizontal positioning for `leftOfAnchorDown` / `leftOfAnchorAbove`: menu right 
 
 ```text
 src/
-  app/                              # Thin routes
+  app/                              # FROZEN: thin routes only (see §0.1)
     (landing)/layout.tsx            # thin wire → features/landing/layouts/LandingShell
     (landing)/page.tsx              # → features/landing/LandingView (URL /)
     (auth)/layout.tsx               # thin wire → features/auth/layouts/AuthShell
@@ -380,7 +396,7 @@ src/
     dashboard/
       layouts/DashboardShell.tsx
       components/                   # frame, cards, modals, menus, forms, tools
-      DashboardViewSwitch.tsx, *Host.tsx, stage/, tools/Random.tsx
+      DashboardViewSwitch.tsx, DashboardToolsHost.tsx, *Host.tsx, stage/, tools/Random.tsx
     classes/                        # *View, *Workspace + components/
     students/
     seating/
@@ -401,7 +417,7 @@ src/
 | View orchestration, workspaces, modal hosts | `src/features/<feature>/` (root, or `stage/` / `tools/` where that pattern exists) |
 | Segment shell (auth flex, landing pass-through, dashboard grid) | `src/features/{auth,landing,dashboard}/layouts/` |
 | Reusable atoms (inputs, `BaseCard`, `CanvasToolbar`, generic modals/icons) | `src/components/ui/` only |
-| Routes | `src/app/` (thin pages → `@/features/...`) |
+| Routes | `src/app/` — thin wire only; **no edits** unless task explicitly requires routing/URL/layout-boundary changes (§0.1) |
 
 **Do not:** recreate `src/components/dashboard/`; add feature UI under `components/ui/auth` or `components/ui/landing`; use `@/components/dashboard/...` imports.
 
@@ -415,13 +431,14 @@ src/
 | done | Tier 3: `features/*/components/` (feature-first migration complete) |
 | done | Tier 2: views/workspaces in `features/{dashboard,classes,students,seating}` |
 | done | Move Tier 2 stragglers out of `components/dashboard/` (modal host, edit-class root, Random, SeatingGroupsCanvas, stage toolbar) |
-| done | Seating editor controls on `SeatingEditorCanvasToolbar`; removed `SeatingEditorBottomNav` / bridge; footer uses `StudentsBottomNav` + `buttonsDisabled` in edit mode |
+| done | Seating editor controls on `SeatingEditorCanvasToolbar`; removed `SeatingEditorBottomNav` / bridge; footer uses `BottomNav` + `buttonsDisabled` in edit mode |
 | done | Award points: `useAwardPointsModalController` + `AwardPointsModalHost`; Tier 3 `AwardPointsModal` |
 | done | Edit skills list: `useEditSkillsModalController` + `EditSkillsModalHost`; Tier 3 `EditSkillsModal` |
 | done | Skill forms Tier 3: `AddSkillForm` / `EditSkillForm` have no `@/hooks`; controllers pass icons + handlers |
 | done | **Do not** move `features/auth/*` or `features/landing/*` for tier-folder policy |
-| done | Attendance: schema/types, `attendanceService`, store slice, sync, actions, `AttendanceMenuBody`, `StudentsBottomNav` portal |
+| done | Attendance: schema/types, `attendanceService`, store slice, sync, actions, `AttendanceMenuBody`, `BottomNav` portal |
 | done | Absent macro exclusions: `awardPointsService`, `useAwardPointsService`, `useStudentsSelection`, `useBatchPointsAward` |
+| done | Thin `app/` + `DashboardView` owns `DashboardViewSwitch`; do not regress (§0.1) |
 | todo | Mount `<AttendanceSync />` in `DashboardView.tsx` (recommended for class-load hydration) |
 
 ---
@@ -439,6 +456,6 @@ Dashboard T1   →  features/dashboard/components/frame/ + layouts/DashboardShel
 Dashboard T2   →  features/{dashboard,classes,students,seating}/  (+ *ModalHost.tsx)
 Dashboard T3   →  features/{dashboard,classes,students,seating}/components/ + components/ui/
 Data layers    →  hooks/ · stores/ · lib/api/
-Attendance     →  attendanceService · absentStudentIds · features/students/.../AttendanceMenuBody · features/dashboard/.../StudentsBottomNav
-Seating edit   →  SeatingEditorCanvasToolbar + portaled menus; StudentsBottomNav disabled
+Attendance     →  attendanceService · absentStudentIds · features/students/.../AttendanceMenuBody · features/dashboard/.../BottomNav
+Seating edit   →  SeatingEditorCanvasToolbar + portaled menus; BottomNav disabled
 ```

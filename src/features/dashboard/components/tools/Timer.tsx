@@ -2,20 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-interface TimerProps {
-  onClose: () => void;
-}
-
-export default function Timer({ onClose }: TimerProps) {
+export default function Timer() {
   const [activeTab, setActiveTab] = useState<'stopwatch' | 'countdown'>('countdown');
   const [isRunning, setIsRunning] = useState(false);
-  const [time, setTime] = useState(600); // 10:00 in seconds (600 seconds)
+  const [time, setTime] = useState(600);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Stopwatch state
   const [stopwatchTime, setStopwatchTime] = useState(0);
 
-  // Countdown state
   const [countdownMinutes, setCountdownMinutes] = useState(10);
   const [countdownSeconds, setCountdownSeconds] = useState(0);
 
@@ -102,150 +96,117 @@ export default function Timer({ onClose }: TimerProps) {
     }
   };
 
-  const displayTime = activeTab === 'stopwatch' 
+  const displayTime = activeTab === 'stopwatch'
     ? formatTime(stopwatchTime)
     : formatTime(time);
 
   return (
-    <div className="fixed inset-0 bg-brand-purple z-50 flex items-center justify-center">
-      {/* Close Button */}
-      <button
-        onClick={onClose}
-        className="absolute top-10 right-10 w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors z-10"
-      >
-        <svg
-          className="w-8 h-8 text-white"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+    <div className="w-full">
+      <div className="flex gap-8 mb-6">
+        <button
+          type="button"
+          onClick={() => handleTabChange('countdown')}
+          className="text-xl font-semibold pb-2 transition-colors text-brand-purple"
+          style={{
+            borderBottom: `3px solid ${activeTab === 'countdown' ? 'var(--color-brand-purple)' : 'transparent'}`,
+          }}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
+          Countdown
+        </button>
+        <button
+          type="button"
+          onClick={() => handleTabChange('stopwatch')}
+          className="text-xl font-semibold pb-2 transition-colors text-brand-purple"
+          style={{
+            borderBottom: `3px solid ${activeTab === 'stopwatch' ? 'var(--color-brand-purple)' : 'transparent'}`,
+          }}
+        >
+          Stopwatch
+        </button>
+      </div>
 
-      <div className="w-full max-w-4xl px-8">
-        {/* Tabs */}
-        <div className="flex gap-12 mb-10">
-          <button
-            onClick={() => handleTabChange('countdown')}
-            className="text-3xl font-semibold pb-3 transition-colors text-white"
-            style={{
-              borderBottom: `3px solid ${activeTab === 'countdown' ? 'white' : 'var(--color-brand-purple)'}`,
-            }}
-          >
-            Countdown
-          </button>
-          <button
-            onClick={() => handleTabChange('stopwatch')}
-            className="text-3xl font-semibold pb-3 transition-colors text-white"
-            style={{
-              borderBottom: `3px solid ${activeTab === 'stopwatch' ? 'white' : 'var(--color-brand-purple)'}`,
-            }}
-          >
-            Stopwatch
-          </button>
-        </div>
-
-        {/* Timer Display */}
-        <div className="bg-brand-pink rounded-3xl p-[60px] mb-8 border-[6px] border-white">
-          <div className="flex items-center justify-center gap-6">
-            {/* Minutes */}
-            <div className="text-center">
-              <div className="text-[12rem] font-bold text-white mb-3 leading-none">
-                {displayTime.minutes}
-              </div>
-              <div className="text-6xl text-white/80">Minutes</div>
+      <div className="bg-brand-pink rounded-2xl p-6 md:p-8 mb-6 border-4 border-white">
+        <div className="flex items-center justify-center gap-4">
+          <div className="text-center">
+            <div className="text-6xl md:text-7xl font-bold text-white mb-2 leading-none">
+              {displayTime.minutes}
             </div>
+            <div className="text-xl text-white/80">Minutes</div>
+          </div>
 
-            {/* Colon */}
-            <div className="text-[12rem] -translate-y-10 font-bold text-white leading-none">:</div>
+          <div className="text-6xl md:text-7xl -translate-y-4 font-bold text-white leading-none">:</div>
 
-            {/* Seconds */}
-            <div className="text-center">
-              <div className="text-[12rem] font-bold text-white mb-3 leading-none">
-                {displayTime.seconds}
-              </div>
-              <div className="text-6xl text-white/80">Seconds</div>
+          <div className="text-center">
+            <div className="text-6xl md:text-7xl font-bold text-white mb-2 leading-none">
+              {displayTime.seconds}
             </div>
+            <div className="text-xl text-white/80">Seconds</div>
           </div>
         </div>
+      </div>
 
-        {/* Countdown Time Input (only shown in countdown mode when not running) */}
-        {activeTab === 'countdown' && !isRunning && (
-          <div className="flex items-center justify-center gap-6 mb-8">
-            <div className="flex items-center gap-3">
-              <label className="text-white text-2xl">Minutes:</label>
-              <input
-                type="number"
-                min="0"
-                max="99"
-                value={countdownMinutes}
-                onChange={(e) => handleMinutesChange(parseInt(e.target.value) || 0)}
-                className="w-28 px-5 py-3 rounded-lg bg-white/20 text-white text-center text-3xl font-bold border-[3px] border-white/30 focus:border-white focus:outline-none"
-              />
-            </div>
-            <div className="text-white text-3xl">:</div>
-            <div className="flex items-center gap-3">
-              <label className="text-white text-2xl">Seconds:</label>
-              <input
-                type="number"
-                min="0"
-                max="59"
-                value={countdownSeconds}
-                onChange={(e) => handleSecondsChange(parseInt(e.target.value) || 0)}
-                className="w-28 px-5 py-3 rounded-lg bg-white/20 text-white text-center text-3xl font-bold border-[3px] border-white/30 focus:border-white focus:outline-none"
-              />
-            </div>
+      {activeTab === 'countdown' && !isRunning && (
+        <div className="flex items-center justify-center gap-4 mb-6 flex-wrap">
+          <div className="flex items-center gap-2">
+            <label className="text-brand-purple text-lg font-medium">Minutes:</label>
+            <input
+              type="number"
+              min="0"
+              max="99"
+              value={countdownMinutes}
+              onChange={(e) => handleMinutesChange(parseInt(e.target.value) || 0)}
+              className="w-20 px-3 py-2 rounded-lg bg-brand-purple/10 text-brand-purple text-center text-xl font-bold border-2 border-brand-purple/30 focus:border-brand-purple focus:outline-none"
+            />
           </div>
-        )}
+          <div className="text-brand-purple text-xl">:</div>
+          <div className="flex items-center gap-2">
+            <label className="text-brand-purple text-lg font-medium">Seconds:</label>
+            <input
+              type="number"
+              min="0"
+              max="59"
+              value={countdownSeconds}
+              onChange={(e) => handleSecondsChange(parseInt(e.target.value) || 0)}
+              className="w-20 px-3 py-2 rounded-lg bg-brand-purple/10 text-brand-purple text-center text-xl font-bold border-2 border-brand-purple/30 focus:border-brand-purple focus:outline-none"
+            />
+          </div>
+        </div>
+      )}
 
-        {/* Control Buttons */}
-        <div className="flex items-center justify-center gap-6">
-          {!isRunning ? (
+      <div className="flex items-center justify-center gap-4 flex-wrap">
+        {!isRunning ? (
+          <button
+            type="button"
+            onClick={handleStart}
+            className="bg-brand-pink border-white border-4 hover:opacity-90 text-white px-8 py-3 rounded-xl font-semibold text-lg flex items-center gap-3 transition-colors shadow-lg"
+          >
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            Start
+          </button>
+        ) : (
+          <>
             <button
-              onClick={handleStart}
-              className="bg-brand-pink border-white border-[6px] hover:bg-[#5a4b9d] text-white px-[72px] py-6 rounded-xl font-semibold text-2xl flex items-center gap-4 transition-colors shadow-lg"
+              type="button"
+              onClick={handlePause}
+              className="bg-brand-purple hover:opacity-90 text-white px-8 py-3 rounded-xl font-semibold text-lg flex items-center gap-3 transition-colors shadow-lg"
             >
-              <svg
-                className="w-9 h-9"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M8 5v14l11-7z" />
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
               </svg>
-              Start
+              Pause
             </button>
-          ) : (
-            <>
-              <button
-                onClick={handlePause}
-                className="bg-brand-purple hover:bg-[#5a4b9d] text-white px-[72px] py-6 rounded-xl font-semibold text-2xl flex items-center gap-4 transition-colors shadow-lg"
-              >
-                <svg
-                  className="w-9 h-9"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                </svg>
-                Pause
-              </button>
-              <button
-                onClick={handleReset}
-                className="bg-white/20 hover:bg-white/30 text-white px-[72px] py-6 rounded-xl font-semibold text-2xl transition-colors shadow-lg"
-              >
-                Reset
-              </button>
-            </>
-          )}
-        </div>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="bg-gray-200 hover:bg-gray-300 text-brand-purple px-8 py-3 rounded-xl font-semibold text-lg transition-colors shadow-lg"
+            >
+              Reset
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
 }
-

@@ -11,10 +11,10 @@ import { useDashboardSessionActions } from '@/hooks/useDashboardSessionActions';
 import LeftNav from '@/features/dashboard/components/frame/navbars/LeftNav';
 import SeatingEditorLeftNav from '@/features/dashboard/components/frame/navbars/SeatingEditorLeftNav';
 import TopNav from '@/features/dashboard/components/frame/navbars/TopNav';
-import StudentsBottomNav from '@/features/dashboard/components/frame/navbars/StudentsBottomNav';
+import BottomNav from '@/features/dashboard/components/frame/navbars/BottomNav';
 import MultiSelectBottomNav from '@/features/dashboard/components/frame/navbars/MultiSelectBottomNav';
-import Timer from '@/features/dashboard/components/tools/Timer';
 import Random from '@/features/dashboard/tools/Random';
+import DashboardToolsHost from '@/features/dashboard/DashboardToolsHost';
 import DashboardCanvasToolbar from '@/features/dashboard/stage/DashboardCanvasToolbar';
 import SeatingEditorCanvasToolbar from '@/features/seating/SeatingEditorCanvasToolbar';
 import EditClassModal from '@/features/classes/components/modals/EditClassModal';
@@ -53,11 +53,9 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   const activeView = useLayoutStore((s) => s.activeView);
   const isEditMode = useLayoutStore((s) => s.isEditMode);
   const isMultiSelectMode = useLayoutStore((s) => s.isMultiSelectMode);
-  const isTimerOpen = useLayoutStore((s) => s.isTimerOpen);
   const isRandomOpen = useLayoutStore((s) => s.isRandomOpen);
   const isEditClassModalOpen = useLayoutStore((s) => s.isEditClassModalOpen);
   const setEditClassModalOpen = useLayoutStore((s) => s.setEditClassModalOpen);
-  const setTimerOpen = useLayoutStore((s) => s.setTimerOpen);
   const setRandomOpen = useLayoutStore((s) => s.setRandomOpen);
   const seatingLayoutsCount = useSeatingStore((s) => s.layouts.length);
 
@@ -92,10 +90,6 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   const onEditClass = useCallback(() => {
     setEditClassModalOpen(true);
   }, [setEditClassModalOpen]);
-
-  const onTimerClick = useCallback(() => {
-    setTimerOpen(true);
-  }, [setTimerOpen]);
 
   const onRandomClick = useCallback(() => {
     setRandomOpen(true);
@@ -148,9 +142,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
                 )}
               >
                 <div className={canvasZoneCellClassName}>
-                  {isTimerOpen ? (
-                    <Timer onClose={() => setTimerOpen(false)} />
-                  ) : isRandomOpen ? (
+                  {isRandomOpen ? (
                     <Random onClose={() => setRandomOpen(false)} />
                   ) : (
                     <div className="relative w-full h-full min-h-0 overflow-y-auto overflow-x-hidden">
@@ -181,11 +173,10 @@ export default function DashboardShell({ children }: DashboardShellProps) {
               {isMultiSelectMode ? (
                 <MultiSelectBottomNav />
               ) : (
-                <StudentsBottomNav
+                <BottomNav
                   currentClassName={currentClassName}
                   currentView={isSeatingView ? 'seating' : 'grid'}
                   onViewChange={(view) => void handleViewChange(view)}
-                  onTimerClick={onTimerClick}
                   onRandomClick={onRandomClick}
                   sortingDisabled={isSeatingView}
                   buttonsDisabled={isSeatingView && isEditMode}
@@ -210,6 +201,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
           onRefresh={refreshDashboardClassesForUserAction}
         />
       )}
+      <DashboardToolsHost />
       <DashboardClassModalsHost />
     </>
   );

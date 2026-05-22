@@ -35,7 +35,12 @@ export const useLayoutStore = create<LayoutStore>((set) => ({
   setSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
   setMultiSelectMode: (isMultiSelectMode) => set({ isMultiSelectMode }),
   toggleMultiSelectMode: () => set((state) => ({ isMultiSelectMode: !state.isMultiSelectMode })),
-  setTimerOpen: (isTimerOpen) => set({ isTimerOpen }),
+  setTimerOpen: (isTimerOpen) =>
+    set(
+      isTimerOpen
+        ? { isTimerOpen: true, isRandomOpen: false }
+        : { isTimerOpen: false }
+    ),
   setRandomOpen: (isRandomOpen) => set({ isRandomOpen }),
   setEditClassModalOpen: (isEditClassModalOpen) => set({ isEditClassModalOpen }),
 }));

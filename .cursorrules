@@ -2,6 +2,14 @@
 
 **Canonical reference:** `docs/architecture-plan.md` (folder map, exceptions, sync mounting). Feature-first component layout: `docs/featureFirstMigrationPlan.md` (complete May 2026).
 
+## 0. `src/app/` — frozen thin routes
+
+* **Policy:** `src/app/` is the routing table only. Do **not** modify anything under `src/app/` unless the user or task **explicitly** requires a new/changed route, URL, segment `layout.tsx` wire, or a Next.js framework boundary (e.g. `Suspense` around client hooks in `app/dashboard/layout.tsx`).
+* **Stay dumb:** `page.tsx` and segment `layout.tsx` should stay ~5–10 lines — one shell or view import, one default export. No hooks, stores, Supabase, or orchestration. If a route file grows or needs hooks → move logic to `src/features/`.
+* **Dashboard split (do not collapse):** `app/dashboard/layout.tsx` → `DashboardShell` only; `app/dashboard/**/page.tsx` → `<DashboardView />` only. Do **not** hoist `DashboardView` into layout for DRY unless there is an explicit, documented architecture decision.
+* **Symmetric dashboard pages:** `page.tsx` and `classes/[classId]/page.tsx` both render `<DashboardView />`. Do **not** re-import `DashboardViewSwitch` in app routes or duplicate pathname/`key` logic in pages.
+* **Intentional Tier 1 → Tier 2 (do not “fix”):** `@/features/dashboard/components/frame/DashboardView.tsx` imports `@/features/dashboard/DashboardViewSwitch.tsx`. Frame owns sync workers, pathname-derived `key`, and stage entry. Reverting this by moving the switch back into `app/` is a regression unless explicitly requested.
+
 ## 1. Architectural Mandate: The Dual-Shell System
 
 You must identify the active shell before applying layout or state rules. They are visually and logically isolated.
@@ -28,11 +36,13 @@ You must identify the active shell before applying layout or state rules. They a
 * **Folder policy:** Dashboard **Tier 3** → `@/features/{dashboard,classes,students,seating}/components/`; shared atoms → `@/components/ui/`. **Tier 2** → `@/features/`.
 * **Imports (moving forward):** Use `@/features/<feature>/components/...` for feature UI. **Never** recreate `@/components/dashboard/` or `@/components/ui/auth|landing/`.
 * **Modal host (Tier 2):** `@/features/dashboard/DashboardClassModalsHost.tsx` (mounted in `DashboardShell`).
+* **Tools host (Tier 2):** `@/features/dashboard/DashboardToolsHost.tsx` — portaled Timer via `@/components/ui/MovableToolPanel.tsx`; `BottomNav` opens via `setTimerOpen`.
 * **Award / edit-skills (Tier 2 + Layer 1):** `@/features/dashboard/AwardPointsModalHost.tsx` + `hooks/useAwardPointsModalController.ts`; `@/features/dashboard/EditSkillsModalHost.tsx` + `hooks/useEditSkillsModalController.ts`. Prefer this **host + controller** pattern when a dashboard modal subtree needs orchestration hooks but the UI itself should stay Tier 3.
 * **Layout Logic:** Uses the **7-Zone Fixed Grid System** (`dashboardZoneConfig.ts`).
 * **State:** `useUserStore`, `useDashboardStore` (includes `absentStudentIds` for daily attendance), `useLayoutStore`, `useSeatingStore`, `useModalStore`, `usePreferenceStore`.
 * **Source of Truth:** The **URL** is the primary source of truth for `classId`, `view`, and `mode`.
 * **Rule:** Do not apply dashboard grid rules to auth/landing, or auth flex rules to the dashboard workspace.
+* **App folder:** See **§0** — off-limits for refactors; never import `DashboardViewSwitch` from `app/dashboard/**`.
 
 ---
 
@@ -43,13 +53,14 @@ You must identify the active shell before applying layout or state rules. They a
 * **Locations:** `@/features/dashboard/components/frame/` (includes `navbars/`, `dashboardZoneConfig.ts`).
 * **Responsibility:** Persistent chrome and CSS Grid boundaries.
 * **Rule:** `DashboardClassesSync` in `DashboardShell`; `app/dashboard/layout.tsx` is Suspense + shell wire only; `useDashboardRouteStateSync` / `useViewPreferenceSync` in `DashboardShell`; class/student/profile/filter sync + `DashboardViewSwitch` in `DashboardView`; dashboard `page.tsx` files render `<DashboardView />` only.
+* **Tier 1→2 (documented):** `DashboardView` → `DashboardViewSwitch` is intentional; do not move the switch back to `app/` or “fix” the cross-tier import without an explicit architecture change request (see **§0**).
 * **Allowed:** Narrow store reads in navbars for chrome (e.g., `activeClassId`, `viewMode`). No Supabase, no mutation orchestration.
 
 ### Tier 2: The Stage (The Sets) — dashboard only
 
 * **Locations:** `@/features/dashboard/`, `@/features/classes/`, `@/features/students/`, `@/features/seating/`.
 * **Responsibility:** View orchestration, workspace wiring, store subscription, passing props to Tier 3.
-* **Includes:** `features/dashboard/stage/` (`DashboardCanvasToolbar`, presets), `features/seating/SeatingEditorCanvasToolbar.tsx`, `features/dashboard/tools/Random.tsx`, `DashboardClassModalsHost.tsx`, **`AwardPointsModalHost.tsx`**, **`EditSkillsModalHost.tsx`**, `features/classes/EditClassModalRoot.tsx`, `features/seating/SeatingGroupsCanvas.tsx`.
+* **Includes:** `features/dashboard/stage/` (`DashboardCanvasToolbar`, presets), `features/seating/SeatingEditorCanvasToolbar.tsx`, `features/dashboard/tools/Random.tsx`, `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, **`AwardPointsModalHost.tsx`**, **`EditSkillsModalHost.tsx`**, `features/classes/EditClassModalRoot.tsx`, `features/seating/SeatingGroupsCanvas.tsx`.
 * **New modal flows:** If a modal needs `@/hooks` orchestration (`use*` data, mutations, icons), implement **`features/dashboard/MyFeatureModalHost.tsx`** + **`hooks/useMyFeatureModalController.ts`**, expose `*ViewProps` next to **`features/dashboard/components/modals/MyFeatureModal.tsx`**. Do not bolt Layer 1 hooks onto presentational Tier 3 modals/forms by default.
 * **Nested UI:** Tier 3 modals may import and render Tier 2 **hosts** for self-contained subtrees (e.g. `AwardPointsModal` → `EditSkillsModalHost`); do not merge unrelated controller logic into a single hook.
 * **Rules:**
@@ -71,7 +82,7 @@ You must identify the active shell before applying layout or state rules. They a
   * `EditSkillsModal.tsx` — presentational; wiring via `useEditSkillsModalController` + `features/dashboard/EditSkillsModalHost.tsx`.
   * `AwardPointsModal.tsx` — presentational; wiring via `useAwardPointsModalController` + `features/dashboard/AwardPointsModalHost.tsx`.
   * `features/classes/components/modals/EditClassModal.tsx` — thin façade re-exporting `EditClassModalRoot`.
-  * `features/dashboard/components/tools/Timer.tsx` — overlay UI mounted from layout.
+  * `features/dashboard/components/tools/Timer.tsx` — Tier 3 timer body; mounted via `DashboardToolsHost` + `MovableToolPanel` (not canvas ternary).
 
 ---
 
@@ -130,7 +141,7 @@ Applies when URL/layout reflect **seating chart + edit mode** (`?view=seating` +
 
 * **Mount (Tier 1):** `DashboardShell` renders `SeatingEditorCanvasToolbar` in the canvas toolbar column instead of `DashboardCanvasToolbar`. Toolbar column uses `overflow-visible` in edit mode.
 * **Left nav:** `SeatingEditorLeftNav` replaces default left nav (layout list).
-* **Footer:** Keep `StudentsBottomNav` — pass `buttonsDisabled={isSeatingView && isEditMode}`. **Do not** reintroduce `SeatingEditorBottomNav`.
+* **Footer:** Keep `BottomNav` — pass `buttonsDisabled={isSeatingView && isEditMode}`. **Do not** reintroduce `SeatingEditorBottomNav`.
 * **Stage (Tier 2):** `StudentsWorkspace` → `SeatingChartEditorView` while editing; `SeatingChartView` when not.
 
 ### Toolbar ownership
@@ -153,7 +164,7 @@ Applies when URL/layout reflect **seating chart + edit mode** (`?view=seating` +
 
 ### Exit edit mode
 
-Toolbar Close (X) dispatches `STAGE_CLOSE_EDITOR` → `useSeatingChart.ts` / route sync clears `isEditMode` → `SeatingChartView` + enabled `StudentsBottomNav`.
+Toolbar Close (X) dispatches `STAGE_CLOSE_EDITOR` → `useSeatingChart.ts` / route sync clears `isEditMode` → `SeatingChartView` + enabled `BottomNav`.
 
 ---
 
@@ -168,7 +179,7 @@ Table DDL: `docs/db-schema.md` §5. Architecture flow: `docs/architecture-plan.m
 * **Layer 1:** `useAttendanceActions` — optimistic toggle + silent rollback; no UI.
 * **Layer 1b:** `useAttendanceSync` / `AttendanceSync` — hydrate on class change; mount in `DashboardView` with other sync workers (recommended; see architecture plan).
 * **Tier 3:** `@/features/students/components/menus/AttendanceMenuBody.tsx` — props/callbacks only; **no** `@/stores` or `@/hooks` for orchestration.
-* **Tier 1 chrome:** `@/features/dashboard/components/frame/navbars/StudentsBottomNav.tsx` may wire store + hooks + `createPortal` bottom sheet (`data-attendance-menu`); use Tailwind transitions, not Framer Motion.
+* **Tier 1 chrome:** `@/features/dashboard/components/frame/navbars/BottomNav.tsx` may wire store + hooks + `createPortal` bottom sheet (`data-attendance-menu`); use Tailwind transitions, not Framer Motion.
 
 ### Point awards with absent students
 
