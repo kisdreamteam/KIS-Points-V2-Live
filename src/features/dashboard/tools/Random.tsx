@@ -12,6 +12,7 @@ import { useRandomStudentFlow } from '@/hooks/useRandomStudentFlow';
 import { refreshDashboardStudents } from '@/hooks/sync/useDashboardStudentSync';
 import { refreshSeatingGroupsForLayout } from '@/hooks/sync/useSeatingChartDataSync';
 import { useSeatingStore } from '@/stores/useSeatingStore';
+import IconNoCircleX from '@/components/ui/icons/iconNoCircleX';
 
 type RandomProps = {
   classId: string;
@@ -236,6 +237,10 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
     setPointsListStudents((prev) => [...prev, selectedStudent]);
   }, [selectedStudent]);
 
+  const handleRemoveStudentFromPointsList = useCallback((index: number) => {
+    setPointsListStudents((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
   const handleOpenListAwardModal = useCallback(() => {
     if (pointsListStudentIds.length === 0) return;
     setIsListAwardPointsModalOpen(true);
@@ -450,11 +455,20 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
                         alt={`${student.first_name} ${student.last_name}`}
                         width={48}
                         height={48}
-                        className="rounded-full bg-[#FDF2F0] border-2 border-white"
+                        className="rounded-xl border-2 border-white shrink-0"
                       />
-                      <p className="text-white font-semibold text-sm">
+                      <p className="text-white font-semibold text-sm flex-1 min-w-0 truncate">
                         {student.first_name} {student.last_name}
                       </p>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveStudentFromPointsList(index)}
+                        className="shrink-0 p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+                        aria-label={`Remove ${student.first_name} ${student.last_name} from list`}
+                        title="Remove from list"
+                      >
+                        <IconNoCircleX className="w-5 h-5" strokeWidth={2.5} />
+                      </button>
                     </div>
                   ))
                 )}
