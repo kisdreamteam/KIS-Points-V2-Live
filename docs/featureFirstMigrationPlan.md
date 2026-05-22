@@ -4,6 +4,8 @@
 **Last updated:** May 2026  
 **Goal:** Move presentational UI from `src/components/` into `src/features/{feature}/components/{group}/` without changing behavior, JSX, or public URLs.
 
+**Note:** This doc is a historical migration log. Paths and component names below may reference pre-rename filenames (e.g. `CanvasToolbar` → `WorkspaceToolbar`). For the current visual layout, see [`docs/visual-layer-map.md`](visual-layer-map.md) and [`architecture-plan.md`](architecture-plan.md).
+
 **Non-goals (this migration):**
 
 - No new files (no barrel `index.ts`, no re-export shims at old paths).
@@ -206,7 +208,7 @@ Phases **5** can merge into **1** for fewer PRs (larger blast radius).
 
 - `src/features/students/StudentsWorkspaceContent.tsx`, `StudentCardsGrid.tsx`
 - `src/features/dashboard/DashboardClassModalsHost.tsx`
-- `src/features/dashboard/layouts/DashboardShell.tsx` → `StudentsBottomNav` (after Phase 1 path)
+- `src/features/dashboard/layouts/DashboardShell.tsx` → `BottomNav` (`features/dashboard/components/frame/navbars/BottomNav.tsx`)
 
 **Verify:** student grid, multi-select, attendance menu, add/edit student modals.
 

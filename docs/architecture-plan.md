@@ -8,13 +8,13 @@ Prototype 1 uses a **dual-shell** layout model and a **dual-boundary** data mode
 **Status (May 2026):**
 
 - Zustand migration is effectively complete; dashboard global state does not use React Context.
-- **Feature-first layout (complete May 2026):** Dashboard Tier 1 frame and Tier 3 UI live under `src/features/{dashboard,classes,students,seating}/components/`; Tier 2 orchestration at `src/features/{dashboard,classes,students,seating}/` (feature root). Auth/landing Tier 3 under `src/features/{auth,landing}/components/`. Shared primitives only in `src/components/ui/`. **Modal flows** that need Layer 1 wiring above a presentational modal use a **Tier 2 host in `features/dashboard/` + controller hook in `src/hooks/`** (see §1.3 / §1.4).
+- **Feature-first layout (complete May 2026):** Dashboard **Tier 1 frame** lives only in `src/features/dashboard/components/frame/` + `layouts/DashboardShell.tsx`. **Tier 2** orchestration at `src/features/{dashboard,classes,students,seating}/` (feature roots). **Tier 3** UI in `src/features/{dashboard,classes,students,seating}/components/` (other features’ `components/` are Tier 3 only, not frame). Auth/landing Tier 3 under `src/features/{auth,landing}/components/`. Shared primitives only in `src/components/ui/`. **Modal flows** that need Layer 1 wiring above a presentational modal use a **Tier 2 host in `features/dashboard/` + controller hook in `src/hooks/`** (see §1.3 / §1.4).
 - **Auth routes:** grouped under `src/app/(auth)/` (route group; URLs unchanged). Auth flex shell in `src/features/auth/layouts/AuthShell.tsx`; `src/app/(auth)/layout.tsx` thin-wires the shell (mirrors dashboard + `DashboardShell`).
 - **Auth/landing (Tier 2):** views in `src/features/auth` and `src/features/landing` (not subject to the dashboard `components/` vs `features/` tier split).
 - **Student attendance:** daily `attendance_events` append-only log, `absentStudentIds` in the dashboard store, bottom-nav attendance sheet, and macro point exclusions for absent students (see §2.1).
 - **Dashboard stage entry (May 2026):** `src/features/dashboard/DashboardView.tsx` — single route-level view (sync workers + `activeView` routing). Replaces the former `frame/DashboardView.tsx` + `DashboardViewSwitch.tsx` split; matches auth/landing `page → *View` import symmetry.
 
-Related docs: `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-tier-3-layer-refactor-plan.md`, `docs/db-schema.md`, `docs/featureFirstMigrationPlan.md` (completed move from `components/dashboard` and `components/ui/{auth,landing}` → `features/*/components/`).
+Related docs: `docs/visual-layer-map.md` (canonical visual file tree), `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-tier-3-layer-refactor-plan.md`, `docs/db-schema.md`, `docs/featureFirstMigrationPlan.md` (completed move from `components/dashboard` and `components/ui/{auth,landing}` → `features/*/components/`).
 
 ---
 
@@ -35,7 +35,7 @@ Auth and landing are **not** subject to the dashboard `components/` vs `features
 | Layer 3 | `src/lib/api/auth.service.ts` |
 | Routes | Thin `src/app/(auth)/login|signup|.../page.tsx` → `@/features/auth/*`; `src/app/(landing)/page.tsx` → `@/features/landing/LandingView` (URL `/` unchanged) |
 
-### B. Dashboard shell — `features/*/components/` = T1 frame & T3, `features/` = T2
+### B. Dashboard shell — frame in `dashboard/components/frame`; Tier 3 in `features/*/components`
 
 | Concern | Location |
 |---------|----------|
@@ -96,6 +96,8 @@ flowchart TD
 
 ## 1. Visual 3-Tier — dashboard folder policy
 
+**Canonical file tree:** [`docs/visual-layer-map.md`](visual-layer-map.md) (every visual file with T1/T2/T3 labels).
+
 ### 1.1 Folder ↔ tier (dashboard only)
 
 | Tier | Role | Location |
@@ -117,7 +119,6 @@ flowchart TD
 | `frame/dashboardZoneConfig.ts` | Shell sidebar grid + main-stage row class constants |
 | `frame/WorkspaceTwoColumnSplit.tsx` | View-owned 2-col stage (`1fr` canvas + toolbar rail) |
 | `frame/navbars/*` | Left/top/bottom nav (`BottomNav`, `SeatingEditorLeftNav`, etc.) |
-| `features/dashboard/stage/dashboardToolbarConfig.ts` | Toolbar action defs + `buildShellToolbarConfig` |
 
 Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, `viewMode`) because they are shell chrome, not workspace orchestration.
 
@@ -142,10 +143,29 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 
 | Module path | Files |
 |-------------|-------|
-| `features/dashboard/` | **`DashboardView.tsx`** (route entry: sync + `DashboardStageContent` routing), `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/DashboardWorkspaceToolbar.tsx`, `stage/workspaceToolbarPresets.tsx`, `tools/Random.tsx` |
-| `features/classes/` | `ClassesWorkspace.tsx` (+ `ClassesWorkspaceToolbar`), `ClassesWorkspaceContent.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx` |
-| `features/students/` | `StudentsWorkspace.tsx` (+ `StudentsWorkspaceToolbar`), `StudentsWorkspaceContent.tsx`, `StudentCardsGrid.tsx` |
+| `features/dashboard/` | **`DashboardView.tsx`** (route entry: sync + `DashboardStageContent` routing), `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/dashboardToolbarConfig.ts`, `stage/workspaceToolbarPresets.tsx`, `stage/DashboardWorkspaceToolbar.tsx`, `tools/Random.tsx` |
+| `features/classes/` | `ClassesWorkspace.tsx`, `ClassesWorkspaceContent.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx`, `components/ClassesWorkspaceToolbar.tsx` |
+| `features/students/` | `StudentsWorkspace.tsx`, `StudentsWorkspaceContent.tsx`, `StudentCardsGrid.tsx`, `components/StudentsWorkspaceToolbar.tsx` |
 | `features/seating/` | `SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`, `SeatingChartEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx`, `SeatingEditorWorkspaceToolbar.tsx` |
+
+**Workspace toolbar rails (view-owned via `WorkspaceTwoColumnSplit`):**
+
+- `ClassesWorkspace` mounts `ClassesWorkspaceToolbar` (all actions **disabled** on `/dashboard`).
+- `StudentsWorkspace` mounts `StudentsWorkspaceToolbar`, which delegates to `DashboardWorkspaceToolbar` or `SeatingEditorWorkspaceToolbar` by `activeView` + `isEditMode`.
+
+```mermaid
+flowchart LR
+  SW[StudentsWorkspace T2]
+  SWT[StudentsWorkspaceToolbar T2]
+  DWT[DashboardWorkspaceToolbar T2]
+  SEWT[SeatingEditorWorkspaceToolbar T2]
+  WT[WorkspaceToolbar T3]
+  SW --> SWT
+  SWT --> DWT
+  SWT --> SEWT
+  DWT --> WT
+  SEWT --> WT
+```
 
 **Award / edit-skills modal pattern (reuse for similar features):**
 

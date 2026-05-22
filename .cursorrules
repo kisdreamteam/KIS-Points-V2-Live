@@ -139,7 +139,7 @@ The Dashboard is a fixed coordinate system. Do not use these rules for Auth/Land
 
 Applies when URL/layout reflect **seating chart + edit mode** (`?view=seating` + `?mode=edit`, `useLayoutStore.isEditMode`).
 
-* **Mount (Tier 1):** `DashboardShell` renders `SeatingEditorWorkspaceToolbar` in the canvas toolbar column instead of `DashboardWorkspaceToolbar`. Toolbar column uses `overflow-visible` in edit mode.
+* **View-owned right rail (Tier 2):** `StudentsWorkspace` → `WorkspaceTwoColumnSplit` → `StudentsWorkspaceToolbar` delegates to `DashboardWorkspaceToolbar` or `SeatingEditorWorkspaceToolbar` by `activeView` + `isEditMode`; `toolbarColumnClassName` uses `overflow-visible` in seating edit mode. `ClassesWorkspace` mounts `ClassesWorkspaceToolbar` (disabled on `/dashboard`).
 * **Left nav:** `SeatingEditorLeftNav` replaces default left nav (layout list).
 * **Footer:** Keep `BottomNav` — pass `buttonsDisabled={isSeatingView && isEditMode}`. **Do not** reintroduce `SeatingEditorBottomNav`.
 * **Stage (Tier 2):** `StudentsWorkspaceContent` → `SeatingChartEditorView` while editing; `SeatingChartView` when not.
