@@ -8,12 +8,12 @@ Prototype 1 uses a **dual-shell** layout model and a **dual-boundary** data mode
 **Status (May 2026):**
 
 - Zustand migration is effectively complete; dashboard global state does not use React Context.
-- **Dashboard visual boundaries:** Tier 1 frame and Tier 3 actors live under `src/components/dashboard/`; Tier 2 view containers live under `src/features/{dashboard,classes,students,seating}/`. **Modal flows** that need Layer 1 wiring above a presentational modal use a **Tier 2 host in `features/dashboard/` + controller hook in `src/hooks/`** (see §1.3 / §1.4).
-- **Auth routes:** grouped under `src/app/(auth)/` (route group; URLs unchanged). Auth flex shell moved from `features/auth/AuthLayout.tsx` to `src/app/(auth)/layout.tsx` (May 2026).
+- **Feature-first layout (complete May 2026):** Dashboard Tier 1 frame and Tier 3 UI live under `src/features/{dashboard,classes,students,seating}/components/`; Tier 2 orchestration at `src/features/{dashboard,classes,students,seating}/` (feature root). Auth/landing Tier 3 under `src/features/{auth,landing}/components/`. Shared primitives only in `src/components/ui/`. **Modal flows** that need Layer 1 wiring above a presentational modal use a **Tier 2 host in `features/dashboard/` + controller hook in `src/hooks/`** (see §1.3 / §1.4).
+- **Auth routes:** grouped under `src/app/(auth)/` (route group; URLs unchanged). Auth flex shell in `src/features/auth/layouts/AuthShell.tsx`; `src/app/(auth)/layout.tsx` thin-wires the shell (mirrors dashboard + `DashboardShell`).
 - **Auth/landing (Tier 2):** views in `src/features/auth` and `src/features/landing` (not subject to the dashboard `components/` vs `features/` tier split).
 - **Student attendance:** daily `attendance_events` append-only log, `absentStudentIds` in the dashboard store, bottom-nav attendance sheet, and macro point exclusions for absent students (see §2.1).
 
-Related docs: `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-tier-3-layer-refactor-plan.md`, `docs/db-schema.md`, `docs/featureFirstMigrationPlan.md` (phased move of `components/` → `features/*/components/`).
+Related docs: `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-tier-3-layer-refactor-plan.md`, `docs/db-schema.md`, `docs/featureFirstMigrationPlan.md` (completed move from `components/dashboard` and `components/ui/{auth,landing}` → `features/*/components/`).
 
 ---
 
@@ -21,19 +21,20 @@ Related docs: `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-ti
 
 ### A. Auth & landing shell
 
-Auth is **not** subject to the dashboard `components/` vs `features/` tier split. **Route chrome** lives in `src/app/(auth)/`; **Tier 2 views** stay in `src/features/auth`.
+Auth and landing are **not** subject to the dashboard `components/` vs `features/` tier split. **Route chrome** lives in `src/features/{auth,landing}/layouts/`; segment layouts in `src/app/(auth)/` and `src/app/(landing)/` only wire shells.
 
 | Concern | Location |
 |---------|----------|
-| Tier 1 layout | `src/app/(auth)/layout.tsx` |
+| Tier 1 auth | `src/features/auth/layouts/AuthShell.tsx` (mounted from `src/app/(auth)/layout.tsx`) |
+| Tier 1 landing | `src/features/landing/layouts/LandingShell.tsx` (pass-through; mounted from `src/app/(landing)/layout.tsx`) |
 | Tier 2 views | `src/features/auth/LoginView.tsx`, `SignUpView.tsx`, `ForgotPasswordView.tsx`, `ResetPasswordView.tsx` (forms only; no layout wrapper) |
 | Tier 2 landing | `src/features/landing/LandingView.tsx` |
 | Tier 3 UI | `src/features/auth/components/`, `src/features/landing/components/` |
 | Layer 1 | `src/hooks/useAuthFlow.ts` |
 | Layer 3 | `src/lib/api/auth.service.ts` |
-| Routes | Thin `src/app/(auth)/login|signup|.../page.tsx` → `@/features/auth/*`; `src/app/page.tsx` → `@/features/landing/*` |
+| Routes | Thin `src/app/(auth)/login|signup|.../page.tsx` → `@/features/auth/*`; `src/app/(landing)/page.tsx` → `@/features/landing/LandingView` (URL `/` unchanged) |
 
-### B. Dashboard shell — `components/` = T1 & T3, `features/` = T2
+### B. Dashboard shell — `features/*/components/` = T1 frame & T3, `features/` = T2
 
 | Concern | Location |
 |---------|----------|
@@ -59,7 +60,7 @@ Auth is **not** subject to the dashboard `components/` vs `features/` tier split
 | **2** | View containers, workspaces, orchestration | `src/features/{dashboard,classes,students,seating}/` (root `*View`, `*Workspace`, hosts) |
 | **3** | Presentational UI | `src/features/{dashboard,classes,students,seating}/components/`, `src/features/auth/components/`, `src/features/landing/components/`, `src/components/ui/` |
 
-`src/features/` is the permanent home for auth, landing, and dashboard Tier 2. Do not move auth views into `components/` for folder-policy reasons. Auth route chrome lives in `src/app/(auth)/layout.tsx`.
+`src/features/` is the permanent home for auth, landing, and dashboard Tier 2. Do not move auth views into `components/` for folder-policy reasons. Auth route chrome lives in `src/features/auth/layouts/AuthShell.tsx`; `src/app/(auth)/layout.tsx` only imports it.
 
 ### 1.2 Tier 1 — Scaffolding (`features/dashboard/components/frame/`)
 
@@ -133,19 +134,19 @@ components/ui/                     # shared atoms, icons, CanvasToolbar, generic
 
 - Default: no stores, no **`@/hooks`** (orchestration), no API clients. Local UI state (`useState`, refs, DOM `useEffect` for focus/click-outside) is fine.
 - **`forms/AddSkillForm.tsx`**, **`forms/EditSkillForm.tsx`**: strict Tier 3 — **no `@/hooks`**. Icon paths and detection flags (`useAvailablePositiveIcons` / static negative list) plus submit handlers (`addSkill`, `updateSkill` + refresh) are wired in **`useAwardPointsModalController`** and **`useEditSkillsModalController`**, then passed through modal shells (`AddSkillModal`, `EditSkillModal`, nested hosts as needed).
-- **Documented exceptions (remain in `components/` by design):**
-  - `cards/StudentCard.tsx` — `useShallow` store slice for grid performance.
-  - `modals/EditSkillsModal.tsx` — presentational; orchestration in `hooks/useEditSkillsModalController.ts` + Tier 2 `features/dashboard/EditSkillsModalHost.tsx`.
-  - `modals/AwardPointsModal.tsx` — presentational; orchestration in `hooks/useAwardPointsModalController.ts` + Tier 2 `features/dashboard/AwardPointsModalHost.tsx`.
-  - `cards/ClassCard.tsx` — reads `viewPreference` only.
-- `modals/EditClassModal.tsx` — thin façade re-exporting `features/classes/EditClassModalRoot.tsx`.
+- **Documented exceptions (under `features/*/components/`, not generic `components/ui`):**
+  - `features/students/components/cards/StudentCard.tsx` — `useShallow` store slice for grid performance.
+  - `features/dashboard/components/modals/EditSkillsModal.tsx` — presentational; orchestration in `hooks/useEditSkillsModalController.ts` + Tier 2 `features/dashboard/EditSkillsModalHost.tsx`.
+  - `features/dashboard/components/modals/AwardPointsModal.tsx` — presentational; orchestration in `hooks/useAwardPointsModalController.ts` + Tier 2 `features/dashboard/AwardPointsModalHost.tsx`.
+  - `features/classes/components/cards/ClassCard.tsx` — reads `viewPreference` only.
+  - `features/classes/components/modals/EditClassModal.tsx` — thin façade re-exporting `features/classes/EditClassModalRoot.tsx`.
 
-### 1.5 Tier 3 presentation kept in dashboard `components/`
+### 1.5 Notable Tier 3 files (by feature)
 
 | File | Notes |
 |------|-------|
-| `PointsLogDrawer.tsx` | Props only; workspace owns data |
-| `menus/AttendanceMenuBody.tsx` | Props only; checkbox roster for daily absences (wired from `StudentsBottomNav`) |
+| `features/dashboard/components/PointsLogDrawer.tsx` | Props only; workspace owns data |
+| `features/students/components/menus/AttendanceMenuBody.tsx` | Props only; checkbox roster for daily absences (wired from `StudentsBottomNav`) |
 
 ---
 
@@ -202,8 +203,8 @@ Pure helpers (no React): `src/lib/awardPointsService.ts` (includes `filterEligib
 **Mounting**
 
 - `DashboardClassesSync` — `src/app/dashboard/layout.tsx`
-- `DashboardStudentSync`, `SeatingChartDataSync`, `DashboardProfileSync`, `DashboardClassesFilterSync` — `src/components/dashboard/frame/DashboardView.tsx`
-- `AttendanceSync` — **recommended** in `DashboardView.tsx` next to `DashboardStudentSync` (hydrates absences on class load; toggles work in-session without it)
+- `DashboardStudentSync`, `SeatingChartDataSync`, `DashboardProfileSync`, `DashboardClassesFilterSync` — `src/features/dashboard/components/frame/DashboardView.tsx`
+- `AttendanceSync` — **recommended** in `src/features/dashboard/components/frame/DashboardView.tsx` next to `DashboardStudentSync` (hydrates absences on class load; toggles work in-session without it)
 - `useDashboardRouteStateSync`, `useViewPreferenceSync` — `src/features/dashboard/layouts/DashboardShell.tsx`
 
 ### Layer 2 — Desk (`src/stores/`)
@@ -243,8 +244,8 @@ Shared types: `src/lib/types.ts` (includes `AttendanceEvent`).
 | Layer 2 | `useDashboardStore.ts` | `absentStudentIds: string[]` (empty = all present), `setAbsentStudentIds` |
 | Layer 1 | `useAttendanceActions.ts` | `toggleAttendance(studentId)`: optimistic store update → API → silent rollback on failure |
 | Layer 1b | `useAttendanceSync.ts`, `AttendanceSync` | On `classId` change: clear `absentStudentIds`, then fetch today’s absences |
-| Tier 3 | `menus/AttendanceMenuBody.tsx` | Props: `students`, `absentStudentIds`, `onToggleAbsence`; checkbox checked = **absent**; no stores/API |
-| Tier 1 chrome | `frame/navbars/StudentsBottomNav.tsx` | Attendance button, `createPortal` bottom sheet (`data-attendance-menu`), composes actions + store |
+| Tier 3 | `features/students/components/menus/AttendanceMenuBody.tsx` | Props: `students`, `absentStudentIds`, `onToggleAbsence`; checkbox checked = **absent**; no stores/API |
+| Tier 1 chrome | `features/dashboard/components/frame/navbars/StudentsBottomNav.tsx` | Attendance button, `createPortal` bottom sheet (`data-attendance-menu`), composes actions + store |
 
 ```mermaid
 flowchart LR
@@ -323,7 +324,7 @@ Orchestrates the editor toolbar using:
 
 - **Tier 3 shell:** `components/ui/CanvasToolbar.tsx` (`topSlot`, `bottomSlot`, `topActions`, `bottomActions`)
 - **Layer 1:** `useSeatingEditBottomNav()` (settings toggles, group actions, emits `STUDENT_EVENTS` consumed by `useSeatingChart.ts`), `useCanvasToolbarActions()` (Close and other preset buttons from `canvasToolbarPresets.tsx`)
-- **Tier 3 menus:** `SeatingViewSettingsMenu`, `SeatingSettingsMenu`, `SeatingEditorAddGroupsMenu` in `components/dashboard/menus/`
+- **Tier 3 menus:** `SeatingViewSettingsMenu`, `SeatingSettingsMenu`, `SeatingEditorAddGroupsMenu` in `features/seating/components/menus/`
 
 **Button layout (top → bottom on the rail):**
 
@@ -361,8 +362,9 @@ Horizontal positioning for `leftOfAnchorDown` / `leftOfAnchorAbove`: menu right 
 ```text
 src/
   app/                              # Thin routes
-    page.tsx                        # → features/landing/LandingView
-    (auth)/layout.tsx               # auth flex shell
+    (landing)/layout.tsx            # thin wire → features/landing/layouts/LandingShell
+    (landing)/page.tsx              # → features/landing/LandingView (URL /)
+    (auth)/layout.tsx               # thin wire → features/auth/layouts/AuthShell
     (auth)/login|signup|.../        # → features/auth/*View (route group; URLs unchanged)
     dashboard/
       layout.tsx                    # DashboardClassesSync; Suspense + DashboardShell
@@ -370,8 +372,8 @@ src/
       classes/[classId]/page.tsx
 
   features/
-    auth/                           # *View + components/
-    landing/                        # LandingView + components/
+    auth/                           # layouts/AuthShell, *View + components/
+    landing/                        # layouts/LandingShell, LandingView + components/
     dashboard/
       layouts/DashboardShell.tsx
       components/                   # frame, cards, modals, menus, forms, tools
@@ -387,6 +389,18 @@ src/
 ```
 
 **Path aliases:** `@/components/*`, `@/features/*`, `@/hooks/*`, `@/stores/*`, `@/lib/*`.
+
+### Moving forward (new code)
+
+| Add this | Put it here |
+|----------|-------------|
+| Feature-specific UI (cards, modals, menus, forms, frame chrome) | `src/features/<feature>/components/<group>/` |
+| View orchestration, workspaces, modal hosts | `src/features/<feature>/` (root, or `stage/` / `tools/` where that pattern exists) |
+| Segment shell (auth flex, landing pass-through, dashboard grid) | `src/features/{auth,landing,dashboard}/layouts/` |
+| Reusable atoms (inputs, `BaseCard`, `CanvasToolbar`, generic modals/icons) | `src/components/ui/` only |
+| Routes | `src/app/` (thin pages → `@/features/...`) |
+
+**Do not:** recreate `src/components/dashboard/`; add feature UI under `components/ui/auth` or `components/ui/landing`; use `@/components/dashboard/...` imports.
 
 ---
 
@@ -412,15 +426,16 @@ src/
 ## 6. Quick reference
 
 ```text
-Auth T1        →  app/(auth)/layout.tsx
+Auth T1        →  features/auth/layouts/AuthShell (+ app/(auth)/layout.tsx wire)
 Auth T2        →  features/auth/*View
 Auth T3        →  features/auth/components/
+Landing T1     →  features/landing/layouts/LandingShell (+ app/(landing)/layout.tsx wire)
 Landing T2     →  features/landing/LandingView
 Landing T3     →  features/landing/components/
 Dashboard T1   →  features/dashboard/components/frame/ + layouts/DashboardShell
 Dashboard T2   →  features/{dashboard,classes,students,seating}/  (+ *ModalHost.tsx)
 Dashboard T3   →  features/{dashboard,classes,students,seating}/components/ + components/ui/
 Data layers    →  hooks/ · stores/ · lib/api/
-Attendance     →  attendanceService · absentStudentIds · AttendanceMenuBody · StudentsBottomNav
+Attendance     →  attendanceService · absentStudentIds · features/students/.../AttendanceMenuBody · features/dashboard/.../StudentsBottomNav
 Seating edit   →  SeatingEditorCanvasToolbar + portaled menus; StudentsBottomNav disabled
 ```

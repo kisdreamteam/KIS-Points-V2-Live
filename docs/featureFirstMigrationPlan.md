@@ -36,7 +36,7 @@ src/
       *Host.tsx
       stage/                    # Tier 2 toolbar orchestration (dashboard/seating)
   components/
-    ui/                         # shared primitives until phased (auth, landing, icons)
+    ui/                         # shared primitives only (icons, inputs, CanvasToolbar, generic modals)
 ```
 
 **Import convention after each move:**
@@ -269,7 +269,7 @@ Phases **5** can merge into **1** for fewer PRs (larger blast radius).
 |------|-----|
 | `components/ui/landing/**` | `features/landing/components/` |
 
-**Primary importers:** `src/features/landing/LandingView.tsx`, `src/app/page.tsx`
+**Primary importers:** `src/features/landing/LandingView.tsx`, `src/app/(landing)/page.tsx`
 
 **Verify:** `/` and nav links to auth routes.
 

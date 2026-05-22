@@ -9,14 +9,15 @@ You must identify the active shell before applying layout or state rules. They a
 ### A. Auth & Landing Shell (The Entryway)
 
 * **Scope (URLs):** `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`.
-* **Routes (filesystem):** `src/app/(auth)/login|signup|forgot-password|reset-password/page.tsx` (route group; URLs unchanged).
-* **Tier 1 (auth routes):** `src/app/(auth)/layout.tsx` (flex centering chrome; mirrors `app/dashboard/layout.tsx` owning the segment).
+* **Routes (filesystem):** `src/app/(landing)/page.tsx` → `/`; `src/app/(auth)/login|signup|forgot-password|reset-password/page.tsx` (route groups; URLs unchanged).
+* **Tier 1 (landing):** `@/features/landing/layouts/LandingShell.tsx` (pass-through for now); `src/app/(landing)/layout.tsx` imports it only.
+* **Tier 1 (auth routes):** `@/features/auth/layouts/AuthShell.tsx` (flex centering chrome); `src/app/(auth)/layout.tsx` imports it only (mirrors `app/dashboard/layout.tsx` → `DashboardShell`).
 * **Tier 2 views:** `@/features/auth/*View` (wire `useAuthFlow` + Tier 3 forms only — do not reintroduce a layout wrapper in views), `@/features/landing/LandingView.tsx`.
 * **Tier 3 UI:** `@/features/auth/components/` (forms + chrome), `@/features/landing/components/`.
 * **Layout Logic:** Uses **Flexbox** for centering (e.g., `flex items-center justify-center`).
 * **State:** **No Global Zustand Store.** Use `useAuthFlow.ts` for local form/UI state.
 * **Session:** Layer 1 hook + `@/lib/api/auth.service.ts` (Layer 3).
-* **Rule:** Do not move auth views into `components/` for folder-policy reasons.
+* **Rule:** Do not move auth views into `components/` for folder-policy reasons. Auth/landing UI belongs in `@/features/{auth,landing}/components/`, not `components/ui/`.
 
 ### B. Dashboard Shell (The Workspace)
 
@@ -24,6 +25,7 @@ You must identify the active shell before applying layout or state rules. They a
 * **Shell (Tier 1):** `@/features/dashboard/components/frame/DashboardView.tsx` (sync workers) + `@/features/dashboard/layouts/DashboardShell.tsx` (7-zone grid; mounted from `app/dashboard/layout.tsx`).
 * **View routing (Tier 2):** `@/features/dashboard/DashboardViewSwitch.tsx`.
 * **Folder policy:** Dashboard **Tier 3** → `@/features/{dashboard,classes,students,seating}/components/`; shared atoms → `@/components/ui/`. **Tier 2** → `@/features/`.
+* **Imports (moving forward):** Use `@/features/<feature>/components/...` for feature UI. **Never** recreate `@/components/dashboard/` or `@/components/ui/auth|landing/`.
 * **Modal host (Tier 2):** `@/features/dashboard/DashboardClassModalsHost.tsx` (mounted in `DashboardShell`).
 * **Award / edit-skills (Tier 2 + Layer 1):** `@/features/dashboard/AwardPointsModalHost.tsx` + `hooks/useAwardPointsModalController.ts`; `@/features/dashboard/EditSkillsModalHost.tsx` + `hooks/useEditSkillsModalController.ts`. Prefer this **host + controller** pattern when a dashboard modal subtree needs orchestration hooks but the UI itself should stay Tier 3.
 * **Layout Logic:** Uses the **7-Zone Fixed Grid System** (`dashboardZoneConfig.ts`).
@@ -138,7 +140,7 @@ Applies when URL/layout reflect **seating chart + edit mode** (`?view=seating` +
 | Toolbar shell | `components/ui/CanvasToolbar.tsx` (Tier 3) |
 | Preset actions (Close, layout manager, …) | `features/dashboard/stage/canvasToolbarPresets.tsx` + `hooks/dashboard/useCanvasToolbarActions.ts` |
 | Editor settings/groups/randomize | `hooks/useSeatingEditBottomNav.ts` (name is legacy; powers toolbar, not a bottom nav) |
-| Menu UI | `components/dashboard/menus/SeatingViewSettingsMenu.tsx`, `SeatingSettingsMenu.tsx`, `SeatingEditorAddGroupsMenu.tsx` |
+| Menu UI | `features/seating/components/menus/SeatingViewSettingsMenu.tsx`, `SeatingSettingsMenu.tsx`, `SeatingEditorAddGroupsMenu.tsx` |
 
 ### Portaled dropdowns
 
@@ -164,8 +166,8 @@ Table DDL: `docs/db-schema.md` §5. Architecture flow: `docs/architecture-plan.m
 * **Layer 2:** `absentStudentIds` on `useDashboardStore` — no API calls in store actions.
 * **Layer 1:** `useAttendanceActions` — optimistic toggle + silent rollback; no UI.
 * **Layer 1b:** `useAttendanceSync` / `AttendanceSync` — hydrate on class change; mount in `DashboardView` with other sync workers (recommended; see architecture plan).
-* **Tier 3:** `AttendanceMenuBody` — props/callbacks only; **no** `@/stores` or `@/hooks` for orchestration.
-* **Tier 1 chrome:** `StudentsBottomNav` may wire store + hooks + `createPortal` bottom sheet (`data-attendance-menu`); use Tailwind transitions, not Framer Motion.
+* **Tier 3:** `@/features/students/components/menus/AttendanceMenuBody.tsx` — props/callbacks only; **no** `@/stores` or `@/hooks` for orchestration.
+* **Tier 1 chrome:** `@/features/dashboard/components/frame/navbars/StudentsBottomNav.tsx` may wire store + hooks + `createPortal` bottom sheet (`data-attendance-menu`); use Tailwind transitions, not Framer Motion.
 
 ### Point awards with absent students
 

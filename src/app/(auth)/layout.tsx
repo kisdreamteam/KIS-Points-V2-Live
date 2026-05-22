@@ -1,16 +1,9 @@
-export default function AuthSegmentLayout({
+import AuthShell from '@/features/auth/layouts/AuthShell';
+
+export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div
-      className="
-        h-screen w-screen flex flex-row items-center justify-center
-        bg-brand-purple font-spartan relative
-      "
-    >
-      {children}
-    </div>
-  );
+  return <AuthShell>{children}</AuthShell>;
 }
