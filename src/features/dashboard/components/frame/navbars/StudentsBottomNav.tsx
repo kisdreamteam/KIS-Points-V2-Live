@@ -34,6 +34,7 @@ interface StudentsBottomNavProps {
   onSortChange: (next: SortOption) => void;
   onLogout: () => void;
   onToggleMultiSelect: () => void;
+  seatingLayoutsCount?: number;
 }
 
 export default function StudentsBottomNav({
@@ -50,6 +51,7 @@ export default function StudentsBottomNav({
   onSortChange,
   onLogout,
   onToggleMultiSelect,
+  seatingLayoutsCount = 0,
 }: StudentsBottomNavProps) {
   const [isSortPopupOpen, setIsSortPopupOpen] = useState(false);
   const sortButtonRef = useRef<HTMLDivElement>(null);
@@ -66,6 +68,10 @@ export default function StudentsBottomNav({
   const { toggleAttendance } = useAttendanceActions();
 
   const navEnabled = !buttonsDisabled;
+  const classRosterToolsEnabled = navEnabled && !!currentClassName;
+  const multiSelectEnabled =
+    classRosterToolsEnabled &&
+    (currentView !== 'seating' || seatingLayoutsCount > 0);
 
   useEffect(() => {
     if (!buttonsDisabled) return;
@@ -160,10 +166,10 @@ export default function StudentsBottomNav({
           icon={<IconCheckBox />}
           label="Multiple Select"
           onClick={() => {
-            if (!navEnabled) return;
+            if (!multiSelectEnabled) return;
             onToggleMultiSelect();
           }}
-          enabled={navEnabled}
+          enabled={multiSelectEnabled}
         />
 
         <div className="relative flex-shrink-0" ref={attendanceButtonRef}>
@@ -185,19 +191,19 @@ export default function StudentsBottomNav({
           icon={<IconRandomArrows />}
           label="Random"
           onClick={() => {
-            if (!navEnabled) return;
+            if (!classRosterToolsEnabled) return;
             onRandomClick();
           }}
-          enabled={navEnabled}
+          enabled={classRosterToolsEnabled}
         />
         <BotNavGrayButton
           icon={<IconTimerClock />}
           label="Timer"
           onClick={() => {
-            if (!navEnabled) return;
+            if (!classRosterToolsEnabled) return;
             onTimerClick();
           }}
-          enabled={navEnabled}
+          enabled={classRosterToolsEnabled}
         />
 
         <div className="relative flex-shrink-0" ref={settingsButtonRef}>

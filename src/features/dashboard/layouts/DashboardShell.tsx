@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, type FC, type ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
+import { useCallback, useMemo, type ReactNode } from 'react';
 import { useDashboardRouteStateSync } from '@/hooks/sync/useDashboardRouteStateSync';
 import { refreshDashboardClassesForUserAction } from '@/hooks/sync/useDashboardClassesSync';
 import { useViewPreferenceSync } from '@/hooks/sync/useViewPreferenceSync';
@@ -17,134 +16,30 @@ import DashboardCanvasToolbar from '@/features/dashboard/stage/DashboardCanvasTo
 import SeatingEditorCanvasToolbar from '@/features/seating/SeatingEditorCanvasToolbar';
 import EditClassModal from '@/features/classes/components/modals/EditClassModal';
 import DashboardClassModalsHost from '@/features/dashboard/DashboardClassModalsHost';
-import type { DashboardToolbarDef } from '@/features/dashboard/components/frame/dashboardZoneConfig';
+import {
+  buildCanvasZoneCellClassName,
+  buildShellToolbarConfig,
+  canvasToolbarGridColsClassName,
+  canvasToolbarGridInnerClassName,
+  getShellGridConfig,
+  getToolbarZoneCellClassName,
+  mainFooterRowClassName,
+  mainHeaderRowClassName,
+  mainSectionRowClassName,
+  mainSectionStagePaddingClassName,
+  mainStageGridRowsClassName,
+} from '@/features/dashboard/components/frame/dashboardZoneConfig';
 import { STUDENT_EVENTS } from '@/lib/events/students';
-import { useLayoutStore, type ViewState } from '@/stores/useLayoutStore';
+import { useLayoutStore } from '@/stores/useLayoutStore';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
 import { useSeatingStore } from '@/stores/useSeatingStore';
-
-type DashboardZoneInputs = {
-  isSidebarOpen: boolean;
-  activeView: ViewState;
-  isEditMode: boolean;
-};
-
-type WorkspaceZoneInputs = {
-  activeView: ViewState;
-  isEditMode: boolean;
-  isTimerOpen: boolean;
-  isRandomOpen: boolean;
-  currentClassName: string | null;
-  seatingLayoutsCount: number;
-  showCanvasToolbar: boolean;
-};
 
 type DashboardShellProps = {
   children: ReactNode;
 };
 
-function getDashboardZoneConfig({
-  isSidebarOpen,
-  activeView,
-  isEditMode,
-}: DashboardZoneInputs) {
-  const isSeatingChartView = activeView === 'seating_chart';
-  return {
-    dashboardGridColsClass: isSidebarOpen
-      ? 'grid-cols-[0px_1fr] md:grid-cols-[19rem_1fr]'
-      : 'grid-cols-[0px_1fr]',
-    useSeatingEditorLeftNav: isSeatingChartView && isEditMode,
-  };
-}
-
-function getWorkspaceZoneConfig({
-  activeView,
-  isEditMode,
-  isTimerOpen,
-  isRandomOpen,
-  currentClassName,
-  seatingLayoutsCount,
-  showCanvasToolbar,
-}: WorkspaceZoneInputs) {
-  const isSeatingView = activeView === 'seating_chart';
-  const showTopNav = !isSeatingView;
-  const stageContentPadding = isSeatingView ? '' : 'pl-0 pt-0';
-  const showBottomNav =
-    Boolean(currentClassName) && !isTimerOpen && !isRandomOpen;
-  const mainSectionRowClass = showTopNav ? 'row-start-2 row-end-3' : 'row-start-1 row-end-3';
-  const mainSectionGridColsClass = 'grid-cols-[1fr_auto]';
-  const canvasZoneCellClass = [
-    'relative w-full h-full min-h-0 overflow-y-auto overflow-x-hidden pt-1',
-    showCanvasToolbar ? '' : 'col-start-1 col-end-3',
-  ].filter(Boolean).join(' ');
-  const toolbarZoneCellClass = [
-    'relative h-full min-h-0',
-    isSeatingView && isEditMode ? 'overflow-visible' : 'overflow-hidden',
-  ].join(' ');
-
-  const toolbarConfig: DashboardToolbarDef = isSeatingView
-    ? {
-      className: 'z-10',
-      topActions: isEditMode
-        ? [{ id: 'close-editor', title: 'Close editor' }]
-        : [
-          { id: 'add', title: 'Create new layout' },
-          { id: 'edit', title: 'Seating Editor View' },
-          {
-            id: 'layout-manager',
-            title: 'Layout manager',
-            disabled: seatingLayoutsCount === 0,
-          },
-        ],
-      bottomActions: isEditMode
-        ? []
-        : [
-          { id: 'teacher-view', title: "Teacher's view" },
-          { id: 'point-log', title: 'Toggle point log' },
-        ],
-    }
-    : {
-      className: '!bg-white',
-      topActions: [
-        {
-          id: 'add',
-          title: 'Create layout (seating view only)',
-          disabled: true,
-        },
-        {
-          id: 'edit',
-          title: 'Seating Editor (seating view only)',
-          disabled: true,
-        },
-        { id: 'layout-manager', title: 'Layout manager', disabled: true },
-      ],
-      bottomActions: [
-        {
-          id: 'teacher-view',
-          title: "Teacher's view (seating view only)",
-          disabled: true,
-        },
-        { id: 'point-log', title: 'Toggle point log' },
-      ],
-    };
-
-  return {
-    isSeatingView,
-    showTopNav,
-    stageContentPadding,
-    showBottomNav,
-    mainSectionRowClass,
-    mainSectionGridColsClass,
-    canvasZoneCellClass,
-    toolbarZoneCellClass,
-    showCanvasToolbar,
-    toolbarConfig,
-  };
-}
-
-const DashboardShell: FC<DashboardShellProps> = ({ children }) => {
-  const pathname = usePathname();
+export default function DashboardShell({ children }: DashboardShellProps) {
   const { currentClassId } = useDashboardRouteStateSync();
   const classes = useDashboardStore((s) => s.classes);
   const sortBy = usePreferenceStore((s) => s.sortBy);
@@ -163,24 +58,29 @@ const DashboardShell: FC<DashboardShellProps> = ({ children }) => {
   const setRandomOpen = useLayoutStore((s) => s.setRandomOpen);
   const seatingLayoutsCount = useSeatingStore((s) => s.layouts.length);
 
-  const classId = pathname?.match(/\/dashboard\/classes\/([^/]+)/)?.[1] ?? null;
   const currentClass = useMemo(
-    () => (classId ? classes.find((c) => c.id === classId) ?? null : null),
-    [classes, classId]
+    () =>
+      currentClassId ? classes.find((c) => c.id === currentClassId) ?? null : null,
+    [classes, currentClassId]
   );
-  const currentClassName = classId ? (currentClass?.name ?? 'Loading...') : null;
-  const suppressTeacherFallback = !!classId;
-  const isClassesRootView = !currentClassId;
-  const dashboardZones = getDashboardZoneConfig({ isSidebarOpen, activeView, isEditMode });
-  const zoneConfig = getWorkspaceZoneConfig({
+  const currentClassName = currentClassId
+    ? (currentClass?.name ?? 'Loading...')
+    : null;
+
+  const isSeatingView = activeView === 'seating_chart';
+  const showCanvasToolbar = Boolean(currentClassId);
+
+  const shellGrid = getShellGridConfig({ isSidebarOpen, activeView, isEditMode });
+  const toolbarConfig = buildShellToolbarConfig({
     activeView,
     isEditMode,
-    isTimerOpen,
-    isRandomOpen,
-    currentClassName,
     seatingLayoutsCount,
-    showCanvasToolbar: !isClassesRootView,
   });
+  const canvasZoneCellClassName = buildCanvasZoneCellClassName(showCanvasToolbar);
+  const toolbarZoneCellClassName = getToolbarZoneCellClassName(
+    isSeatingView,
+    isEditMode
+  );
 
   const onToggleMultiSelect = useCallback(() => {
     window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.TOGGLE_MULTI_SELECT));
@@ -198,23 +98,17 @@ const DashboardShell: FC<DashboardShellProps> = ({ children }) => {
     setRandomOpen(true);
   }, [setRandomOpen]);
 
-  const toolbarConfig: DashboardToolbarDef = {
-    className: zoneConfig.toolbarConfig.className,
-    topActions: zoneConfig.toolbarConfig.topActions,
-    bottomActions: zoneConfig.toolbarConfig.bottomActions,
-  };
-
   return (
     <>
       <div
         className={[
           'h-[100dvh] md:h-screen w-screen overflow-hidden bg-brand-purple grid transition-all duration-300 ease-in-out',
-          dashboardZones.dashboardGridColsClass,
+          shellGrid.dashboardGridColsClassName,
         ].join(' ')}
       >
         <aside className="h-full overflow-hidden pl-1">
           <div className="h-full overflow-hidden bg-white max-w-[19rem] ml-1">
-            {dashboardZones.useSeatingEditorLeftNav ? (
+            {shellGrid.useSeatingEditorLeftNav ? (
               <SeatingEditorLeftNav />
             ) : (
               <LeftNav />
@@ -224,33 +118,32 @@ const DashboardShell: FC<DashboardShellProps> = ({ children }) => {
         <main className="min-w-0 w-full h-full overflow-hidden pl-1 pr-1 mt-0">
           <div
             className={[
-              'grid h-full min-h-0 grid-rows-[auto_1fr_auto] gap-0',
+              mainStageGridRowsClassName,
               currentClassName ? 'bg-brand-purple' : 'bg-brand-cream',
             ].join(' ')}
           >
-            {zoneConfig.showTopNav && (
-              <header className="row-start-1 row-end-2 h-auto overflow-hidden">
-                <TopNav
-                  currentClassName={currentClassName}
-                  suppressTeacherFallback={suppressTeacherFallback}
-                />
-              </header>
-            )}
+            <header
+              className={`${mainHeaderRowClassName} h-auto overflow-hidden`}
+            >
+              <TopNav
+                currentClassName={currentClassName}
+                suppressTeacherFallback={Boolean(currentClassId)}
+              />
+            </header>
 
             <section
               className={[
-                zoneConfig.mainSectionRowClass,
+                mainSectionRowClassName,
                 'relative w-full h-full min-h-0 overflow-hidden',
-                zoneConfig.stageContentPadding,
+                mainSectionStagePaddingClassName,
               ].join(' ')}
             >
               <div
-                className={[
-                  'grid h-full min-h-0 -mt-0',
-                  zoneConfig.mainSectionGridColsClass,
-                ].join(' ')}
+                className={[canvasToolbarGridInnerClassName, canvasToolbarGridColsClassName].join(
+                  ' '
+                )}
               >
-                <div className={zoneConfig.canvasZoneCellClass}>
+                <div className={canvasZoneCellClassName}>
                   {isTimerOpen ? (
                     <Timer onClose={() => setTimerOpen(false)} />
                   ) : isRandomOpen ? (
@@ -262,12 +155,12 @@ const DashboardShell: FC<DashboardShellProps> = ({ children }) => {
                   )}
                 </div>
 
-                {zoneConfig.showCanvasToolbar && (
-                  <div className={zoneConfig.toolbarZoneCellClass}>
-                    {zoneConfig.isSeatingView && isEditMode ? (
+                {showCanvasToolbar && (
+                  <div className={toolbarZoneCellClassName}>
+                    {isSeatingView && isEditMode ? (
                       <SeatingEditorCanvasToolbar
                         toolbarConfig={toolbarConfig}
-                        classId={classId}
+                        classId={currentClassId}
                         onEditClass={onEditClass}
                       />
                     ) : (
@@ -278,29 +171,30 @@ const DashboardShell: FC<DashboardShellProps> = ({ children }) => {
               </div>
             </section>
 
-            {zoneConfig.showBottomNav && (
-              <footer className="row-start-3 row-end-4 flex min-h-20 h-auto w-full flex-col overflow-visible relative z-20">
-                {isMultiSelectMode ? (
-                  <MultiSelectBottomNav />
-                ) : (
-                  <StudentsBottomNav
-                    currentClassName={currentClassName}
-                    currentView={zoneConfig.isSeatingView ? 'seating' : 'grid'}
-                    onViewChange={(view) => void handleViewChange(view)}
-                    onTimerClick={onTimerClick}
-                    onRandomClick={onRandomClick}
-                    sortingDisabled={zoneConfig.isSeatingView}
-                    buttonsDisabled={zoneConfig.isSeatingView && isEditMode}
-                    classId={classId}
-                    onEditClass={onEditClass}
-                    sortBy={sortBy}
-                    onSortChange={setSortBy}
-                    onLogout={onLogoutStudentsNav}
-                    onToggleMultiSelect={onToggleMultiSelect}
-                  />
-                )}
-              </footer>
-            )}
+            <footer
+              className={`${mainFooterRowClassName} flex min-h-20 h-auto w-full flex-col overflow-visible relative z-20`}
+            >
+              {isMultiSelectMode ? (
+                <MultiSelectBottomNav />
+              ) : (
+                <StudentsBottomNav
+                  currentClassName={currentClassName}
+                  currentView={isSeatingView ? 'seating' : 'grid'}
+                  onViewChange={(view) => void handleViewChange(view)}
+                  onTimerClick={onTimerClick}
+                  onRandomClick={onRandomClick}
+                  sortingDisabled={isSeatingView}
+                  buttonsDisabled={isSeatingView && isEditMode}
+                  classId={currentClassId}
+                  onEditClass={onEditClass}
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
+                  onLogout={onLogoutStudentsNav}
+                  onToggleMultiSelect={onToggleMultiSelect}
+                  seatingLayoutsCount={seatingLayoutsCount}
+                />
+              )}
+            </footer>
           </div>
         </main>
       </div>
@@ -315,6 +209,5 @@ const DashboardShell: FC<DashboardShellProps> = ({ children }) => {
       <DashboardClassModalsHost />
     </>
   );
-};
+}
 
-export default DashboardShell;

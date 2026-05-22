@@ -307,16 +307,19 @@ Early return when no eligible students remain (`eligibleStudentIds.length === 0`
 
 ### Seating editor chrome (`?view=seating` + `?mode=edit`)
 
+`DashboardShell` uses a **unified chrome** grid (`grid-rows-[auto_1fr_auto]`): TopNav (zones 2–3) and the footer slot (zone 7) stay mounted on all dashboard routes; only inner content swaps (nav variant, toolbar, MultiSelect vs Students bottom nav).
+
 When `useLayoutStore.isEditMode` is true on the seating chart view, `DashboardShell` swaps several zone mounts:
 
 | Zone / area | View mode | Edit mode |
 |-------------|-----------|-----------|
+| TopNav (header) | Always mounted | Always mounted |
 | Left nav | Default `LeftNav` | `SeatingEditorLeftNav` |
 | Canvas toolbar column | `DashboardCanvasToolbar` (layout manager, teacher view, etc.) | `SeatingEditorCanvasToolbar` |
-| Footer | `StudentsBottomNav` | `StudentsBottomNav` with `buttonsDisabled={true}` |
+| Footer slot | Always mounted; `StudentsBottomNav` | Same slot; `StudentsBottomNav` with `buttonsDisabled={true}` |
 | Main stage (Tier 2) | `SeatingChartView` | `SeatingChartEditorView` (via `StudentsWorkspace`) |
 
-**There is no `SeatingEditorBottomNav`.** Editor actions that previously lived in a dedicated bottom bar now live on the right-rail canvas toolbar. The standard students bottom nav remains visible but non-interactive until the user exits edit mode (toolbar Close / URL without `mode=edit`).
+**There is no `SeatingEditorBottomNav`.** Editor actions live on the right-rail canvas toolbar. Footer stays visible during Timer/Random overlays (canvas-only replacement). On `/dashboard` (no class), footer renders with class-gated controls hidden inside `StudentsBottomNav`.
 
 #### `SeatingEditorCanvasToolbar` (Tier 2 — `features/seating/`)
 
