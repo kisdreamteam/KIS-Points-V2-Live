@@ -193,23 +193,23 @@ src/
     │
     ├── dashboard/
     │   ├── layouts/
-    │   │   └── DashboardShell.tsx          [T1] 7-zone grid shell; navbars, hosts, {children}
-    │   ├── DashboardView.tsx               [T2] Route entry: activeView → Classes/Students workspace
-    │   ├── DashboardClassModalsHost.tsx      [T2] Class create/edit modal orchestration mount
-    │   ├── DashboardToolsHost.tsx          [T2] Timer + Random tool mount points
-    │   ├── AwardPointsModalHost.tsx        [T2] Award-points flow host
-    │   ├── EditSkillsModalHost.tsx         [T2] Edit-skills flow host
-    │   ├── stage/                          [T2] Toolbar orchestration + config
-    │   │   ├── dashboardToolbarConfig.ts   [T2] Action IDs / disabled rules (visual contract)
-    │   │   ├── workspaceToolbarPresets.tsx   [T2] Preset icons + events → WorkspaceToolbarAction
-    │   │   └── DashboardWorkspaceToolbar.tsx [T2] Default workspace rail (uses T3 WorkspaceToolbar)
+    │   │   └── DashboardShell.tsx                [T1] 7-zone grid shell; navbars, hosts, {children}
+    │   ├── DashboardView.tsx                     [T2] Route entry: activeView → Classes/Students workspace
+    │   ├── DashboardClassModalsHost.tsx          [T2] Class create/edit modal orchestration mount
+    │   ├── DashboardToolsHost.tsx                [T2] Timer + Random tool mount points
+    │   ├── AwardPointsModalHost.tsx              [T2] Award-points flow host
+    │   ├── EditSkillsModalHost.tsx               [T2] Edit-skills flow host
+    │   ├── stage/                                [T2] Toolbar orchestration + config
+    │   │   ├── dashboardToolbarConfig.ts         [T2] Action IDs / disabled rules (visual contract)
+    │   │   ├── workspaceToolbarPresets.tsx       [T2] Preset icons + events → WorkspaceToolbarAction
+    │   │   └── DashboardWorkspaceToolbar.tsx     [T2] Default workspace rail (uses T3 WorkspaceToolbar)
     │   ├── tools/
-    │   │   └── Random.tsx                  [T2] Random picker tool (LargeToolModal)
+    │   │   └── Random.tsx                        [T2] Random picker tool (LargeToolModal)
     │   └── components/
-    │       ├── frame/                      [T1] Dashboard frame only
+    │       ├── frame/                            [T1] Dashboard frame only
     │       │   ├── WorkspaceTwoColumnSplit.tsx   [T1] Zones 4–5: main + right toolbar column
-    │       │   ├── dashboardZoneConfig.ts  [T1] Grid row/col class names for 7 zones
-    │       │   └── navbars/                [T1]
+    │       │   ├── dashboardZoneConfig.ts        [T1] Grid row/col class names for 7 zones
+    │       │   └── navbars/                      [T1]
     │       │       ├── LeftNav.tsx
     │       │       ├── SeatingEditorLeftNav.tsx
     │       │       ├── TopNav.tsx
@@ -261,10 +261,11 @@ src/
     │
     ├── students/
     │   ├── StudentsWorkspace.tsx           [T2] 2-col layout; picks toolbar by view/mode
-    │   ├── StudentsWorkspaceContent.tsx    [T2] Grid vs seating view switch
-    │   ├── StudentCardsGrid.tsx            [T2] Student grid orchestration
+    │   ├── StudentsWorkspaceToolbar.tsx    [T2] Delegates to Dashboard/SeatingEditor workspace toolbars
+    │   ├── StudentsWorkspaceContent.tsx    [T2] Grid vs seating routing; shared hooks/modals
+    │   ├── StudentsGridWorkspaceContent.tsx [T2] Grid stage (cards, point log)
+    │   ├── StudentCardsGrid.tsx            [T2] Student grid layout
     │   └── components/
-    │       ├── StudentsWorkspaceToolbar.tsx [T2] Delegates to Dashboard/SeatingEditor workspace toolbars
     │       ├── cards/                      [T3] StudentCard: useShallow store exception
     │       │   ├── AddStudentCard.tsx
     │       │   ├── StudentCard.tsx
@@ -283,14 +284,13 @@ src/
     │           └── EditStudentModal.tsx
     │
     └── seating/
-        ├── SeatingChartView.tsx            [T2] Seating chart (read mode)
-        ├── SeatingChartEditorView.tsx      [T2] Seating chart (edit mode)
-        ├── SeatingChartWorkspace.tsx       [T2] Seating workspace wrapper
-        ├── SeatingChartEditorWorkspace.tsx [T2] Seating editor workspace wrapper
+        ├── StudentsSeatingBranch.tsx         [T2] View vs editor routing (from StudentsWorkspaceContent)
+        ├── SeatingViewWorkspaceContent.tsx [T2] Seating chart (read mode)
+        ├── SeatingEditorWorkspaceContent.tsx [T2] Seating chart (edit mode)
         ├── SeatingGroupsCanvas.tsx         [T2] Groups/seats canvas stage
         ├── SeatingEditorWorkspaceToolbar.tsx [T2] Edit-mode rail + portaled menus
         └── components/
-            ├── seating/                    [T3]
+            ├── canvas/                     [T3]
             │   ├── LayoutManagerDrawer.tsx
             │   └── SeatingCanvasDecor.tsx
             ├── menus/                      [T3]
@@ -328,6 +328,6 @@ Layer 1 hooks (e.g. `useWorkspaceToolbarActions`, `useSeatingEditBottomNav`) fee
 | Left nav (T1 shell) | `LeftNav` | `SeatingEditorLeftNav` |
 | Right rail (T2 view-owned) | `StudentsWorkspaceToolbar` → `DashboardWorkspaceToolbar` | `StudentsWorkspaceToolbar` → `SeatingEditorWorkspaceToolbar` |
 | Footer (T1) | `BottomNav` | `BottomNav` with `buttonsDisabled={true}` |
-| Main stage (T2) | `SeatingChartView` | `SeatingChartEditorView` |
+| Main stage (T2) | `StudentsGridWorkspaceContent` / `SeatingViewWorkspaceContent` | `SeatingEditorWorkspaceContent` |
 
 `/dashboard` (`ClassesWorkspace`): `ClassesWorkspaceToolbar` with all actions disabled.

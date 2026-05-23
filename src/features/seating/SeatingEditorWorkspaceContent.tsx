@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useShallow } from 'zustand/react/shallow';
@@ -12,17 +12,17 @@ import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import SuccessNotificationModal from '@/components/ui/modals/SuccessNotificationModal';
 import IconSettingsWheel from '@/components/ui/icons/iconSettingsWheel';
 import IconEditPencil from '@/components/ui/icons/iconEditPencil';
-import SeatingCanvasDecor from '@/features/seating/components/seating/SeatingCanvasDecor';
+import SeatingCanvasDecor from '@/features/seating/components/canvas/SeatingCanvasDecor';
 import SeatingEditorGroupSettingsMenu from '@/features/seating/components/menus/SeatingEditorGroupSettingsMenu';
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 import { useSeatingChartEditor } from '@/hooks/useSeatingChart';
 
-interface SeatingChartEditorWorkspaceProps {
+type SeatingEditorWorkspaceContentProps = {
   classId: string;
   students: Student[];
-}
+};
 
-export default function SeatingChartEditorWorkspace({ classId, students }: SeatingChartEditorWorkspaceProps) {
+export default function SeatingEditorWorkspaceContent({ classId, students }: SeatingEditorWorkspaceContentProps) {
   const { selectedStudentForGroup, setSelectedStudentForGroup, setUnseatedStudents, unseatedStudents } =
     useSeatingStore(
       useShallow((s) => ({
@@ -160,8 +160,14 @@ export default function SeatingChartEditorWorkspace({ classId, students }: Seati
     return () => document.removeEventListener('click', handleClickOutside, true);
   }, [openSettingsMenuId, setOpenSettingsMenuId]);
 
+  const shell = (content: ReactNode) => (
+    <div className="h-full w-full min-h-0 flex flex-col">
+      <div className="flex-1 min-h-0 overflow-hidden">{content}</div>
+    </div>
+  );
+
   if (isLoading) {
-    return (
+    return shell(
       <div className="flex h-full min-h-0 items-center justify-center">
         <p className="text-white text-xl">Loading seating charts...</p>
       </div>
@@ -169,7 +175,7 @@ export default function SeatingChartEditorWorkspace({ classId, students }: Seati
   }
 
   if (error) {
-    return (
+    return shell(
       <div className="flex h-full min-h-0 flex-col items-center justify-center gap-4">
         <p className="text-white text-xl">{error}</p>
         <button
@@ -183,7 +189,7 @@ export default function SeatingChartEditorWorkspace({ classId, students }: Seati
   }
 
   if (layouts.length === 0) {
-    return (
+    return shell(
       <div className="h-full min-h-0 p-6 sm:p-8 md:p-10">
         <div className="flex h-full min-h-0 flex-col items-center justify-center gap-6">
           <div className="text-center">
@@ -208,7 +214,7 @@ export default function SeatingChartEditorWorkspace({ classId, students }: Seati
     );
   }
 
-  return (
+  return shell(
     <div className="font-spartan relative w-full h-full min-h-0 bg-brand-purple flex flex-col">
       <div className="w-full h-full min-h-0 bg-brand-purple relative overflow-hidden flex-1">
         <div className="h-full min-h-0 relative" style={{ zIndex: 1 }}>

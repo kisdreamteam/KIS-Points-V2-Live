@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import StudentsWorkspaceContent from './StudentsWorkspaceContent';
-import StudentsWorkspaceToolbar from '@/features/students/components/StudentsWorkspaceToolbar';
+import StudentsWorkspaceToolbar from '@/features/students/StudentsWorkspaceToolbar';
 import WorkspaceTwoColumnSplit from '@/features/dashboard/components/frame/WorkspaceTwoColumnSplit';
 import { useStudentsUrlState } from '@/hooks/useStudentsUrlState';
 import { useLayoutStore } from '@/stores/useLayoutStore';

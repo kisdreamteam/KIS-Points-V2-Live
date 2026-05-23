@@ -2,13 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import PointsLogDrawer from '@/features/dashboard/components/PointsLogDrawer';
-import SeatingChartView from '../seating/SeatingChartView';
-import SeatingChartEditorView from '../seating/SeatingChartEditorView';
-import StudentCardsGrid from './StudentCardsGrid';
+import StudentsGridWorkspaceContent from './StudentsGridWorkspaceContent';
+import StudentsSeatingBranch from '@/features/seating/StudentsSeatingBranch';
 import LoadingState from '@/components/ui/LoadingState';
 import ErrorState from '@/components/ui/ErrorState';
-import EmptyState from '@/components/ui/EmptyState';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import { refreshDashboardStudents } from '@/hooks/sync/useDashboardStudentSync';
 import { useArchiveStudent } from '@/hooks/useArchiveStudent';
@@ -20,8 +17,6 @@ import { useStudentsToolbarEvents } from '@/hooks/useStudentsToolbarEvents';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 import { selectOrderedStudentIds, selectTotalClassPoints } from '@/stores/dashboardStudentSelectors';
-import type { DashboardSetStudents } from '@/stores/useDashboardStore';
-import type { Student } from '@/lib/types';
 
 type StudentsWorkspaceContentProps = {
   classId: string;
@@ -29,40 +24,6 @@ type StudentsWorkspaceContentProps = {
   isSeatingEditMode: boolean;
   isEditModeFromURL: boolean;
 };
-
-function SeatingStudentsBranch({
-  classId,
-  isSeatingEditMode,
-  isEditModeFromURL,
-  students,
-  setStudents,
-  isMultiSelectMode,
-  selectedStudentIds,
-  onSelectStudent,
-}: {
-  classId: string;
-  isSeatingEditMode: boolean;
-  isEditModeFromURL: boolean;
-  students: Student[];
-  setStudents: (next: DashboardSetStudents) => void;
-  isMultiSelectMode: boolean;
-  selectedStudentIds: string[];
-  onSelectStudent: (studentId: string) => void;
-}) {
-  if (isSeatingEditMode || isEditModeFromURL) {
-    return <SeatingChartEditorView classId={classId} students={students} />;
-  }
-  return (
-    <SeatingChartView
-      classId={classId}
-      students={students}
-      setStudents={setStudents}
-      isMultiSelectMode={isMultiSelectMode}
-      selectedStudentIds={selectedStudentIds}
-      onSelectStudent={onSelectStudent}
-    />
-  );
-}
 
 export default function StudentsWorkspaceContent({
   classId,
@@ -73,7 +34,6 @@ export default function StudentsWorkspaceContent({
   const sortBy = usePreferenceStore((s) => s.sortBy);
   const classes = useDashboardStore((s) => s.classes);
   const students = useDashboardStore((s) => s.students);
-  const setStudents = useDashboardStore((s) => s.setStudents);
   const isLoadingStudents = useDashboardStore((s) => s.isLoadingStudents);
   const orderedStudentIdsSelector = useMemo(() => selectOrderedStudentIds(sortBy), [sortBy]);
   const orderedStudentIds = useDashboardStore(useShallow(orderedStudentIdsSelector));
@@ -179,72 +139,44 @@ export default function StudentsWorkspaceContent({
 
   return (
     <div className="h-full min-h-0 w-full min-w-0">
-      <div
-        className={
-          currentView === 'grid'
-            ? 'h-full min-h-0 w-full min-w-0 max-w-10xl mx-auto text-white-500 pr-2 md:pr-1'
-            : 'h-full min-h-0 w-full text-white-500'
-        }
-      >
-        {currentView === 'seating' ? (
-          <SeatingStudentsBranch
-            classId={classId}
-            isSeatingEditMode={isSeatingEditMode}
-            isEditModeFromURL={isEditModeFromURL}
-            students={students}
-            setStudents={setStudents}
-            isMultiSelectMode={isMultiSelectMode}
-            selectedStudentIds={selectedStudentIds}
-            onSelectStudent={handleSelectStudent}
-          />
-        ) : (
-          <>
-            <PointsLogDrawer
-              isOpen={isPointLogOpen}
-              position="fixed"
-              rightPx={60}
-              topPx={toolbarInset.top}
-              bottomPx={toolbarInset.bottom}
-              zIndex={35}
-              logTotalCount={logTotalCount}
-              pointLogError={pointLogError}
-              isPointLogLoading={isPointLogLoading}
-              pagedRows={pagedPointLogRows}
-              safeLogPage={safeLogPage}
-              totalPages={totalPages}
-              rowsPerPage={rowsPerPage}
-              setLogPage={setLogPage}
-              setRowsPerPage={setRowsPerPage}
-            />
-
-            {orderedStudentIds.length === 0 ? (
-              <EmptyState
-                title="No students yet"
-                message="Students will appear here once they are added to this class."
-                buttonText="Add Your First Student"
-                onAddClick={openAddStudentsModal}
-                showStudentMascots
-              />
-            ) : (
-              <StudentCardsGrid
-                orderedStudentIds={orderedStudentIds}
-                isMultiSelectMode={isMultiSelectMode}
-                selectedStudentIds={selectedStudentIds}
-                classIcon={classIcon}
-                totalClassPoints={totalClassPoints}
-                openDropdownId={openDropdownId}
-                onWholeClassClick={handleWholeClassClick}
-                onSelectStudent={handleSelectStudent}
-                onToggleDropdown={toggleDropdown}
-                onEditStudent={handleEditStudent}
-                onDeleteStudent={handleDeleteStudent}
-                onStudentClick={handleStudentClick}
-                onAddStudent={openAddStudentsModal}
-              />
-            )}
-          </>
-        )}
-      </div>
+      {currentView === 'seating' ? (
+        <StudentsSeatingBranch
+          classId={classId}
+          isSeatingEditMode={isSeatingEditMode}
+          isEditModeFromURL={isEditModeFromURL}
+          students={students}
+          isMultiSelectMode={isMultiSelectMode}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={handleSelectStudent}
+        />
+      ) : (
+        <StudentsGridWorkspaceContent
+          toolbarInset={toolbarInset}
+          isPointLogOpen={isPointLogOpen}
+          setLogPage={setLogPage}
+          setRowsPerPage={setRowsPerPage}
+          rowsPerPage={rowsPerPage}
+          logTotalCount={logTotalCount}
+          pointLogError={pointLogError}
+          isPointLogLoading={isPointLogLoading}
+          pagedPointLogRows={pagedPointLogRows}
+          safeLogPage={safeLogPage}
+          totalPages={totalPages}
+          orderedStudentIds={orderedStudentIds}
+          isMultiSelectMode={isMultiSelectMode}
+          selectedStudentIds={selectedStudentIds}
+          classIcon={classIcon}
+          totalClassPoints={totalClassPoints}
+          openDropdownId={openDropdownId}
+          onWholeClassClick={handleWholeClassClick}
+          onSelectStudent={handleSelectStudent}
+          onToggleDropdown={toggleDropdown}
+          onEditStudent={handleEditStudent}
+          onDeleteStudent={handleDeleteStudent}
+          onStudentClick={handleStudentClick}
+          onAddStudent={openAddStudentsModal}
+        />
+      )}
 
       <ConfirmationModal
         isOpen={studentToArchive !== null}
