@@ -61,7 +61,7 @@ Auth and landing are **not** subject to the dashboard `components/` vs `features
 | **Symmetric pages** | Dashboard `page.tsx` and `classes/[classId]/page.tsx` both render `<DashboardView />` from `@/features/dashboard/DashboardView.tsx` only. |
 | **Layout vs page split** | `app/dashboard/layout.tsx` → `DashboardShell` (chrome). `app/dashboard/*/page.tsx` → `DashboardView` (sync + stage routing). Do not hoist `DashboardView` into layout without an explicit, documented win. |
 
-**Dashboard stage entry:** `src/features/dashboard/DashboardView.tsx` consolidates sync workers, pathname-derived `key`, route guard, and `activeView` → `ClassesWorkspace` / `StudentsStage`. Matches auth/landing `page → *View` symmetry. Do not split routing into `app/` or reintroduce `DashboardViewSwitch`.
+**Dashboard stage entry:** `src/features/dashboard/DashboardView.tsx` consolidates sync workers, pathname-derived `key`, route guard, and `activeView` → `ClassesStage` / `StudentsStage`. Matches auth/landing `page → *View` symmetry. Do not split routing into `app/` or reintroduce `DashboardViewSwitch`.
 
 `getDashboardClassIdFromPath()` lives in `DashboardView.tsx` (done).
 
@@ -75,7 +75,7 @@ flowchart TD
   dv[DashboardView Tier2]
   sync[Sync workers Layer1b]
   stage[DashboardStageContent private]
-  classes[ClassesWorkspace]
+  classes[ClassesStage]
   students[StudentsStage]
   layout --> shell
   page --> dv
@@ -90,7 +90,7 @@ flowchart TD
 |-------------|------|
 | `@/features/dashboard/DashboardView` | **Only** import from dashboard `page.tsx` files |
 | Internal `DashboardStageContent` | `activeView` switch + class-route guard (not exported) |
-| `ClassesWorkspace` / `StudentsStage` | Per-view `WorkspaceTwoColumnSplit` + workspace content + toolbar |
+| `ClassesStage` / `StudentsStage` | Per-view `StageTwoColumnSplit` + workspace content + toolbar |
 
 ---
 
@@ -117,7 +117,7 @@ flowchart TD
 | `features/dashboard/layouts/DashboardShell.tsx` | Shell grid (sidebar + top/footer chrome); main stage is `{children}` only |
 | `app/dashboard/layout.tsx` | Suspense + `DashboardShell` (thin wire); `DashboardClassesSync` mounted in shell |
 | `frame/dashboardZoneConfig.ts` | Shell sidebar grid + main-stage row class constants |
-| `frame/WorkspaceTwoColumnSplit.tsx` | View-owned 2-col stage (`1fr` canvas + toolbar rail) |
+| `frame/StageTwoColumnSplit.tsx` | View-owned 2-col stage (`1fr` canvas + toolbar rail) |
 | `frame/navbars/*` | Left/top/bottom nav (`BottomNav`, `SeatingEditorLeftNav`, etc.) |
 
 Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, `viewMode`) because they are shell chrome, not workspace orchestration.
@@ -128,7 +128,7 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 |------|------|
 | 1 | Left nav (classes, seating layouts) |
 | 2–3 | Header / top nav |
-| 4–5 | Main stage (`WorkspaceTwoColumnSplit`: workspace + canvas toolbar rail) |
+| 4–5 | Main stage (`StageTwoColumnSplit`: workspace + canvas toolbar rail) |
 | 6–7 | Footer / bottom toolbars |
 
 **Rules**
@@ -144,13 +144,13 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 | Module path | Files |
 |-------------|-------|
 | `features/dashboard/` | **`DashboardView.tsx`** (route entry: sync + `DashboardStageContent` routing), `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/dashboardToolbarConfig.ts`, `stage/workspaceToolbarPresets.tsx`, `stage/DashboardWorkspaceToolbar.tsx`, `tools/Random.tsx` |
-| `features/classes/` | `ClassesWorkspace.tsx`, `ClassesWorkspaceContent.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx`, `components/ClassesWorkspaceToolbar.tsx` |
+| `features/classes/` | `ClassesStage.tsx`, `ClassesStageContent.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx`, `components/ClassesStageToolbar.tsx` |
 | `features/students/` | `StudentsStage.tsx`, `StudentsStageContent.tsx`, `StudentsCardsGrid.tsx`, `StudentsStageToolbar.tsx` |
 | `features/seating/` | `SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`, `SeatingChartEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx`, `SeatingEditorWorkspaceToolbar.tsx` |
 
-**Workspace toolbar rails (view-owned via `WorkspaceTwoColumnSplit`):**
+**Workspace toolbar rails (view-owned via `StageTwoColumnSplit`):**
 
-- `ClassesWorkspace` mounts `ClassesWorkspaceToolbar` (all actions **disabled** on `/dashboard`).
+- `ClassesStage` mounts `ClassesStageToolbar` (all actions **disabled** on `/dashboard`).
 - `StudentsStage` mounts `StudentsStageToolbar`, which delegates to `DashboardWorkspaceToolbar` or `SeatingEditorWorkspaceToolbar` by `activeView` + `isEditMode`.
 
 ```mermaid
@@ -372,7 +372,7 @@ Early return when no eligible students remain (`eligibleStudentIds.length === 0`
 
 ### Seating editor chrome (`?view=seating` + `?mode=edit`)
 
-`DashboardShell` uses a **unified chrome** grid (`grid-rows-[auto_1fr_auto]`): TopNav (zones 2–3) and the footer slot (zone 7) stay mounted on all dashboard routes. The **main section** is a single `{children}` slot; Tier-2 views own the two-column stage via `WorkspaceTwoColumnSplit`.
+`DashboardShell` uses a **unified chrome** grid (`grid-rows-[auto_1fr_auto]`): TopNav (zones 2–3) and the footer slot (zone 7) stay mounted on all dashboard routes. The **main section** is a single `{children}` slot; Tier-2 views own the two-column stage via `StageTwoColumnSplit`.
 
 When `useLayoutStore.isEditMode` is true on the seating chart view, shell and views swap several mounts:
 
@@ -384,7 +384,7 @@ When `useLayoutStore.isEditMode` is true on the seating chart view, shell and vi
 | Footer slot | Always mounted; `BottomNav` | Same slot; `BottomNav` with `buttonsDisabled={true}` |
 | Main stage (Tier 2) | `SeatingChartView` | `SeatingChartEditorView` (via `StudentsStageContent`) |
 
-`/dashboard` (`ClassesWorkspace`): toolbar rail always visible; `ClassesWorkspaceToolbar` with all actions **disabled**.
+`/dashboard` (`ClassesStage`): toolbar rail always visible; `ClassesStageToolbar` with all actions **disabled**.
 
 **There is no `SeatingEditorBottomNav`.** Editor actions live on the right-rail canvas toolbar. Footer stays visible always. **Timer** = draggable `MovableToolPanel`; **Random** = `LargeToolModal` (90vw × 90dvh); both via `DashboardToolsHost`; workspace always visible. On `/dashboard` (no class), footer renders with class-gated controls hidden inside `BottomNav`. `setTimerOpen` / `setRandomOpen` are mutually exclusive.
 

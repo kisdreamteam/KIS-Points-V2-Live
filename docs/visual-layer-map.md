@@ -38,11 +38,11 @@ flowchart TD
   subgraph t1 [Tier 1 scaffolding]
     DS[DashboardShell]
     FN[frame/navbars]
-    W2[WorkspaceTwoColumnSplit]
+    W2[StageTwoColumnSplit]
   end
   subgraph t2 [Tier 2 stage]
     DV[DashboardView]
-    CW[ClassesWorkspace]
+    CW[ClassesStage]
     SW[StudentsStage]
     TB[Workspace toolbars + hosts]
   end
@@ -207,7 +207,7 @@ src/
     │   │   └── Random.tsx                        [T2] Random picker tool (LargeToolModal)
     │   └── components/
     │       ├── frame/                            [T1] Dashboard frame only
-    │       │   ├── WorkspaceTwoColumnSplit.tsx   [T1] Zones 4–5: main + right toolbar column
+    │       │   ├── StageTwoColumnSplit.tsx   [T1] Zones 4–5: main + right toolbar column
     │       │   ├── dashboardZoneConfig.ts        [T1] Grid row/col class names for 7 zones
     │       │   └── navbars/                      [T1]
     │       │       ├── LeftNav.tsx
@@ -235,12 +235,12 @@ src/
     │           └── PointsAwardedConfirmationModal.tsx
     │
     ├── classes/
-    │   ├── ClassesWorkspace.tsx                  [T2] WorkspaceTwoColumnSplit + toolbar + content
-    │   ├── ClassesWorkspaceContent.tsx           [T2] Classes stage main column
+    │   ├── ClassesStage.tsx                  [T2] StageTwoColumnSplit + toolbar + content
+    │   ├── ClassesStageContent.tsx           [T2] Classes stage main column
     │   ├── ClassCardsGrid.tsx                    [T2] Grid orchestration (ScaledGridFrame + CardsGrid)
     │   ├── EditClassModalRoot.tsx                [T2] Edit-class modal subtree root
     │   └── components/
-    │       ├── ClassesWorkspaceToolbar.tsx       [T2] Classes right rail (disabled on /dashboard)
+    │       ├── ClassesStageToolbar.tsx       [T2] Classes right rail (disabled on /dashboard)
     │       ├── cards/                            [T3] ClassCard: narrow viewPreference store read
     │       │   ├── AddClassCard.tsx
     │       │   └── ClassCard.tsx
@@ -331,4 +331,4 @@ Layer 1 hooks (e.g. `useWorkspaceToolbarActions`, `useSeatingEditBottomNav`) fee
 | Footer (T1) | `BottomNav` | `BottomNav` with `buttonsDisabled={true}` |
 | Main stage (T2) | `StudentsGridBranch` / `SeatingViewWorkspace` | `SeatingEditorWorkspace` |
 
-`/dashboard` (`ClassesWorkspace`): `ClassesWorkspaceToolbar` with all actions disabled.
+`/dashboard` (`ClassesStage`): `ClassesStageToolbar` with all actions disabled.

@@ -1,13 +1,13 @@
 'use client';
 
-import ClassesWorkspaceContent from './ClassesWorkspaceContent';
-import ClassesWorkspaceToolbar from '@/features/classes/components/ClassesWorkspaceToolbar';
-import WorkspaceTwoColumnSplit from '@/features/dashboard/components/frame/WorkspaceTwoColumnSplit';
+import ClassesStageContent from './ClassesStageContent';
+import ClassesStageToolbar from '@/features/classes/components/ClassesStageToolbar';
+import StageTwoColumnSplit from '@/features/dashboard/components/frame/StageTwoColumnSplit';
 import { useClassActions } from '@/hooks/useClassActions';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
 
-export default function ClassesWorkspace() {
+export default function ClassesStage() {
   const classes = useDashboardStore((s) => s.classes);
   const isLoadingClasses = useDashboardStore((s) => s.isLoadingClasses);
   const hasAccessibleClasses = useDashboardStore((s) => s.allAccessibleClasses.length > 0);
@@ -15,9 +15,9 @@ export default function ClassesWorkspace() {
   const { archiveClass, deleteClassPermanently } = useClassActions();
 
   return (
-    <WorkspaceTwoColumnSplit
+    <StageTwoColumnSplit
       main={
-        <ClassesWorkspaceContent
+        <ClassesStageContent
           classes={classes}
           isLoadingClasses={isLoadingClasses}
           hasAccessibleClasses={hasAccessibleClasses}
@@ -26,7 +26,7 @@ export default function ClassesWorkspace() {
           onDeleteClassAction={deleteClassPermanently}
         />
       }
-      toolbar={<ClassesWorkspaceToolbar />}
+      toolbar={<ClassesStageToolbar />}
     />
   );
 }

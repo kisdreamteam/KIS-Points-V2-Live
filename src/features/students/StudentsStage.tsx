@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import StudentsStageContent from './StudentsStageContent';
 import StudentsStageToolbar from '@/features/students/StudentsStageToolbar';
-import WorkspaceTwoColumnSplit from '@/features/dashboard/components/frame/WorkspaceTwoColumnSplit';
+import StageTwoColumnSplit from '@/features/dashboard/components/frame/StageTwoColumnSplit';
 import { useStudentsUrlState } from '@/hooks/useStudentsUrlState';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 
@@ -25,7 +25,7 @@ export default function StudentsStage() {
     activeView === 'seating_chart' && isEditMode ? 'overflow-visible' : 'overflow-hidden';
 
   return (
-    <WorkspaceTwoColumnSplit
+    <StageTwoColumnSplit
       toolbarColumnClassName={toolbarColumnClassName}
       main={
         <StudentsStageContent

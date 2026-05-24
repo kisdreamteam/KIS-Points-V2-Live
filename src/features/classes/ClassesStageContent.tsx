@@ -11,7 +11,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import ClassCardsGrid from './ClassCardsGrid';
 import type { ClassRecord } from '@/lib/api/classes';
 
-type ClassesWorkspaceContentProps = {
+type ClassesStageContentProps = {
   classes: ClassRecord[];
   isLoadingClasses: boolean;
   hasAccessibleClasses: boolean;
@@ -20,14 +20,14 @@ type ClassesWorkspaceContentProps = {
   onDeleteClassAction: (params: { classId: string }) => Promise<void>;
 };
 
-export default function ClassesWorkspaceContent({
+export default function ClassesStageContent({
   classes,
   isLoadingClasses,
   hasAccessibleClasses,
   viewMode,
   onArchiveClassAction,
   onDeleteClassAction,
-}: ClassesWorkspaceContentProps) {
+}: ClassesStageContentProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);

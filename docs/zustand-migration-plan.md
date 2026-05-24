@@ -15,7 +15,7 @@
 - [x] **Setup:** Run `npm install zustand`.
 - [x] **Typings:** Define the UI state shape in `/src/lib/types.ts` or at the top of the store file (e.g., `activeView`, `isSidebarOpen`).
 - [x] **Create Store:** Create [`/src/stores/useLayoutStore.ts`](../src/stores/useLayoutStore.ts) with basic state and setter functions.
-- [x] **Reroute Readers:** `DashboardView` subscribes to `useLayoutStore` for `activeView` routing (`ClassesWorkspace` / `StudentsStage`); URL is synced from [`DashboardShell`](../src/features/dashboard/layouts/DashboardShell.tsx) via `useLayoutEffect`.
+- [x] **Reroute Readers:** `DashboardView` subscribes to `useLayoutStore` for `activeView` routing (`ClassesStage` / `StudentsStage`); URL is synced from [`DashboardShell`](../src/features/dashboard/layouts/DashboardShell.tsx) via `useLayoutEffect`.
 - [x] **Reroute Writers:** Update [`LeftNav`](../src/components/dashboard/shell/LeftNav.tsx) and [`ViewModeModal`](../src/components/ui/modals/ViewModeModal.tsx) to call `setActiveView` from `useLayoutStore` (TopNav has no view switches).
 - [x] **Verification:** `npm run build` passed; confirm in the browser: `/dashboard` ↔ class routes, grid ↔ seating via View modal, deep link `?view=seating`, and stage chrome (TopNav / toolbar) still match seating vs non-seating.
 

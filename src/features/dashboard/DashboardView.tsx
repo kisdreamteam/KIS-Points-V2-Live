@@ -3,7 +3,7 @@
 import { Suspense, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLayoutStore } from '@/stores/useLayoutStore';
-import ClassesWorkspace from '@/features/classes/ClassesWorkspace';
+import ClassesStage from '@/features/classes/ClassesStage';
 import StudentsStage from '@/features/students/StudentsStage';
 import { DashboardStudentSync } from '@/hooks/sync/useDashboardStudentSync';
 import { SeatingChartDataSync } from '@/hooks/sync/useSeatingChartDataSync';
@@ -32,12 +32,12 @@ function DashboardStageContent() {
 
   switch (activeView) {
     case 'classes':
-      return <ClassesWorkspace />;
+      return <ClassesStage />;
     case 'students':
     case 'seating_chart':
       return <StudentsStage />;
     default:
-      return <ClassesWorkspace />;
+      return <ClassesStage />;
   }
 }
 
@@ -59,7 +59,7 @@ export default function DashboardView() {
       <SeatingChartDataSync />
       <DashboardProfileSync />
       <DashboardClassesFilterSync />
-      {/* <ClassesWorkspace> and <StudentsStage> are the two main stage views for the dashboard */}
+      {/* <ClassesStage> and <StudentsStage> are the two main stage views for the dashboard */}
       <DashboardStageContent key={classId ?? 'dashboard-root'} />
     </Suspense>
   );

@@ -36,11 +36,11 @@ This plan implements the architecture rules from `.cursorrules` and `docs/archit
 
 ## Migration Sequence (Incremental, low-risk)
 
-## Step 1: `ClassesWorkspace` extraction (small blast radius)
+## Step 1: `ClassesStage` extraction (small blast radius)
 
 Status: Finished
 
-**File:** `src/components/dashboard/ClassesWorkspace.tsx`  
+**File:** `src/features/classes/ClassesStage.tsx`  
 **Issue:** Tier 2 calls Layer 3 directly.
 
 ### Create

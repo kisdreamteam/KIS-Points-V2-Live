@@ -100,7 +100,7 @@ Until late phases, keep **cross-feature primitives** here:
 |-------|---------|----------------|
 | **0** | Prep | Conventions, grep baselines, branch |
 | **1** | **Dashboard** (shell) | Frame, navbars, zone config, `DashboardView`, Timer, PointsLogDrawer — what `DashboardShell` imports |
-| **2** | **Classes** | Class cards/modals/forms; `ClassesWorkspaceContent` / `EditClassModalRoot` |
+| **2** | **Classes** | Class cards/modals/forms; `ClassesStageContent` / `EditClassModalRoot` |
 | **3** | **Students** | Student cards, modals/menus/forms; `StudentsStageContent` |
 | **4** | **Seating** | Seating menus, layout modals, canvas decor |
 | **5** | **Dashboard** (shared modals) | Award points, skills, confirmations — many cross-feature importers |
@@ -184,7 +184,7 @@ Phases **5** can merge into **1** for fewer PRs (larger blast radius).
 
 **Primary importers:**
 
-- `src/features/classes/ClassesWorkspaceContent.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx`
+- `src/features/classes/ClassesStageContent.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx`
 - `src/hooks/useClassesWorkspaceActions.ts`, `useClassManagement.ts`
 
 **Verify:** class list, create class, edit class modal tabs.
