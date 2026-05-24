@@ -1,8 +1,8 @@
 'use client';
 
 import type { Student } from '@/lib/types';
-import SeatingViewWorkspaceContent from './SeatingViewWorkspaceContent';
-import SeatingEditorWorkspaceContent from './SeatingEditorWorkspaceContent';
+import SeatingViewWorkspace from './SeatingViewWorkspace';
+import SeatingEditorWorkspace from './SeatingEditorWorkspace';
 
 type StudentsSeatingBranchProps = {
   classId: string;
@@ -26,9 +26,9 @@ export default function StudentsSeatingBranch({
   return (
     <div className="h-full min-h-0 w-full text-white-500">
       {isSeatingEditMode || isEditModeFromURL ? (
-        <SeatingEditorWorkspaceContent classId={classId} students={students} />
+        <SeatingEditorWorkspace classId={classId} students={students} />
       ) : (
-        <SeatingViewWorkspaceContent
+        <SeatingViewWorkspace
           classId={classId}
           isMultiSelectMode={isMultiSelectMode}
           selectedStudentIds={selectedStudentIds}

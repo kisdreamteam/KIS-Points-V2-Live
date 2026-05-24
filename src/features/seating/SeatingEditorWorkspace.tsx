@@ -17,12 +17,12 @@ import SeatingEditorGroupSettingsMenu from '@/features/seating/components/menus/
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 import { useSeatingChartEditor } from '@/hooks/useSeatingChart';
 
-type SeatingEditorWorkspaceContentProps = {
+type SeatingEditorWorkspaceProps = {
   classId: string;
   students: Student[];
 };
 
-export default function SeatingEditorWorkspaceContent({ classId, students }: SeatingEditorWorkspaceContentProps) {
+export default function SeatingEditorWorkspace({ classId, students }: SeatingEditorWorkspaceProps) {
   const { selectedStudentForGroup, setSelectedStudentForGroup, setUnseatedStudents, unseatedStudents } =
     useSeatingStore(
       useShallow((s) => ({

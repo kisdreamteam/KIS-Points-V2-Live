@@ -61,7 +61,7 @@ Auth and landing are **not** subject to the dashboard `components/` vs `features
 | **Symmetric pages** | Dashboard `page.tsx` and `classes/[classId]/page.tsx` both render `<DashboardView />` from `@/features/dashboard/DashboardView.tsx` only. |
 | **Layout vs page split** | `app/dashboard/layout.tsx` → `DashboardShell` (chrome). `app/dashboard/*/page.tsx` → `DashboardView` (sync + stage routing). Do not hoist `DashboardView` into layout without an explicit, documented win. |
 
-**Dashboard stage entry:** `src/features/dashboard/DashboardView.tsx` consolidates sync workers, pathname-derived `key`, route guard, and `activeView` → `ClassesWorkspace` / `StudentsWorkspace`. Matches auth/landing `page → *View` symmetry. Do not split routing into `app/` or reintroduce `DashboardViewSwitch`.
+**Dashboard stage entry:** `src/features/dashboard/DashboardView.tsx` consolidates sync workers, pathname-derived `key`, route guard, and `activeView` → `ClassesWorkspace` / `StudentsStage`. Matches auth/landing `page → *View` symmetry. Do not split routing into `app/` or reintroduce `DashboardViewSwitch`.
 
 `getDashboardClassIdFromPath()` lives in `DashboardView.tsx` (done).
 
@@ -76,7 +76,7 @@ flowchart TD
   sync[Sync workers Layer1b]
   stage[DashboardStageContent private]
   classes[ClassesWorkspace]
-  students[StudentsWorkspace]
+  students[StudentsStage]
   layout --> shell
   page --> dv
   shell --> page
@@ -90,7 +90,7 @@ flowchart TD
 |-------------|------|
 | `@/features/dashboard/DashboardView` | **Only** import from dashboard `page.tsx` files |
 | Internal `DashboardStageContent` | `activeView` switch + class-route guard (not exported) |
-| `ClassesWorkspace` / `StudentsWorkspace` | Per-view `WorkspaceTwoColumnSplit` + workspace content + toolbar |
+| `ClassesWorkspace` / `StudentsStage` | Per-view `WorkspaceTwoColumnSplit` + workspace content + toolbar |
 
 ---
 
@@ -145,18 +145,18 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 |-------------|-------|
 | `features/dashboard/` | **`DashboardView.tsx`** (route entry: sync + `DashboardStageContent` routing), `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/dashboardToolbarConfig.ts`, `stage/workspaceToolbarPresets.tsx`, `stage/DashboardWorkspaceToolbar.tsx`, `tools/Random.tsx` |
 | `features/classes/` | `ClassesWorkspace.tsx`, `ClassesWorkspaceContent.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx`, `components/ClassesWorkspaceToolbar.tsx` |
-| `features/students/` | `StudentsWorkspace.tsx`, `StudentsWorkspaceContent.tsx`, `StudentCardsGrid.tsx`, `components/StudentsWorkspaceToolbar.tsx` |
+| `features/students/` | `StudentsStage.tsx`, `StudentsStageContent.tsx`, `StudentsCardsGrid.tsx`, `StudentsStageToolbar.tsx` |
 | `features/seating/` | `SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`, `SeatingChartEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx`, `SeatingEditorWorkspaceToolbar.tsx` |
 
 **Workspace toolbar rails (view-owned via `WorkspaceTwoColumnSplit`):**
 
 - `ClassesWorkspace` mounts `ClassesWorkspaceToolbar` (all actions **disabled** on `/dashboard`).
-- `StudentsWorkspace` mounts `StudentsWorkspaceToolbar`, which delegates to `DashboardWorkspaceToolbar` or `SeatingEditorWorkspaceToolbar` by `activeView` + `isEditMode`.
+- `StudentsStage` mounts `StudentsStageToolbar`, which delegates to `DashboardWorkspaceToolbar` or `SeatingEditorWorkspaceToolbar` by `activeView` + `isEditMode`.
 
 ```mermaid
 flowchart LR
-  SW[StudentsWorkspace T2]
-  SWT[StudentsWorkspaceToolbar T2]
+  SW[StudentsStage T2]
+  SWT[StudentsStageToolbar T2]
   DWT[DashboardWorkspaceToolbar T2]
   SEWT[SeatingEditorWorkspaceToolbar T2]
   WT[WorkspaceToolbar T3]
@@ -380,9 +380,9 @@ When `useLayoutStore.isEditMode` is true on the seating chart view, shell and vi
 |-------------|-----------|-----------|
 | TopNav (header) | Always mounted | Always mounted |
 | Left nav (shell) | Default `LeftNav` | `SeatingEditorLeftNav` |
-| Workspace toolbar (view-owned) | `StudentsWorkspaceToolbar` → `DashboardWorkspaceToolbar` | `StudentsWorkspaceToolbar` → `SeatingEditorWorkspaceToolbar` |
+| Workspace toolbar (view-owned) | `StudentsStageToolbar` → `DashboardWorkspaceToolbar` | `StudentsStageToolbar` → `SeatingEditorWorkspaceToolbar` |
 | Footer slot | Always mounted; `BottomNav` | Same slot; `BottomNav` with `buttonsDisabled={true}` |
-| Main stage (Tier 2) | `SeatingChartView` | `SeatingChartEditorView` (via `StudentsWorkspaceContent`) |
+| Main stage (Tier 2) | `SeatingChartView` | `SeatingChartEditorView` (via `StudentsStageContent`) |
 
 `/dashboard` (`ClassesWorkspace`): toolbar rail always visible; `ClassesWorkspaceToolbar` with all actions **disabled**.
 

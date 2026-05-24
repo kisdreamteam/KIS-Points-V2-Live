@@ -4,7 +4,7 @@ import WholeClassCard from '@/features/students/components/cards/WholeClassCard'
 import StudentCard from '@/features/students/components/cards/StudentCard';
 import AddStudentCard from '@/features/students/components/cards/AddStudentCard';
 
-interface StudentCardsGridProps {
+interface StudentsCardsGridProps {
   orderedStudentIds: string[];
   isMultiSelectMode: boolean;
   selectedStudentIds: string[];
@@ -20,7 +20,7 @@ interface StudentCardsGridProps {
   onAddStudent: () => void;
 }
 
-export default function StudentCardsGrid({
+export default function StudentsCardsGrid({
   orderedStudentIds,
   isMultiSelectMode,
   selectedStudentIds,
@@ -34,7 +34,7 @@ export default function StudentCardsGrid({
   onDeleteStudent,
   onStudentClick,
   onAddStudent,
-}: StudentCardsGridProps) {
+}: StudentsCardsGridProps) {
   return (
     <ScaledGridFrame remeasureKey={`${orderedStudentIds.length}-${isMultiSelectMode ? 1 : 0}`}>
       <CardsGrid>

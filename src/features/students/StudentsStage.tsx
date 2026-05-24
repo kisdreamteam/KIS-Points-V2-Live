@@ -2,13 +2,13 @@
 
 import { useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import StudentsWorkspaceContent from './StudentsWorkspaceContent';
-import StudentsWorkspaceToolbar from '@/features/students/StudentsWorkspaceToolbar';
+import StudentsStageContent from './StudentsStageContent';
+import StudentsStageToolbar from '@/features/students/StudentsStageToolbar';
 import WorkspaceTwoColumnSplit from '@/features/dashboard/components/frame/WorkspaceTwoColumnSplit';
 import { useStudentsUrlState } from '@/hooks/useStudentsUrlState';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 
-export default function StudentsWorkspace() {
+export default function StudentsStage() {
   const params = useParams();
   const classId = (params?.classId as string | undefined) ?? '';
   const { currentView, isEditModeFromURL, isSeatingEditMode } = useStudentsUrlState({ classId });
@@ -28,14 +28,14 @@ export default function StudentsWorkspace() {
     <WorkspaceTwoColumnSplit
       toolbarColumnClassName={toolbarColumnClassName}
       main={
-        <StudentsWorkspaceContent
+        <StudentsStageContent
           classId={classId}
           currentView={normalizedView}
           isSeatingEditMode={isSeatingEditMode}
           isEditModeFromURL={isEditModeFromURL}
         />
       }
-      toolbar={<StudentsWorkspaceToolbar classId={classId} onEditClass={onEditClass} />}
+      toolbar={<StudentsStageToolbar classId={classId} onEditClass={onEditClass} />}
     />
   );
 }

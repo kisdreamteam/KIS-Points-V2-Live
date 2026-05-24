@@ -3,10 +3,10 @@
 import type { Dispatch, SetStateAction } from 'react';
 import PointsLogDrawer from '@/features/dashboard/components/PointsLogDrawer';
 import EmptyState from '@/components/ui/EmptyState';
-import StudentCardsGrid from './StudentCardsGrid';
+import StudentsCardsGrid from './StudentsCardsGrid';
 import type { PointLogRow } from '@/hooks/useClassPointLog';
 
-type StudentsGridWorkspaceContentProps = {
+export type StudentsGridWorkspaceProps = {
   toolbarInset: { top: number; bottom: number };
   isPointLogOpen: boolean;
   setLogPage: Dispatch<SetStateAction<number>>;
@@ -33,7 +33,7 @@ type StudentsGridWorkspaceContentProps = {
   onAddStudent: () => void;
 };
 
-export default function StudentsGridWorkspaceContent({
+export default function StudentsGridWorkspace({
   toolbarInset,
   isPointLogOpen,
   setLogPage,
@@ -58,7 +58,7 @@ export default function StudentsGridWorkspaceContent({
   onDeleteStudent,
   onStudentClick,
   onAddStudent,
-}: StudentsGridWorkspaceContentProps) {
+}: StudentsGridWorkspaceProps) {
   return (
     <div className="h-full min-h-0 w-full min-w-0 max-w-10xl mx-auto text-white-500 pr-2 md:pr-1">
       <PointsLogDrawer
@@ -88,7 +88,7 @@ export default function StudentsGridWorkspaceContent({
           showStudentMascots
         />
       ) : (
-        <StudentCardsGrid
+        <StudentsCardsGrid
           orderedStudentIds={orderedStudentIds}
           isMultiSelectMode={isMultiSelectMode}
           selectedStudentIds={selectedStudentIds}

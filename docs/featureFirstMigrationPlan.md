@@ -101,7 +101,7 @@ Until late phases, keep **cross-feature primitives** here:
 | **0** | Prep | Conventions, grep baselines, branch |
 | **1** | **Dashboard** (shell) | Frame, navbars, zone config, `DashboardView`, Timer, PointsLogDrawer — what `DashboardShell` imports |
 | **2** | **Classes** | Class cards/modals/forms; `ClassesWorkspaceContent` / `EditClassModalRoot` |
-| **3** | **Students** | Student cards, modals/menus/forms; `StudentsWorkspaceContent` |
+| **3** | **Students** | Student cards, modals/menus/forms; `StudentsStageContent` |
 | **4** | **Seating** | Seating menus, layout modals, canvas decor |
 | **5** | **Dashboard** (shared modals) | Award points, skills, confirmations — many cross-feature importers |
 | **6** | **Auth** | `components/ui/auth/*` → `features/auth/components/` |
@@ -206,7 +206,7 @@ Phases **5** can merge into **1** for fewer PRs (larger blast radius).
 
 **Primary importers:**
 
-- `src/features/students/StudentsWorkspaceContent.tsx`, `StudentCardsGrid.tsx`
+- `src/features/students/StudentsStageContent.tsx`, `StudentsCardsGrid.tsx`
 - `src/features/dashboard/DashboardClassModalsHost.tsx`
 - `src/features/dashboard/layouts/DashboardShell.tsx` → `BottomNav` (`features/dashboard/components/frame/navbars/BottomNav.tsx`)
 

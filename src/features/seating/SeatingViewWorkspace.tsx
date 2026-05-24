@@ -13,19 +13,19 @@ import { useClassPointLog } from '@/hooks/useClassPointLog';
 import { useSeatingLayoutManager } from '@/hooks/useSeatingLayoutManager';
 import { useSeatingStore } from '@/stores/useSeatingStore';
 
-type SeatingViewWorkspaceContentProps = {
+type SeatingViewWorkspaceProps = {
   classId: string;
   isMultiSelectMode?: boolean;
   selectedStudentIds?: string[];
   onSelectStudent?: (studentId: string) => void;
 };
 
-export default function SeatingViewWorkspaceContent({
+export default function SeatingViewWorkspace({
   classId,
   isMultiSelectMode = false,
   selectedStudentIds = [],
   onSelectStudent,
-}: SeatingViewWorkspaceContentProps) {
+}: SeatingViewWorkspaceProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const searchQuery = searchParams?.toString() ?? '';

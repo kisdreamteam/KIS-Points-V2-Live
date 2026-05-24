@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import StudentsGridWorkspaceContent from './StudentsGridWorkspaceContent';
+import StudentsGridBranch from './StudentsGridBranch';
 import StudentsSeatingBranch from '@/features/seating/StudentsSeatingBranch';
 import LoadingState from '@/components/ui/LoadingState';
 import ErrorState from '@/components/ui/ErrorState';
@@ -18,19 +18,19 @@ import { usePreferenceStore } from '@/stores/usePreferenceStore';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 import { selectOrderedStudentIds, selectTotalClassPoints } from '@/stores/dashboardStudentSelectors';
 
-type StudentsWorkspaceContentProps = {
+type StudentsStageContentProps = {
   classId: string;
   currentView: 'grid' | 'seating';
   isSeatingEditMode: boolean;
   isEditModeFromURL: boolean;
 };
 
-export default function StudentsWorkspaceContent({
+export default function StudentsStageContent({
   classId,
   currentView,
   isSeatingEditMode,
   isEditModeFromURL,
-}: StudentsWorkspaceContentProps) {
+}: StudentsStageContentProps) {
   const sortBy = usePreferenceStore((s) => s.sortBy);
   const classes = useDashboardStore((s) => s.classes);
   const students = useDashboardStore((s) => s.students);
@@ -150,7 +150,7 @@ export default function StudentsWorkspaceContent({
           onSelectStudent={handleSelectStudent}
         />
       ) : (
-        <StudentsGridWorkspaceContent
+        <StudentsGridBranch
           toolbarInset={toolbarInset}
           isPointLogOpen={isPointLogOpen}
           setLogPage={setLogPage}
