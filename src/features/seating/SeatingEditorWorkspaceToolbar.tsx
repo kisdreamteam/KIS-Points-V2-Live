@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useParams } from 'next/navigation';
+import { useShallow } from 'zustand/react/shallow';
 import WorkspaceToolbar, { toolbarButtonClass, type WorkspaceToolbarAction } from '@/components/ui/WorkspaceToolbar';
 import SeatingEditorAddGroupsMenu from '@/features/seating/components/menus/SeatingEditorAddGroupsMenu';
 import SeatingSettingsMenu from '@/features/seating/components/menus/SeatingSettingsMenu';
@@ -12,26 +14,43 @@ import EditorAutoAssignSeatsIcon from '@/components/ui/icons/EditorAutoAssignSea
 import EditorRandomSeatsIcon from '@/components/ui/icons/EditorRandomSeatsIcon';
 import EditorViewPreferencesIcon from '@/components/ui/icons/EditorViewPreferencesIcon';
 import EditorClearGroupsIcon from '@/components/ui/icons/EditorClearGroupsIcon';
-import type { DashboardToolbarDef } from '@/features/dashboard/stage/dashboardToolbarConfig';
+import { buildShellToolbarConfig } from '@/features/dashboard/stage/dashboardToolbarConfig';
 import { useWorkspaceToolbarActions } from '@/hooks/dashboard/useWorkspaceToolbarActions';
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 import { useSeatingEditBottomNav } from '@/hooks/useSeatingEditBottomNav';
+import { useLayoutStore } from '@/stores/useLayoutStore';
+import { useSeatingStore } from '@/stores/useSeatingStore';
 
 const toolbarMenuClassName = 'min-w-[220px]';
 const TOOLBAR_TOP_MENU_PLACEMENT = 'leftOfAnchorDown' as const;
 const TOOLBAR_BOTTOM_MENU_PLACEMENT = 'leftOfAnchorAbove' as const;
 
 type SeatingEditorWorkspaceToolbarProps = {
-  toolbarConfig: DashboardToolbarDef;
   classId?: string | null;
-  onEditClass?: () => void;
 };
 
 export default function SeatingEditorWorkspaceToolbar({
-  toolbarConfig,
-  classId = null,
-  onEditClass,
+  classId: classIdProp = null,
 }: SeatingEditorWorkspaceToolbarProps) {
+  const params = useParams();
+  const classId = classIdProp ?? (params?.classId as string | undefined) ?? null;
+  const setEditClassModalOpen = useLayoutStore((s) => s.setEditClassModalOpen);
+  const seatingLayoutsCount = useSeatingStore(useShallow((s) => s.layouts.length));
+
+  const onEditClass = useCallback(() => {
+    setEditClassModalOpen(true);
+  }, [setEditClassModalOpen]);
+
+  const toolbarConfig = useMemo(
+    () =>
+      buildShellToolbarConfig({
+        activeView: 'seating_chart',
+        isEditMode: true,
+        seatingLayoutsCount,
+      }),
+    [seatingLayoutsCount]
+  );
+
   const { topActions } = useWorkspaceToolbarActions(toolbarConfig);
   const {
     showGrid,

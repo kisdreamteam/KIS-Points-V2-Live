@@ -4,11 +4,9 @@ import { useState, useEffect } from 'react';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import CreateClassModal from '@/features/classes/components/modals/CreateClassModal';
 import EditClassModal from '@/features/classes/components/modals/EditClassModal';
+import ClassesGridBranch from './ClassesGridBranch';
 import { refreshDashboardClassesForUserAction } from '@/hooks/sync/useDashboardClassesSync';
 import { useClassesWorkspaceActions } from '@/hooks/useClassesWorkspaceActions';
-import LoadingState from '@/components/ui/LoadingState';
-import EmptyState from '@/components/ui/EmptyState';
-import ClassCardsGrid from './ClassCardsGrid';
 import type { ClassRecord } from '@/lib/api/classes';
 
 type ClassesStageContentProps = {
@@ -54,8 +52,8 @@ export default function ClassesStageContent({
 
   const isArchivedView = viewMode === 'archived';
   const classOwnerMap = new Map(classes.map((cls) => [cls.id, cls.is_owner !== false]));
+  const showInitialClassesLoading = isLoadingClasses && !hasAccessibleClasses;
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
       setOpenDropdownId(null);
@@ -67,26 +65,22 @@ export default function ClassesStageContent({
     }
   }, [openDropdownId]);
 
-  // Fetch student counts for all classes
   useEffect(() => {
     void fetchStudentCounts(classes);
   }, [classes, fetchStudentCounts]);
 
-  // Handle modal close with refresh
   const handleModalClose = () => {
     clearCreateClassError();
     setIsModalOpen(false);
     void refreshDashboardClassesForUserAction();
   };
 
-  // Handle dropdown toggle
   const toggleDropdown = (classId: string, event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
     setOpenDropdownId(openDropdownId === classId ? null : classId);
   };
 
-  // Handle archive/unarchive class - open confirmation modal
   const handleArchiveClass = (classId: string, className: string) => {
     if (!classOwnerMap.get(classId)) {
       alert('Only the primary class owner can archive or unarchive this class.');
@@ -98,7 +92,6 @@ export default function ClassesStageContent({
     setOpenDropdownId(null);
   };
 
-  // Confirm archive/unarchive class
   const handleConfirmArchive = async () => {
     if (!archiveClassId) return;
 
@@ -114,21 +107,18 @@ export default function ClassesStageContent({
     }
   };
 
-  // Handle edit class
   const handleEditClass = (classId: string) => {
     setOpenDropdownId(null);
     setSelectedClassId(classId);
     setIsEditModalOpen(true);
   };
 
-  // Handle edit modal close
   const handleEditModalClose = () => {
     setIsEditModalOpen(false);
     setSelectedClassId(null);
     void refreshDashboardClassesForUserAction();
   };
 
-  // Handle delete class (archived only)
   const handleDeleteClass = (classId: string, className: string) => {
     if (!classOwnerMap.get(classId)) {
       alert('Only the primary class owner can delete this class.');
@@ -140,7 +130,6 @@ export default function ClassesStageContent({
     setOpenDropdownId(null);
   };
 
-  // Confirm delete class
   const handleConfirmDelete = async () => {
     if (!deleteClassId) return;
 
@@ -156,50 +145,21 @@ export default function ClassesStageContent({
     }
   };
 
-  const showInitialClassesLoading = isLoadingClasses && !hasAccessibleClasses;
-
-  if (showInitialClassesLoading) {
-    return <LoadingState message={`Loading ${isArchivedView ? 'archived ' : ''}classes...`} />;
-  }
-
   return (
-    // Main Content Container for the class cards grid
-    <div className="max-w-full">
-      {/* Header for archived view */}
-      {isArchivedView && (
-        <div className="bg-blue-100 rounded-3xl p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Archived Classes</h1>
-        </div>
-      )}
+    <div className="h-full min-h-0 w-full min-w-0">
+      <ClassesGridBranch
+        classes={classes}
+        studentCounts={studentCounts}
+        openDropdownId={openDropdownId}
+        isArchivedView={isArchivedView}
+        showInitialClassesLoading={showInitialClassesLoading}
+        onToggleDropdown={toggleDropdown}
+        onEdit={handleEditClass}
+        onArchive={handleArchiveClass}
+        onAddClass={() => !isArchivedView && setIsModalOpen(true)}
+        onDelete={isArchivedView ? handleDeleteClass : undefined}
+      />
 
-      {!showInitialClassesLoading && classes.length === 0 ? (
-        <EmptyState
-          title={isArchivedView ? 'No Archived Classes' : 'Welcome to your dashboard!'}
-          message={
-            isArchivedView
-              ? 'Classes you archive will appear here'
-              : "You haven't created any classes yet. Create your first class to get started with managing your students."
-          }
-          buttonText={isArchivedView ? undefined : 'Create Your First Class'}
-          onAddClick={isArchivedView ? undefined : () => setIsModalOpen(true)}
-        />
-      ) : (
-        <ClassCardsGrid
-          classes={classes}
-          studentCounts={studentCounts}
-          openDropdownId={openDropdownId}
-          onToggleDropdown={toggleDropdown}
-          onEdit={handleEditClass}
-          onArchive={handleArchiveClass}
-          onAddClass={() => !isArchivedView && setIsModalOpen(true)}
-          archiveButtonText={isArchivedView ? 'Unarchive Class' : 'Archive Class'}
-          showAddCard={!isArchivedView}
-          onDelete={isArchivedView ? handleDeleteClass : undefined}
-          showDelete={isArchivedView}
-        />
-      )}
-
-      {/* Create Class Modal - only for active view */}
       {!isArchivedView && (
         <CreateClassModal
           isOpen={isModalOpen}
@@ -210,7 +170,6 @@ export default function ClassesStageContent({
         />
       )}
 
-      {/* Edit Class Modal */}
       {selectedClassId && (
         <EditClassModal
           isOpen={isEditModalOpen}
@@ -220,7 +179,6 @@ export default function ClassesStageContent({
         />
       )}
 
-      {/* Archive/Unarchive Confirmation Modal */}
       <ConfirmationModal
         isOpen={isArchiveModalOpen}
         onClose={() => {
@@ -230,15 +188,21 @@ export default function ClassesStageContent({
         }}
         onConfirm={handleConfirmArchive}
         title={isArchivedView ? 'Unarchive Class' : 'Archive Class'}
-        message={isArchivedView
-          ? `Are you sure you want to unarchive "${archiveClassName}"? This class will be restored to your main dashboard.`
-          : `Are you sure you want to archive "${archiveClassName}"? This class will be moved to your archived classes and removed from the main dashboard.`
+        message={
+          isArchivedView
+            ? `Are you sure you want to unarchive "${archiveClassName}"? This class will be restored to your main dashboard.`
+            : `Are you sure you want to archive "${archiveClassName}"? This class will be moved to your archived classes and removed from the main dashboard.`
         }
         confirmText={isArchivedView ? 'Unarchive' : 'Archive'}
         cancelText="Cancel"
         confirmButtonColor={isArchivedView ? 'green' : 'purple'}
         icon={
-          <svg className={`w-6 h-6 ${isArchivedView ? 'text-green-600' : 'text-purple-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className={`w-6 h-6 ${isArchivedView ? 'text-green-600' : 'text-purple-600'}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             {isArchivedView ? (
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
             ) : (
@@ -248,7 +212,6 @@ export default function ClassesStageContent({
         }
       />
 
-      {/* Delete Confirmation Modal - only for archived view */}
       {isArchivedView && (
         <ConfirmationModal
           isOpen={isDeleteModalOpen}
@@ -265,7 +228,12 @@ export default function ClassesStageContent({
           confirmButtonColor="red"
           icon={
             <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
             </svg>
           }
         />

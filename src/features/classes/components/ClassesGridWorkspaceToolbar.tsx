@@ -10,7 +10,7 @@ const classesToolbarConfig = buildShellToolbarConfig({
   seatingLayoutsCount: 0,
 });
 
-export default function ClassesStageToolbar() {
+export default function ClassesGridWorkspaceToolbar() {
   const { topActions, bottomActions } = useWorkspaceToolbarActions(classesToolbarConfig);
 
   return (

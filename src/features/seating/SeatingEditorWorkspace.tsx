@@ -3,6 +3,8 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import StageTwoColumnSplit from '@/components/ui/StageTwoColumnSplit';
+import SeatingEditorWorkspaceToolbar from '@/features/seating/SeatingEditorWorkspaceToolbar';
 import { useShallow } from 'zustand/react/shallow';
 import { useSeatingStore } from '@/stores/useSeatingStore';
 import { Student } from '@/lib/types';
@@ -160,14 +162,19 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
     return () => document.removeEventListener('click', handleClickOutside, true);
   }, [openSettingsMenuId, setOpenSettingsMenuId]);
 
-  const shell = (content: ReactNode) => (
-    <div className="h-full w-full min-h-0 flex flex-col">
-      <div className="flex-1 min-h-0 overflow-hidden">{content}</div>
-    </div>
+  const workspaceShell = (content: ReactNode) => (
+    <StageTwoColumnSplit
+      rightRail={<SeatingEditorWorkspaceToolbar />}
+      rightRailClassName="overflow-visible"
+    >
+      <div className="h-full w-full min-h-0 flex flex-col">
+        <div className="flex-1 min-h-0 overflow-hidden">{content}</div>
+      </div>
+    </StageTwoColumnSplit>
   );
 
   if (isLoading) {
-    return shell(
+    return workspaceShell(
       <div className="flex h-full min-h-0 items-center justify-center">
         <p className="text-white text-xl">Loading seating charts...</p>
       </div>
@@ -175,7 +182,7 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
   }
 
   if (error) {
-    return shell(
+    return workspaceShell(
       <div className="flex h-full min-h-0 flex-col items-center justify-center gap-4">
         <p className="text-white text-xl">{error}</p>
         <button
@@ -189,7 +196,7 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
   }
 
   if (layouts.length === 0) {
-    return shell(
+    return workspaceShell(
       <div className="h-full min-h-0 p-6 sm:p-8 md:p-10">
         <div className="flex h-full min-h-0 flex-col items-center justify-center gap-6">
           <div className="text-center">
@@ -214,7 +221,7 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
     );
   }
 
-  return shell(
+  return workspaceShell(
     <div className="font-spartan relative w-full h-full min-h-0 bg-brand-purple flex flex-col">
       <div className="w-full h-full min-h-0 bg-brand-purple relative overflow-hidden flex-1">
         <div className="h-full min-h-0 relative" style={{ zIndex: 1 }}>

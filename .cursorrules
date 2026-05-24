@@ -32,13 +32,14 @@ You must identify the active shell before applying layout or state rules. They a
 * **Scope:** `/dashboard/`, `/dashboard/classes/[classId]`.
 * **Shell (Tier 1):** `@/features/dashboard/layouts/DashboardShell.tsx` (7-zone grid; mounted from `app/dashboard/layout.tsx`).
 * **Stage entry (Tier 2):** `@/features/dashboard/DashboardView.tsx` — mounted from dashboard `page.tsx`; sync workers, pathname `key`, route guard, `ClassesStage` / `StudentsStage`.
-* **Frame (Tier 1):** `@/features/dashboard/components/frame/` — shell chrome only (`navbars/`, `StageTwoColumnSplit`, `dashboardZoneConfig`); no `DashboardView.tsx` under frame.
+* **Frame (Tier 1):** `@/features/dashboard/components/frame/` — shell chrome only (`navbars/`, `dashboardZoneConfig`); no `DashboardView.tsx` under frame.
+* **Layout primitive (Tier 3):** `@/components/ui/StageTwoColumnSplit.tsx` — twin-slot main + right rail; composed at each `*Workspace` tier.
 * **Folder policy:** Dashboard **Tier 3** → `@/features/{dashboard,classes,students,seating}/components/`; shared atoms → `@/components/ui/`. **Tier 2** → `@/features/`.
 * **Imports (moving forward):** Use `@/features/<feature>/components/...` for feature UI. **Never** recreate `@/components/dashboard/` or `@/components/ui/auth|landing/`.
 * **Modal host (Tier 2):** `@/features/dashboard/DashboardClassModalsHost.tsx` (mounted in `DashboardShell`).
 * **Tools host (Tier 2):** `@/features/dashboard/DashboardToolsHost.tsx` — Timer via `@/components/ui/MovableToolPanel.tsx`; Random via `@/components/ui/LargeToolModal.tsx` (90% viewport). `BottomNav` opens via `setTimerOpen` / `setRandomOpen`. Canvas always `{children}`.
 * **Award / edit-skills (Tier 2 + Layer 1):** `@/features/dashboard/AwardPointsModalHost.tsx` + `hooks/useAwardPointsModalController.ts`; `@/features/dashboard/EditSkillsModalHost.tsx` + `hooks/useEditSkillsModalController.ts`. Prefer this **host + controller** pattern when a dashboard modal subtree needs orchestration hooks but the UI itself should stay Tier 3.
-* **Layout Logic:** Shell chrome grid (`dashboardZoneConfig.ts`); main stage 2-column layout is **view-owned** (`StageTwoColumnSplit` + per-view toolbar).
+* **Layout Logic:** Shell chrome grid (`dashboardZoneConfig.ts`); main stage 2-column layout is **workspace-owned** (`StageTwoColumnSplit` + co-located `*WorkspaceToolbar` in each `*Workspace`).
 * **State:** `useUserStore`, `useDashboardStore` (includes `absentStudentIds` for daily attendance), `useLayoutStore`, `useSeatingStore`, `useModalStore`, `usePreferenceStore`.
 * **Source of Truth:** The **URL** is the primary source of truth for `classId`, `view`, and `mode`.
 * **Rule:** Do not apply dashboard grid rules to auth/landing, or auth flex rules to the dashboard workspace.
@@ -50,7 +51,7 @@ You must identify the active shell before applying layout or state rules. They a
 
 ### Tier 1: Scaffolding (The Building) — dashboard only
 
-* **Locations:** `@/features/dashboard/components/frame/` (includes `navbars/`, `StageTwoColumnSplit.tsx`, `dashboardZoneConfig.ts`).
+* **Locations:** `@/features/dashboard/components/frame/` (includes `navbars/`, `dashboardZoneConfig.ts`).
 * **Responsibility:** Persistent chrome and CSS Grid boundaries.
 * **Rule:** `DashboardClassesSync` in `DashboardShell`; `app/dashboard/layout.tsx` is Suspense + shell wire only; `useDashboardRouteStateSync` / `useViewPreferenceSync` in `DashboardShell`; class/student/profile/filter sync + stage routing in `@/features/dashboard/DashboardView.tsx`; dashboard `page.tsx` files render `<DashboardView />` only.
 * **Allowed:** Narrow store reads in navbars for chrome (e.g., `activeClassId`, `viewMode`). No Supabase, no mutation orchestration.
@@ -59,7 +60,7 @@ You must identify the active shell before applying layout or state rules. They a
 
 * **Locations:** `@/features/dashboard/`, `@/features/classes/`, `@/features/students/`, `@/features/seating/`.
 * **Responsibility:** View orchestration, workspace wiring, store subscription, passing props to Tier 3.
-* **Includes:** **`features/dashboard/DashboardView.tsx`** (route entry: sync + `activeView` → `ClassesStage` / `StudentsStage`), `features/dashboard/stage/` (`dashboardToolbarConfig.ts`, `DashboardWorkspaceToolbar`, presets), `features/classes/components/ClassesStageToolbar.tsx`, `features/students/StudentsStageToolbar.tsx`, `features/seating/SeatingEditorWorkspaceToolbar.tsx`, `features/dashboard/tools/Random.tsx`, `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, **`AwardPointsModalHost.tsx`**, **`EditSkillsModalHost.tsx`**, `features/classes/EditClassModalRoot.tsx`, `features/seating/SeatingGroupsCanvas.tsx`.
+* **Includes:** **`features/dashboard/DashboardView.tsx`** (route entry: sync + `activeView` → `ClassesStage` / `StudentsStage`), `features/dashboard/stage/` (`dashboardToolbarConfig.ts`, `DashboardWorkspaceToolbar`, presets), `features/classes/components/ClassesGridWorkspaceToolbar.tsx`, `features/students/StudentsGridWorkspaceToolbar.tsx`, `features/seating/SeatingViewWorkspaceToolbar.tsx`, `features/seating/SeatingEditorWorkspaceToolbar.tsx`, `features/dashboard/tools/Random.tsx`, `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, **`AwardPointsModalHost.tsx`**, **`EditSkillsModalHost.tsx`**, `features/classes/EditClassModalRoot.tsx`, `features/seating/SeatingGroupsCanvas.tsx`.
 * **New modal flows:** If a modal needs `@/hooks` orchestration (`use*` data, mutations, icons), implement **`features/dashboard/MyFeatureModalHost.tsx`** + **`hooks/useMyFeatureModalController.ts`**, expose `*ViewProps` next to **`features/dashboard/components/modals/MyFeatureModal.tsx`**. Do not bolt Layer 1 hooks onto presentational Tier 3 modals/forms by default.
 * **Nested UI:** Tier 3 modals may import and render Tier 2 **hosts** for self-contained subtrees (e.g. `AwardPointsModal` → `EditSkillsModalHost`); do not merge unrelated controller logic into a single hook.
 * **Rules:**
@@ -71,7 +72,7 @@ You must identify the active shell before applying layout or state rules. They a
 
 ### Tier 3: The Actors (Pure UI)
 
-* **Locations:** `@/components/ui/` (shared primitives, icons, `WorkspaceToolbar.tsx`). Feature UI: `@/features/dashboard/components/`, `@/features/classes/components/`, `@/features/students/components/`, `@/features/seating/components/`, `@/features/auth/components/`, `@/features/landing/components/`.
+* **Locations:** `@/components/ui/` (shared primitives, icons, `WorkspaceToolbar.tsx`, `StageTwoColumnSplit.tsx`). Feature UI: `@/features/dashboard/components/`, `@/features/classes/components/`, `@/features/students/components/`, `@/features/seating/components/`, `@/features/auth/components/`, `@/features/landing/components/`.
 * **Responsibility:** Presentational UI. Props in via props, behaviors out via callbacks. Local UI state (`useState`, refs, narrow `useEffect` for UX) allowed.
 * **Rules:** No **stores**, no **`@/hooks`** for **orchestration** (data fetch, mutations, cross-store flows), no API clients unless type-only imports. Thin modal wrappers that only compose children are OK.
 * **`forms/AddSkillForm.tsx`** and **`forms/EditSkillForm.tsx`** — **strict Tier 3:** no `@/hooks`; parent controllers (`useAwardPointsModalController`, `useEditSkillsModalController`) supply icon arrays / detecting flags / submit handlers passed through **`AddSkillModal`** / **`EditSkillModal`**.
@@ -92,7 +93,7 @@ The Dashboard is a fixed coordinate system. Do not use these rules for Auth/Land
 
 * **Zone 1:** Persistent Left Nav.
 * **Zones 2 & 3:** Top Bar / Header.
-* **Zones 4 & 5:** Main stage — `StageTwoColumnSplit` in Tier-2 views (canvas + right toolbar rail); not split in `DashboardShell`.
+* **Zones 4 & 5:** Main stage — `StageTwoColumnSplit` in Tier-2 workspaces (canvas + right toolbar rail); not split in `DashboardShell`.
 * **Zones 6 & 7:** Bottom Bar / Footer.
 * **Constraint:** Use `h-full` or `min-h-0` inside the Stage. **Never use `h-screen`** inside Dashboard content.
 
@@ -139,7 +140,7 @@ The Dashboard is a fixed coordinate system. Do not use these rules for Auth/Land
 
 Applies when URL/layout reflect **seating chart + edit mode** (`?view=seating` + `?mode=edit`, `useLayoutStore.isEditMode`).
 
-* **View-owned right rail (Tier 2):** `StudentsStage` → `StageTwoColumnSplit` → `StudentsStageToolbar` delegates to `DashboardWorkspaceToolbar` or `SeatingEditorWorkspaceToolbar` by `activeView` + `isEditMode`; `toolbarColumnClassName` uses `overflow-visible` in seating edit mode. `ClassesStage` mounts `ClassesStageToolbar` (disabled on `/dashboard`).
+* **Workspace-owned right rail (Tier 2):** Each `*Workspace` composes `StageTwoColumnSplit` with its co-located `*WorkspaceToolbar` (`StudentsGridWorkspaceToolbar`, `SeatingViewWorkspaceToolbar`, `SeatingEditorWorkspaceToolbar`, `ClassesGridWorkspaceToolbar`). `SeatingEditorWorkspace` passes `rightRailClassName="overflow-visible"` for portaled menus.
 * **Left nav:** `SeatingEditorLeftNav` replaces default left nav (layout list).
 * **Footer:** Keep `BottomNav` — pass `buttonsDisabled={isSeatingView && isEditMode}`. **Do not** reintroduce `SeatingEditorBottomNav`.
 * **Stage (Tier 2):** `StudentsStageContent` → grid: `StudentsGridBranch` → `StudentsGridWorkspace` → `StudentsCardsGrid`; seating: `StudentsSeatingBranch` → `SeatingViewWorkspace` or `SeatingEditorWorkspace`.

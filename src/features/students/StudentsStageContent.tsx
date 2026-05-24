@@ -4,16 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import StudentsGridBranch from './StudentsGridBranch';
 import StudentsSeatingBranch from '@/features/seating/StudentsSeatingBranch';
-import LoadingState from '@/components/ui/LoadingState';
-import ErrorState from '@/components/ui/ErrorState';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
-import { refreshDashboardStudents } from '@/hooks/sync/useDashboardStudentSync';
 import { useArchiveStudent } from '@/hooks/useArchiveStudent';
 import { useClassPointLog } from '@/hooks/useClassPointLog';
-import { useDashboardToolbarInset } from '@/hooks/useDashboardToolbarInset';
 import { useStudentsModalsState } from '@/hooks/useStudentsModalsState';
 import { useStudentsSelection } from '@/hooks/useStudentsSelection';
-import { useStudentsToolbarEvents } from '@/hooks/useStudentsToolbarEvents';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 import { selectOrderedStudentIds, selectTotalClassPoints } from '@/stores/dashboardStudentSelectors';
@@ -102,7 +97,6 @@ export default function StudentsStageContent({
     return () => document.removeEventListener('click', handleClickOutside, true);
   }, [openDropdownId, closeDropdown]);
 
-  const toolbarInset = useDashboardToolbarInset();
   const {
     isPointLogOpen,
     setIsPointLogOpen,
@@ -116,26 +110,6 @@ export default function StudentsStageContent({
     safeLogPage,
     pagedPointLogRows,
   } = useClassPointLog(classId);
-
-  useStudentsToolbarEvents({
-    classId,
-    currentView,
-    onToggleMultiSelect: toggleMultiSelect,
-    onSelectAll: selectAll,
-    onSelectNone: selectNone,
-    onRecentlySelect: recentlySelect,
-    onAwardPoints: awardPoints,
-    onInverseSelect: inverseSelect,
-    setIsPointLogOpen,
-  });
-
-  if (isLoadingStudents) {
-    return <LoadingState message="Loading students..." />;
-  }
-
-  if (error) {
-    return <ErrorState error={error} onRetry={() => void refreshDashboardStudents()} />;
-  }
 
   return (
     <div className="h-full min-h-0 w-full min-w-0">
@@ -151,7 +125,10 @@ export default function StudentsStageContent({
         />
       ) : (
         <StudentsGridBranch
-          toolbarInset={toolbarInset}
+          classId={classId}
+          currentView={currentView}
+          isLoadingStudents={isLoadingStudents}
+          error={error}
           isPointLogOpen={isPointLogOpen}
           setLogPage={setLogPage}
           setRowsPerPage={setRowsPerPage}
@@ -168,6 +145,13 @@ export default function StudentsStageContent({
           classIcon={classIcon}
           totalClassPoints={totalClassPoints}
           openDropdownId={openDropdownId}
+          onToggleMultiSelect={toggleMultiSelect}
+          onSelectAll={selectAll}
+          onSelectNone={selectNone}
+          onRecentlySelect={recentlySelect}
+          onAwardPoints={awardPoints}
+          onInverseSelect={inverseSelect}
+          setIsPointLogOpen={setIsPointLogOpen}
           onWholeClassClick={handleWholeClassClick}
           onSelectStudent={handleSelectStudent}
           onToggleDropdown={toggleDropdown}

@@ -1,13 +1,23 @@
 'use client';
 
 import type { Dispatch, SetStateAction } from 'react';
+import StageTwoColumnSplit from '@/components/ui/StageTwoColumnSplit';
 import PointsLogDrawer from '@/features/dashboard/components/PointsLogDrawer';
 import EmptyState from '@/components/ui/EmptyState';
+import LoadingState from '@/components/ui/LoadingState';
+import ErrorState from '@/components/ui/ErrorState';
 import StudentsCardsGrid from './StudentsCardsGrid';
+import StudentsGridWorkspaceToolbar from './StudentsGridWorkspaceToolbar';
+import { refreshDashboardStudents } from '@/hooks/sync/useDashboardStudentSync';
+import { useDashboardToolbarInset } from '@/hooks/useDashboardToolbarInset';
+import { useStudentsToolbarEvents } from '@/hooks/useStudentsToolbarEvents';
 import type { PointLogRow } from '@/hooks/useClassPointLog';
 
 export type StudentsGridWorkspaceProps = {
-  toolbarInset: { top: number; bottom: number };
+  classId: string;
+  currentView: 'grid' | 'seating';
+  isLoadingStudents: boolean;
+  error: string | null;
   isPointLogOpen: boolean;
   setLogPage: Dispatch<SetStateAction<number>>;
   setRowsPerPage: Dispatch<SetStateAction<number>>;
@@ -24,6 +34,13 @@ export type StudentsGridWorkspaceProps = {
   classIcon: string | null;
   totalClassPoints: number;
   openDropdownId: string | null;
+  onToggleMultiSelect: () => void;
+  onSelectAll: () => void;
+  onSelectNone: () => void;
+  onRecentlySelect: () => void;
+  onAwardPoints: () => void;
+  onInverseSelect: () => void;
+  setIsPointLogOpen: Dispatch<SetStateAction<boolean>>;
   onWholeClassClick: () => void;
   onSelectStudent: (studentId: string) => void;
   onToggleDropdown: (studentId: string, event: React.MouseEvent) => void;
@@ -34,7 +51,10 @@ export type StudentsGridWorkspaceProps = {
 };
 
 export default function StudentsGridWorkspace({
-  toolbarInset,
+  classId,
+  currentView,
+  isLoadingStudents,
+  error,
   isPointLogOpen,
   setLogPage,
   setRowsPerPage,
@@ -51,6 +71,13 @@ export default function StudentsGridWorkspace({
   classIcon,
   totalClassPoints,
   openDropdownId,
+  onToggleMultiSelect,
+  onSelectAll,
+  onSelectNone,
+  onRecentlySelect,
+  onAwardPoints,
+  onInverseSelect,
+  setIsPointLogOpen,
   onWholeClassClick,
   onSelectStudent,
   onToggleDropdown,
@@ -59,51 +86,81 @@ export default function StudentsGridWorkspace({
   onStudentClick,
   onAddStudent,
 }: StudentsGridWorkspaceProps) {
-  return (
-    <div className="h-full min-h-0 w-full min-w-0 max-w-10xl mx-auto text-white-500 pr-2 md:pr-1">
-      <PointsLogDrawer
-        isOpen={isPointLogOpen}
-        position="fixed"
-        rightPx={60}
-        topPx={toolbarInset.top}
-        bottomPx={toolbarInset.bottom}
-        zIndex={35}
-        logTotalCount={logTotalCount}
-        pointLogError={pointLogError}
-        isPointLogLoading={isPointLogLoading}
-        pagedRows={pagedPointLogRows}
-        safeLogPage={safeLogPage}
-        totalPages={totalPages}
-        rowsPerPage={rowsPerPage}
-        setLogPage={setLogPage}
-        setRowsPerPage={setRowsPerPage}
-      />
+  const toolbarInset = useDashboardToolbarInset();
 
-      {orderedStudentIds.length === 0 ? (
-        <EmptyState
-          title="No students yet"
-          message="Students will appear here once they are added to this class."
-          buttonText="Add Your First Student"
-          onAddClick={onAddStudent}
-          showStudentMascots
+  useStudentsToolbarEvents({
+    classId,
+    currentView,
+    onToggleMultiSelect,
+    onSelectAll,
+    onSelectNone,
+    onRecentlySelect,
+    onAwardPoints,
+    onInverseSelect,
+    setIsPointLogOpen,
+  });
+
+  const mainContent = (() => {
+    if (isLoadingStudents) {
+      return <LoadingState message="Loading students..." />;
+    }
+
+    if (error) {
+      return <ErrorState error={error} onRetry={() => void refreshDashboardStudents()} />;
+    }
+
+    return (
+      <div className="h-full min-h-0 w-full min-w-0 max-w-10xl mx-auto text-white-500 pr-2 md:pr-1">
+        <PointsLogDrawer
+          isOpen={isPointLogOpen}
+          position="fixed"
+          rightPx={60}
+          topPx={toolbarInset.top}
+          bottomPx={toolbarInset.bottom}
+          zIndex={35}
+          logTotalCount={logTotalCount}
+          pointLogError={pointLogError}
+          isPointLogLoading={isPointLogLoading}
+          pagedRows={pagedPointLogRows}
+          safeLogPage={safeLogPage}
+          totalPages={totalPages}
+          rowsPerPage={rowsPerPage}
+          setLogPage={setLogPage}
+          setRowsPerPage={setRowsPerPage}
         />
-      ) : (
-        <StudentsCardsGrid
-          orderedStudentIds={orderedStudentIds}
-          isMultiSelectMode={isMultiSelectMode}
-          selectedStudentIds={selectedStudentIds}
-          classIcon={classIcon}
-          totalClassPoints={totalClassPoints}
-          openDropdownId={openDropdownId}
-          onWholeClassClick={onWholeClassClick}
-          onSelectStudent={onSelectStudent}
-          onToggleDropdown={onToggleDropdown}
-          onEditStudent={onEditStudent}
-          onDeleteStudent={onDeleteStudent}
-          onStudentClick={onStudentClick}
-          onAddStudent={onAddStudent}
-        />
-      )}
-    </div>
+
+        {orderedStudentIds.length === 0 ? (
+          <EmptyState
+            title="No students yet"
+            message="Students will appear here once they are added to this class."
+            buttonText="Add Your First Student"
+            onAddClick={onAddStudent}
+            showStudentMascots
+          />
+        ) : (
+          <StudentsCardsGrid
+            orderedStudentIds={orderedStudentIds}
+            isMultiSelectMode={isMultiSelectMode}
+            selectedStudentIds={selectedStudentIds}
+            classIcon={classIcon}
+            totalClassPoints={totalClassPoints}
+            openDropdownId={openDropdownId}
+            onWholeClassClick={onWholeClassClick}
+            onSelectStudent={onSelectStudent}
+            onToggleDropdown={onToggleDropdown}
+            onEditStudent={onEditStudent}
+            onDeleteStudent={onDeleteStudent}
+            onStudentClick={onStudentClick}
+            onAddStudent={onAddStudent}
+          />
+        )}
+      </div>
+    );
+  })();
+
+  return (
+    <StageTwoColumnSplit rightRail={<StudentsGridWorkspaceToolbar />}>
+      {mainContent}
+    </StageTwoColumnSplit>
   );
 }

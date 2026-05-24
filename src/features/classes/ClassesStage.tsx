@@ -1,8 +1,6 @@
 'use client';
 
 import ClassesStageContent from './ClassesStageContent';
-import ClassesStageToolbar from '@/features/classes/components/ClassesStageToolbar';
-import StageTwoColumnSplit from '@/features/dashboard/components/frame/StageTwoColumnSplit';
 import { useClassActions } from '@/hooks/useClassActions';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
@@ -15,18 +13,13 @@ export default function ClassesStage() {
   const { archiveClass, deleteClassPermanently } = useClassActions();
 
   return (
-    <StageTwoColumnSplit
-      main={
-        <ClassesStageContent
-          classes={classes}
-          isLoadingClasses={isLoadingClasses}
-          hasAccessibleClasses={hasAccessibleClasses}
-          viewMode={viewMode}
-          onArchiveClassAction={archiveClass}
-          onDeleteClassAction={deleteClassPermanently}
-        />
-      }
-      toolbar={<ClassesStageToolbar />}
+    <ClassesStageContent
+      classes={classes}
+      isLoadingClasses={isLoadingClasses}
+      hasAccessibleClasses={hasAccessibleClasses}
+      viewMode={viewMode}
+      onArchiveClassAction={archiveClass}
+      onDeleteClassAction={deleteClassPermanently}
     />
   );
 }

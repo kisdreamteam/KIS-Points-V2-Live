@@ -117,7 +117,7 @@ flowchart TD
 | `features/dashboard/layouts/DashboardShell.tsx` | Shell grid (sidebar + top/footer chrome); main stage is `{children}` only |
 | `app/dashboard/layout.tsx` | Suspense + `DashboardShell` (thin wire); `DashboardClassesSync` mounted in shell |
 | `frame/dashboardZoneConfig.ts` | Shell sidebar grid + main-stage row class constants |
-| `frame/StageTwoColumnSplit.tsx` | View-owned 2-col stage (`1fr` canvas + toolbar rail) |
+| `components/ui/StageTwoColumnSplit.tsx` | Workspace-owned 2-col layout (`children` + `rightRail`) |
 | `frame/navbars/*` | Left/top/bottom nav (`BottomNav`, `SeatingEditorLeftNav`, etc.) |
 
 Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, `viewMode`) because they are shell chrome, not workspace orchestration.
@@ -144,19 +144,20 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 | Module path | Files |
 |-------------|-------|
 | `features/dashboard/` | **`DashboardView.tsx`** (route entry: sync + `DashboardStageContent` routing), `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/dashboardToolbarConfig.ts`, `stage/workspaceToolbarPresets.tsx`, `stage/DashboardWorkspaceToolbar.tsx`, `tools/Random.tsx` |
-| `features/classes/` | `ClassesStage.tsx`, `ClassesStageContent.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx`, `components/ClassesStageToolbar.tsx` |
-| `features/students/` | `StudentsStage.tsx`, `StudentsStageContent.tsx`, `StudentsCardsGrid.tsx`, `StudentsStageToolbar.tsx` |
+| `features/classes/` | `ClassesStage.tsx`, `ClassesStageContent.tsx`, `ClassesGridWorkspace.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx`, `components/ClassesGridWorkspaceToolbar.tsx` |
+| `features/students/` | `StudentsStage.tsx`, `StudentsStageContent.tsx`, `StudentsGridWorkspace.tsx`, `StudentsCardsGrid.tsx`, `StudentsGridWorkspaceToolbar.tsx` |
 | `features/seating/` | `SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`, `SeatingChartEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx`, `SeatingEditorWorkspaceToolbar.tsx` |
 
 **Workspace toolbar rails (view-owned via `StageTwoColumnSplit`):**
 
-- `ClassesStage` mounts `ClassesStageToolbar` (all actions **disabled** on `/dashboard`).
-- `StudentsStage` mounts `StudentsStageToolbar`, which delegates to `DashboardWorkspaceToolbar` or `SeatingEditorWorkspaceToolbar` by `activeView` + `isEditMode`.
+- `ClassesGridWorkspace` mounts `ClassesGridWorkspaceToolbar` (all actions **disabled** on `/dashboard`).
+- Each workspace mounts its own toolbar: `StudentsGridWorkspaceToolbar`, `SeatingViewWorkspaceToolbar`, `SeatingEditorWorkspaceToolbar`.
 
 ```mermaid
 flowchart LR
   SW[StudentsStage T2]
-  SWT[StudentsStageToolbar T2]
+  SGT[StudentsGridWorkspaceToolbar T2]
+  SVT[SeatingViewWorkspaceToolbar T2]
   DWT[DashboardWorkspaceToolbar T2]
   SEWT[SeatingEditorWorkspaceToolbar T2]
   WT[WorkspaceToolbar T3]
@@ -380,11 +381,11 @@ When `useLayoutStore.isEditMode` is true on the seating chart view, shell and vi
 |-------------|-----------|-----------|
 | TopNav (header) | Always mounted | Always mounted |
 | Left nav (shell) | Default `LeftNav` | `SeatingEditorLeftNav` |
-| Workspace toolbar (view-owned) | `StudentsStageToolbar` → `DashboardWorkspaceToolbar` | `StudentsStageToolbar` → `SeatingEditorWorkspaceToolbar` |
+| Workspace toolbar (workspace-owned) | `SeatingViewWorkspaceToolbar` → `DashboardWorkspaceToolbar` | `SeatingEditorWorkspaceToolbar` |
 | Footer slot | Always mounted; `BottomNav` | Same slot; `BottomNav` with `buttonsDisabled={true}` |
 | Main stage (Tier 2) | `SeatingChartView` | `SeatingChartEditorView` (via `StudentsStageContent`) |
 
-`/dashboard` (`ClassesStage`): toolbar rail always visible; `ClassesStageToolbar` with all actions **disabled**.
+`/dashboard` (`ClassesGridWorkspace`): toolbar rail always visible; `ClassesGridWorkspaceToolbar` with all actions **disabled**.
 
 **There is no `SeatingEditorBottomNav`.** Editor actions live on the right-rail canvas toolbar. Footer stays visible always. **Timer** = draggable `MovableToolPanel`; **Random** = `LargeToolModal` (90vw × 90dvh); both via `DashboardToolsHost`; workspace always visible. On `/dashboard` (no class), footer renders with class-gated controls hidden inside `BottomNav`. `setTimerOpen` / `setRandomOpen` are mutually exclusive.
 

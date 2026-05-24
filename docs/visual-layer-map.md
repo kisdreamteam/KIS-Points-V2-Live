@@ -38,7 +38,7 @@ flowchart TD
   subgraph t1 [Tier 1 scaffolding]
     DS[DashboardShell]
     FN[frame/navbars]
-    W2[StageTwoColumnSplit]
+    W2[StageTwoColumnSplit ui]
   end
   subgraph t2 [Tier 2 stage]
     DV[DashboardView]
@@ -118,6 +118,7 @@ src/
 │   ├── PrimaryButton.tsx
 │   ├── ScaledGridFrame.tsx
 │   ├── SelectInput.tsx
+│   ├── StageTwoColumnSplit.tsx           # T3 twin-slot main + right rail (composed at T2 workspaces)
 │   ├── TextInput.tsx
 │   ├── WorkspaceToolbar.tsx              # T3 vertical toolbar shell (pill + slots)
 │   ├── menu/
@@ -207,7 +208,6 @@ src/
     │   │   └── Random.tsx                        [T2] Random picker tool (LargeToolModal)
     │   └── components/
     │       ├── frame/                            [T1] Dashboard frame only
-    │       │   ├── StageTwoColumnSplit.tsx   [T1] Zones 4–5: main + right toolbar column
     │       │   ├── dashboardZoneConfig.ts        [T1] Grid row/col class names for 7 zones
     │       │   └── navbars/                      [T1]
     │       │       ├── LeftNav.tsx
@@ -235,12 +235,14 @@ src/
     │           └── PointsAwardedConfirmationModal.tsx
     │
     ├── classes/
-    │   ├── ClassesStage.tsx                  [T2] StageTwoColumnSplit + toolbar + content
-    │   ├── ClassesStageContent.tsx           [T2] Classes stage main column
+    │   ├── ClassesStage.tsx                  [T2] Stage entry → content
+    │   ├── ClassesStageContent.tsx           [T2] Modals + delegates to grid branch
+    │   ├── ClassesGridBranch.tsx             [T2] Grid branch router
+    │   ├── ClassesGridWorkspace.tsx          [T2] Split + grid + disabled rail
     │   ├── ClassCardsGrid.tsx                    [T2] Grid orchestration (ScaledGridFrame + CardsGrid)
     │   ├── EditClassModalRoot.tsx                [T2] Edit-class modal subtree root
     │   └── components/
-    │       ├── ClassesStageToolbar.tsx       [T2] Classes right rail (disabled on /dashboard)
+    │       ├── ClassesGridWorkspaceToolbar.tsx [T2] Classes right rail (disabled on /dashboard)
     │       ├── cards/                            [T3] ClassCard: narrow viewPreference store read
     │       │   ├── AddClassCard.tsx
     │       │   └── ClassCard.tsx
@@ -260,12 +262,12 @@ src/
     │           └── EditClassModal.tsx            # thin re-export → EditClassModalRoot (T2)
     │
     ├── students/
-    │   ├── StudentsStage.tsx                 [T2] 2-col layout; picks toolbar by view/mode
-    │   ├── StudentsStageToolbar.tsx          [T2] Delegates to Dashboard/SeatingEditor workspace toolbars
+    │   ├── StudentsStage.tsx                 [T2] Stage entry → content
     │   ├── StudentsStageContent.tsx          [T2] Grid vs seating routing; shared hooks/modals
-    │   ├── StudentsGridBranch.tsx      [T2] Grid branch router
-    │   ├── StudentsGridWorkspace.tsx   [T2] Grid stage (cards, point log)
-    │   ├── StudentsCardsGrid.tsx                  [T2] Student grid layout
+    │   ├── StudentsGridBranch.tsx              [T2] Grid branch router
+    │   ├── StudentsGridWorkspace.tsx           [T2] Split + grid + point log + rail
+    │   ├── StudentsGridWorkspaceToolbar.tsx    [T2] Grid workspace rail
+    │   ├── StudentsCardsGrid.tsx               [T2] Student grid layout
     │   └── components/
     │       ├── cards/                            [T3] StudentCard: useShallow store exception
     │       │   ├── AddStudentCard.tsx
@@ -286,8 +288,9 @@ src/
     │
     └── seating/
         ├── StudentsSeatingBranch.tsx             [T2] View vs editor routing (from StudentsStageContent)
-        ├── SeatingViewWorkspace.tsx       [T2] Seating chart (read mode)
-        ├── SeatingEditorWorkspace.tsx     [T2] Seating chart (edit mode)
+        ├── SeatingViewWorkspace.tsx              [T2] Split + seating chart (read mode)
+        ├── SeatingViewWorkspaceToolbar.tsx       [T2] View-mode rail
+        ├── SeatingEditorWorkspace.tsx            [T2] Split + seating chart (edit mode)
         ├── SeatingGroupsCanvas.tsx               [T2] Groups/seats canvas stage
         ├── SeatingEditorWorkspaceToolbar.tsx     [T2] Edit-mode rail + portaled menus
         └── components/
@@ -327,8 +330,10 @@ Layer 1 hooks (e.g. `useWorkspaceToolbarActions`, `useSeatingEditBottomNav`) fee
 | Area | View mode | Edit mode |
 |------|-----------|-----------|
 | Left nav (T1 shell) | `LeftNav` | `SeatingEditorLeftNav` |
-| Right rail (T2 view-owned) | `StudentsStageToolbar` → `DashboardWorkspaceToolbar` | `StudentsStageToolbar` → `SeatingEditorWorkspaceToolbar` |
+| Right rail (T2 workspace-owned) | `SeatingViewWorkspaceToolbar` → `DashboardWorkspaceToolbar` | `SeatingEditorWorkspaceToolbar` |
 | Footer (T1) | `BottomNav` | `BottomNav` with `buttonsDisabled={true}` |
-| Main stage (T2) | `StudentsGridBranch` / `SeatingViewWorkspace` | `SeatingEditorWorkspace` |
+| Main stage (T2) | `StudentsGridWorkspace` / `SeatingViewWorkspace` | `SeatingEditorWorkspace` |
 
-`/dashboard` (`ClassesStage`): `ClassesStageToolbar` with all actions disabled.
+`/dashboard` (`ClassesGridWorkspace`): `ClassesGridWorkspaceToolbar` with all actions disabled.
+
+`components/ui/StageTwoColumnSplit.tsx` — generic twin-slot layout (`children` + `rightRail`); composed at each `*Workspace` tier.

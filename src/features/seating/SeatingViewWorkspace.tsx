@@ -9,6 +9,8 @@ import PointsLogDrawer from '@/features/dashboard/components/PointsLogDrawer';
 import LayoutManagerDrawer from '@/features/seating/components/canvas/LayoutManagerDrawer';
 import SeatingCanvasDecor from '@/features/seating/components/canvas/SeatingCanvasDecor';
 import SeatingGroupsCanvas from '@/features/seating/SeatingGroupsCanvas';
+import SeatingViewWorkspaceToolbar from '@/features/seating/SeatingViewWorkspaceToolbar';
+import StageTwoColumnSplit from '@/components/ui/StageTwoColumnSplit';
 import { useClassPointLog } from '@/hooks/useClassPointLog';
 import { useSeatingLayoutManager } from '@/hooks/useSeatingLayoutManager';
 import { useSeatingStore } from '@/stores/useSeatingStore';
@@ -96,9 +98,10 @@ export default function SeatingViewWorkspace({
   const showGroupsLayer = hasLayouts && !isLoadingLayouts && !layoutsError;
 
   return (
-    <div className="h-full w-full min-h-0 flex flex-col">
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <div className="font-spartan relative w-full h-full min-h-0 bg-brand-purple flex flex-col">
+    <StageTwoColumnSplit rightRail={<SeatingViewWorkspaceToolbar />}>
+      <div className="h-full w-full min-h-0 flex flex-col">
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="font-spartan relative w-full h-full min-h-0 bg-brand-purple flex flex-col">
           <PointsLogDrawer
             isOpen={isPointLogOpen}
             position="fixed"
@@ -236,8 +239,9 @@ export default function SeatingViewWorkspace({
             currentName={layoutToEdit?.name ?? ''}
             onSave={handleEditLayoutSave}
           />
+          </div>
         </div>
       </div>
-    </div>
+    </StageTwoColumnSplit>
   );
 }
