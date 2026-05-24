@@ -10,7 +10,7 @@ import AuthBackLink from '@/features/auth/components/AuthBackLink';
 import AuthCard from '@/features/auth/components/AuthCard';
 import AuthFormHeader from '@/features/auth/components/AuthFormHeader';
 import AuthPrimaryButton from '@/features/auth/components/AuthPrimaryButton';
-import type { ForgotPasswordStep } from '@/hooks/useAuthFlow';
+import type { ForgotPasswordStep } from '@/features/auth/hooks/useAuthFlow';
 
 type ForgotPasswordFormProps = {
   step: ForgotPasswordStep;

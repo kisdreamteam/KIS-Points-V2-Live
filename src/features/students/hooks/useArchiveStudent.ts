@@ -6,8 +6,8 @@ import { deleteStudentSeatAssignmentsByStudentId } from '@/lib/api/seating';
 import {
   invalidateStudentsCacheForClass,
   refreshDashboardStudents,
-} from '@/hooks/sync/useDashboardStudentSync';
-import { refreshSeatingGroupsForLayout } from '@/hooks/sync/useSeatingChartDataSync';
+} from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
+import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/useSeatingChartDataSync';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 import { useSeatingStore } from '@/stores/useSeatingStore';
 import { useModalStore } from '@/stores/useModalStore';

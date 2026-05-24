@@ -1,7 +1,7 @@
 'use client';
 
 import ForgotPasswordForm from '@/features/auth/components/forms/ForgotPasswordForm';
-import { useAuthFlow } from '@/hooks/useAuthFlow';
+import { useAuthFlow } from '@/features/auth/hooks/useAuthFlow';
 
 export default function ForgotPasswordView() {
   const {

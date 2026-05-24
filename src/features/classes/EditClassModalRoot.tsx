@@ -11,7 +11,7 @@ import EditClassStudentsTab from '@/features/classes/components/forms/edit-class
 import EditClassTeachersTab from '@/features/classes/components/forms/edit-class/EditClassTeachersTab';
 import EditClassSettingsTab from '@/features/classes/components/forms/edit-class/EditClassSettingsTab';
 import EditClassResetPointsDialog from '@/features/classes/components/forms/edit-class/EditClassResetPointsDialog';
-import { useClassManagement } from '@/hooks/useClassManagement';
+import { useClassManagement } from '@/features/classes/hooks/useClassManagement';
 
 export interface EditClassModalProps {
   isOpen: boolean;

@@ -24,7 +24,7 @@ import {
 } from '@/lib/api/students';
 import type { Student } from '@/lib/types';
 import type { AddStudentsFormSubmitValues } from '@/features/students/components/forms/AddStudentsForm';
-import { refreshDashboardRosterIfActive } from '@/hooks/sync/useDashboardStudentSync';
+import { refreshDashboardRosterIfActive } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
 
 export interface CollaboratorTeacher {
   collaboratorRowId: string;

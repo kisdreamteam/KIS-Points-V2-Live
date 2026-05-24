@@ -7,10 +7,10 @@ import AwardPointsModalHost from '@/features/dashboard/AwardPointsModalHost';
 import PointsAwardedConfirmationModal from '@/features/dashboard/components/modals/PointsAwardedConfirmationModal';
 import { normalizeAvatarPath } from '@/lib/iconUtils';
 import { emitSeatingStudentPointsDelta } from '@/lib/events/students';
-import { useAwardPointsFlow } from '@/hooks/useAwardPointsFlow';
-import { useRandomStudentFlow } from '@/hooks/useRandomStudentFlow';
-import { refreshDashboardStudents } from '@/hooks/sync/useDashboardStudentSync';
-import { refreshSeatingGroupsForLayout } from '@/hooks/sync/useSeatingChartDataSync';
+import { useAwardPointsFlow } from '@/features/dashboard/hooks/useAwardPointsFlow';
+import { useRandomStudentFlow } from '@/features/dashboard/hooks/useRandomStudentFlow';
+import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
+import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/useSeatingChartDataSync';
 import { useSeatingStore } from '@/stores/useSeatingStore';
 import IconNoCircleX from '@/components/ui/icons/iconNoCircleX';
 

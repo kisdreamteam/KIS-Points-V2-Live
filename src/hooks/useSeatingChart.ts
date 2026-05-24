@@ -31,7 +31,7 @@ import {
 import type { GroupAssignment } from '@/lib/api/seating';
 import { getCoordinates, getNextIndex, getSlotIndex } from '@/lib/seatingLogic';
 import { STUDENT_EVENTS, emitSeatingEditMode } from '@/lib/events/students';
-import { refreshSeatingGroupsForLayout } from '@/hooks/sync/useSeatingChartDataSync';
+import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/useSeatingChartDataSync';
 
 
 interface SeatingChart {

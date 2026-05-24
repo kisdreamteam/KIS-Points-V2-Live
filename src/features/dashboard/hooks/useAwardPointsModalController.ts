@@ -6,9 +6,9 @@ import type {
   AwardPointsModalViewProps,
 } from '@/features/dashboard/components/modals/AwardPointsModal';
 import type { AddSkillFormSubmitValues } from '@/features/dashboard/components/forms/AddSkillForm';
-import { usePointAwarding } from '@/hooks/usePointAwarding';
-import { useSkillManagement } from '@/hooks/useSkillManagement';
-import { useAvailablePositiveIcons, useAvailableNegativeIcons } from '@/hooks/useAvailableIcons';
+import { usePointAwarding } from '@/features/dashboard/hooks/usePointAwarding';
+import { useSkillManagement } from '@/features/dashboard/hooks/useSkillManagement';
+import { useAvailablePositiveIcons, useAvailableNegativeIcons } from '@/features/dashboard/hooks/useAvailableIcons';
 
 export function useAwardPointsModalController(props: AwardPointsModalProps): AwardPointsModalViewProps {
   const {

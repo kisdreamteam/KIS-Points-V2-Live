@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PointCategory, Student } from '@/lib/types';
 import { fetchPointCategoriesByClassIds } from '@/lib/api/points';
-import { useAwardPointsService } from '@/hooks/useAwardPointsService';
+import { useAwardPointsService } from '@/features/dashboard/hooks/useAwardPointsService';
 
 const skillsByScopeCache = new Map<string, PointCategory[]>();
 

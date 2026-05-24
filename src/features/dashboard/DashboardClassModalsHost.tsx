@@ -3,9 +3,9 @@
 import { useCallback, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { useDashboardStore } from '@/stores/useDashboardStore';
-import { useAwardPointsFlow, type AwardPointsInfo } from '@/hooks/useAwardPointsFlow';
+import { useAwardPointsFlow, type AwardPointsInfo } from '@/features/dashboard/hooks/useAwardPointsFlow';
 import { useModalStore } from '@/stores/useModalStore';
-import { useDashboardClassModalsActions } from '@/hooks/useDashboardClassModalsActions';
+import { useDashboardClassModalsActions } from '@/features/dashboard/hooks/useDashboardClassModalsActions';
 import {
   emitMultiStudentAwardComplete,
   emitSeatingStudentPointsDelta,

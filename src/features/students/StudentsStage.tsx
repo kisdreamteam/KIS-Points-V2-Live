@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import StudentsStageContent from './StudentsStageContent';
-import { useStudentsUrlState } from '@/hooks/useStudentsUrlState';
+import { useStudentsUrlState } from '@/features/students/hooks/useStudentsUrlState';
 
 export default function StudentsStage() {
   const params = useParams();

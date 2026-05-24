@@ -1,7 +1,7 @@
 'use client';
 
 import ClassesStageContent from './ClassesStageContent';
-import { useClassActions } from '@/hooks/useClassActions';
+import { useClassActions } from '@/features/classes/hooks/useClassActions';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
 

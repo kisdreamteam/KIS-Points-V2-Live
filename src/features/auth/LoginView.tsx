@@ -3,7 +3,7 @@
 import type { FC } from 'react';
 
 import LoginForm from '@/features/auth/components/forms/LoginForm';
-import { useAuthFlow } from '@/hooks/useAuthFlow';
+import { useAuthFlow } from '@/features/auth/hooks/useAuthFlow';
 
 const LoginView: FC = () => {
   const {

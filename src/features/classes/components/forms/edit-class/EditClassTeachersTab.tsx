@@ -1,6 +1,6 @@
 'use client';
 
-import type { CollaboratorTeacher } from '@/hooks/useClassManagement';
+import type { CollaboratorTeacher } from '@/features/classes/hooks/useClassManagement';
 
 type EditClassTeachersTabProps = {
   newTeacherEmail: string;

@@ -1,13 +1,13 @@
 'use client';
 
 import { useCallback, useMemo, type ReactNode } from 'react';
-import { useDashboardRouteStateSync } from '@/hooks/sync/useDashboardRouteStateSync';
+import { useDashboardRouteStateSync } from '@/features/dashboard/hooks/sync/useDashboardRouteStateSync';
 import {
   DashboardClassesSync,
   refreshDashboardClassesForUserAction,
-} from '@/hooks/sync/useDashboardClassesSync';
-import { useViewPreferenceSync } from '@/hooks/sync/useViewPreferenceSync';
-import { useDashboardSessionActions } from '@/hooks/useDashboardSessionActions';
+} from '@/features/dashboard/hooks/sync/useDashboardClassesSync';
+import { useViewPreferenceSync } from '@/features/dashboard/hooks/sync/useViewPreferenceSync';
+import { useDashboardSessionActions } from '@/features/dashboard/hooks/useDashboardSessionActions';
 import LeftNav from '@/features/dashboard/components/frame/navbars/LeftNav';
 import SeatingEditorLeftNav from '@/features/dashboard/components/frame/navbars/SeatingEditorLeftNav';
 import TopNav from '@/features/dashboard/components/frame/navbars/TopNav';

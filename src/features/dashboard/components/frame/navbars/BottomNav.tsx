@@ -7,8 +7,8 @@ import { AttendanceMenuBody } from '@/features/students/components/menus/Attenda
 import StudentsViewMenu from '@/features/students/components/menus/StudentsViewMenu';
 import StudentsSortingMenu from '@/features/students/components/menus/StudentsSortingMenu';
 import StudentsSettingsMenu from '@/features/students/components/menus/StudentsSettingsMenu';
-import { useAttendanceActions } from '@/hooks/useAttendanceActions';
-import { useSortedStudents } from '@/hooks/useSortedStudents';
+import { useAttendanceActions } from '@/features/students/hooks/useAttendanceActions';
+import { useSortedStudents } from '@/features/students/hooks/useSortedStudents';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 import IconViewDots from '@/components/ui/icons/iconViewDots';

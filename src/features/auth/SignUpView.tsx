@@ -1,7 +1,7 @@
 'use client';
 
 import SignupForm from '@/features/auth/components/forms/SignupForm';
-import { useAuthFlow } from '@/hooks/useAuthFlow';
+import { useAuthFlow } from '@/features/auth/hooks/useAuthFlow';
 
 export default function SignUpView() {
   const {

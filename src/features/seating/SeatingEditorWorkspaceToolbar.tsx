@@ -15,7 +15,7 @@ import EditorRandomSeatsIcon from '@/components/ui/icons/EditorRandomSeatsIcon';
 import EditorViewPreferencesIcon from '@/components/ui/icons/EditorViewPreferencesIcon';
 import EditorClearGroupsIcon from '@/components/ui/icons/EditorClearGroupsIcon';
 import { buildShellToolbarConfig } from '@/features/dashboard/stage/dashboardToolbarConfig';
-import { useWorkspaceToolbarActions } from '@/hooks/dashboard/useWorkspaceToolbarActions';
+import { useWorkspaceToolbarActions } from '@/features/dashboard/hooks/useWorkspaceToolbarActions';
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 import { useSeatingEditBottomNav } from '@/hooks/useSeatingEditBottomNav';
 import { useLayoutStore } from '@/stores/useLayoutStore';

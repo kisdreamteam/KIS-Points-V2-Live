@@ -6,7 +6,7 @@ import type { Student } from '@/lib/types';
 import type { GroupAssignment, SeatingGroupRecord } from '@/lib/api/seating';
 import { getNextIndex, getSlotIndex } from '@/lib/seatingLogic';
 import { useSeatingStore } from '@/stores/useSeatingStore';
-import { openMultiStudentPointsAward } from '@/hooks/useBatchPointsAward';
+import { openMultiStudentPointsAward } from '@/features/students/hooks/useBatchPointsAward';
 import { useModalStore } from '@/stores/useModalStore';
 
 type SeatingGroupsCanvasProps = {

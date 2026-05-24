@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { refreshDashboardStudents } from '@/hooks/sync/useDashboardStudentSync';
+import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
 import type { ModalType } from '@/stores/useModalStore';
 import {
   getNextStartingStudentNumber,

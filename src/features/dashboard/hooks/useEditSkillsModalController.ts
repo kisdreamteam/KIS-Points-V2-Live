@@ -7,8 +7,8 @@ import type {
 } from '@/features/dashboard/components/modals/EditSkillsModal';
 import type { PointCategory } from '@/lib/types';
 import type { EditSkillFormSubmitPayload } from '@/features/dashboard/components/forms/EditSkillForm';
-import { useSkillManagement } from '@/hooks/useSkillManagement';
-import { useAvailablePositiveIcons, useAvailableNegativeIcons } from '@/hooks/useAvailableIcons';
+import { useSkillManagement } from '@/features/dashboard/hooks/useSkillManagement';
+import { useAvailablePositiveIcons, useAvailableNegativeIcons } from '@/features/dashboard/hooks/useAvailableIcons';
 
 export function useEditSkillsModalController(props: EditSkillsModalProps): EditSkillsModalViewProps {
   const { isOpen, onClose, classId, categories, isLoading, refreshCategories, skillType } = props;

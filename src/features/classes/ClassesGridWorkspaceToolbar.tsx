@@ -2,7 +2,7 @@
 
 import WorkspaceToolbar from '@/components/ui/WorkspaceToolbar';
 import { buildShellToolbarConfig } from '@/features/dashboard/stage/dashboardToolbarConfig';
-import { useWorkspaceToolbarActions } from '@/hooks/dashboard/useWorkspaceToolbarActions';
+import { useWorkspaceToolbarActions } from '@/features/dashboard/hooks/useWorkspaceToolbarActions';
 
 const classesToolbarConfig = buildShellToolbarConfig({
   activeView: 'classes',

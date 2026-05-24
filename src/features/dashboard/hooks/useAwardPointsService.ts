@@ -7,7 +7,7 @@ import {
   type AwardMode,
 } from '@/lib/awardPointsService';
 import { awardCustomPointsToStudents, awardPointsToStudents, getAuthenticatedUserId } from '@/lib/api/points';
-import { syncStudentsByClassCacheFromStore } from '@/hooks/sync/useDashboardStudentSync';
+import { syncStudentsByClassCacheFromStore } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
 import { useDashboardStore } from '@/stores/useDashboardStore';
 
 interface UseAwardPointsServiceParams {

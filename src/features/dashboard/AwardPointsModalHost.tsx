@@ -2,7 +2,7 @@
 
 import AwardPointsModal from '@/features/dashboard/components/modals/AwardPointsModal';
 import type { AwardPointsModalProps } from '@/features/dashboard/components/modals/AwardPointsModal';
-import { useAwardPointsModalController } from '@/hooks/useAwardPointsModalController';
+import { useAwardPointsModalController } from '@/features/dashboard/hooks/useAwardPointsModalController';
 
 export default function AwardPointsModalHost(props: AwardPointsModalProps) {
   const viewProps = useAwardPointsModalController(props);

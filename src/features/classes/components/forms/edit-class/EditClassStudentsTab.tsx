@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { normalizeAvatarPath } from '@/lib/iconUtils';
-import type { StudentWithPhoto } from '@/hooks/useClassManagement';
+import type { StudentWithPhoto } from '@/features/classes/hooks/useClassManagement';
 
 type EditClassStudentsTabProps = {
   students: StudentWithPhoto[];

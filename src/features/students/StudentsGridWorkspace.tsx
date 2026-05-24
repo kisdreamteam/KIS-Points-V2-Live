@@ -8,9 +8,9 @@ import LoadingState from '@/components/ui/LoadingState';
 import ErrorState from '@/components/ui/ErrorState';
 import StudentsCardsGrid from './StudentsCardsGrid';
 import StudentsGridWorkspaceToolbar from './StudentsGridWorkspaceToolbar';
-import { refreshDashboardStudents } from '@/hooks/sync/useDashboardStudentSync';
-import { useDashboardToolbarInset } from '@/hooks/useDashboardToolbarInset';
-import { useStudentsToolbarEvents } from '@/hooks/useStudentsToolbarEvents';
+import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
+import { useDashboardToolbarInset } from '@/features/dashboard/hooks/useDashboardToolbarInset';
+import { useStudentsToolbarEvents } from '@/features/students/hooks/useStudentsToolbarEvents';
 import type { PointLogRow } from '@/hooks/useClassPointLog';
 
 export type StudentsGridWorkspaceProps = {

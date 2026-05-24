@@ -5,7 +5,7 @@ import {
   archiveClass as archiveClassApi,
   deleteClassPermanently as deleteClassPermanentlyApi,
 } from '@/lib/api/classes';
-import { refreshDashboardClassesForUserAction } from '@/hooks/sync/useDashboardClassesSync';
+import { refreshDashboardClassesForUserAction } from '@/features/dashboard/hooks/sync/useDashboardClassesSync';
 
 type ArchiveClassParams = {
   classId: string;
