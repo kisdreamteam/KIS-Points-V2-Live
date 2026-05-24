@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from 'react';
 import type { CSSProperties } from 'react';
+import { BOUNCY_BALLS_URL } from '@/lib/bouncyBalls';
 import { formatClassListForClipboard } from '@/lib/classRoster';
 import { DUCK_RACE_GAME_URL } from '@/lib/duckRace';
 import { buildFlippityNamePickerUrl, FLIPPITY_HOME_URL } from '@/lib/flippity';
@@ -115,6 +116,16 @@ export default function LeftNavWebsitesMenu({
             <span className="block font-semibold">Online-Stopwatch Resource Website</span>
             <span className="block text-xs font-normal text-gray-500 mt-0.5">
               Name list is copied automatically. Opens Online-Stopwatch in a new tab — Must paste into name pickers. Not all are free.
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => window.open(BOUNCY_BALLS_URL, '_blank', 'noopener,noreferrer')}
+            className={menuItemClassName}
+          >
+            <span className="block font-semibold">Bouncy Balls Noise Meter</span>
+            <span className="block text-xs font-normal text-gray-500 mt-0.5">
+              Enable your microphone to use the noise meter
             </span>
           </button>
           {isOnClassesView && (

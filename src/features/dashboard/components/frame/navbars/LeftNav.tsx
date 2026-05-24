@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -17,6 +17,8 @@ const SHOW_ARCHIVED_CLASSES_IN_NAV = false;
 
 export default function LeftNav() {
   const [isWebsitesMenuOpen, setIsWebsitesMenuOpen] = useState(false);
+  const websitesMenuRef = useRef<HTMLDivElement>(null);
+  const websitesToggleRef = useRef<HTMLButtonElement>(null);
   const toolbarInset = useDashboardToolbarInset();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -51,6 +53,20 @@ export default function LeftNav() {
     setViewMode('archived');
     router.push('/dashboard');
   };
+
+  useEffect(() => {
+    if (!isWebsitesMenuOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (websitesMenuRef.current?.contains(target)) return;
+      if (websitesToggleRef.current?.contains(target)) return;
+      setIsWebsitesMenuOpen(false);
+    };
+
+    document.addEventListener('click', handleClickOutside, true);
+    return () => document.removeEventListener('click', handleClickOutside, true);
+  }, [isWebsitesMenuOpen]);
 
   return (
     <>
@@ -158,6 +174,7 @@ export default function LeftNav() {
               <div className="text-center font-semibold">KI-EUN</div>
             </div>
             <button
+              ref={websitesToggleRef}
               type="button"
               onClick={() => setIsWebsitesMenuOpen((open) => !open)}
               className="flex-1 bg-brand-pink text-white p-3 rounded-lg font-semibold hover:brightness-95 transition"
@@ -168,14 +185,16 @@ export default function LeftNav() {
           </div>
         </div>
       </div>
-      <LeftNavWebsitesMenu
-        isOpen={isWebsitesMenuOpen}
-        position="fixed"
-        leftPx={306}
-        topPx={toolbarInset.top + 2}
-        bottomPx={toolbarInset.bottom - 1}
-        zIndex={35}
-      />
+      <div ref={websitesMenuRef}>
+        <LeftNavWebsitesMenu
+          isOpen={isWebsitesMenuOpen}
+          position="fixed"
+          leftPx={306}
+          topPx={toolbarInset.top + 2}
+          bottomPx={toolbarInset.bottom - 1}
+          zIndex={35}
+        />
+      </div>
     </>
   );
 }
