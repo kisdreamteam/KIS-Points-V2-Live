@@ -239,10 +239,10 @@ src/
     │   ├── ClassesStageContent.tsx           [T2] Modals + delegates to grid branch
     │   ├── ClassesGridBranch.tsx             [T2] Grid branch router
     │   ├── ClassesGridWorkspace.tsx          [T2] Split + grid + disabled rail
+    │   ├── ClassesGridWorkspaceToolbar.tsx   [T2] Classes right rail (disabled on /dashboard)
     │   ├── ClassCardsGrid.tsx                    [T2] Grid orchestration (ScaledGridFrame + CardsGrid)
     │   ├── EditClassModalRoot.tsx                [T2] Edit-class modal subtree root
     │   └── components/
-    │       ├── ClassesGridWorkspaceToolbar.tsx [T2] Classes right rail (disabled on /dashboard)
     │       ├── cards/                            [T3] ClassCard: narrow viewPreference store read
     │       │   ├── AddClassCard.tsx
     │       │   └── ClassCard.tsx

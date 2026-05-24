@@ -144,7 +144,7 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 | Module path | Files |
 |-------------|-------|
 | `features/dashboard/` | **`DashboardView.tsx`** (route entry: sync + `DashboardStageContent` routing), `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/dashboardToolbarConfig.ts`, `stage/workspaceToolbarPresets.tsx`, `stage/DashboardWorkspaceToolbar.tsx`, `tools/Random.tsx` |
-| `features/classes/` | `ClassesStage.tsx`, `ClassesStageContent.tsx`, `ClassesGridWorkspace.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx`, `components/ClassesGridWorkspaceToolbar.tsx` |
+| `features/classes/` | `ClassesStage.tsx`, `ClassesStageContent.tsx`, `ClassesGridWorkspace.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx`, `ClassesGridWorkspaceToolbar.tsx` |
 | `features/students/` | `StudentsStage.tsx`, `StudentsStageContent.tsx`, `StudentsGridWorkspace.tsx`, `StudentsCardsGrid.tsx`, `StudentsGridWorkspaceToolbar.tsx` |
 | `features/seating/` | `SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`, `SeatingChartEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx`, `SeatingEditorWorkspaceToolbar.tsx` |
 

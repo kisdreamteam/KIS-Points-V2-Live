@@ -4,7 +4,7 @@ import StageTwoColumnSplit from '@/components/ui/StageTwoColumnSplit';
 import LoadingState from '@/components/ui/LoadingState';
 import EmptyState from '@/components/ui/EmptyState';
 import ClassCardsGrid from './ClassCardsGrid';
-import ClassesGridWorkspaceToolbar from '@/features/classes/components/ClassesGridWorkspaceToolbar';
+import ClassesGridWorkspaceToolbar from '@/features/classes/ClassesGridWorkspaceToolbar';
 import type { ClassRecord } from '@/lib/api/classes';
 
 export type ClassesGridWorkspaceProps = {
