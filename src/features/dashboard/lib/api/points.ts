@@ -2,6 +2,7 @@ import { createClient } from '@/lib/client';
 import type { PointCategory } from '@/lib/types';
 import { throwApiError } from '@/lib/api/errors';
 import { getOptionalSessionUserId } from '@/lib/api/auth';
+import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 
 export type PointLogRow = {
   id: string;
@@ -209,80 +210,178 @@ export type StudentPointsBroadcastPayload = {
   updates: StudentPointsUpdate[];
 };
 
-/** Supabase broadcast: notify other tabs that roster point totals changed for a class. */
-export async function broadcastStudentPointsUpdate(
-  payload: StudentPointsBroadcastPayload
-): Promise<void> {
-  const supabase = createClient();
-  const channelName = `student_points_${payload.classId}`;
-  const channel = supabase.channel(channelName);
-
-  try {
-    await new Promise<void>((resolve, reject) => {
-      let finished = false;
-      const timeoutMs = 12_000;
-      const timeoutId = setTimeout(() => {
-        if (finished) return;
-        finished = true;
-        void supabase.removeChannel(channel);
-        reject(new Error('broadcastStudentPointsUpdate: subscribe timed out'));
-      }, timeoutMs);
-
-      const done = (fn: () => void) => {
-        if (finished) return;
-        finished = true;
-        clearTimeout(timeoutId);
-        fn();
-      };
-
-      channel.subscribe((status, err) => {
-        if (status === 'SUBSCRIBED') {
-          void (async () => {
-            try {
-              const result = await channel.send({
-                type: 'broadcast',
-                event: STUDENT_POINTS_BROADCAST_EVENT,
-                payload,
-              });
-              if (result !== 'ok' && result !== 'timed out') {
-                done(() => {
-                  void supabase.removeChannel(channel);
-                  reject(new Error('Failed to broadcast student points update'));
-                });
-                return;
-              }
-              done(() => {
-                void supabase.removeChannel(channel);
-                resolve();
-              });
-            } catch (sendErr) {
-              done(() => {
-                void supabase.removeChannel(channel);
-                reject(sendErr instanceof Error ? sendErr : new Error(String(sendErr)));
-              });
-            }
-          })();
-          return;
-        }
-
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-          done(() => {
-            void supabase.removeChannel(channel);
-            reject(err ?? new Error(`Realtime channel ${status}`));
-          });
-        }
-      });
-    });
-  } catch (e) {
-    throwApiError(e instanceof Error ? e : new Error(String(e)), 'broadcastStudentPointsUpdate');
-  }
-}
-
 type StudentPointsRowPayload = {
   id?: string;
   points?: number | null;
   class_id?: string;
 };
+
+type StudentPointsSyncHandlers = {
+  onStudentPointsUpdate?: (update: StudentPointsUpdate) => void;
+  onBroadcast?: (payload: StudentPointsBroadcastPayload) => void;
+};
+
+type StudentPointsChannelEntry = {
+  supabase: SupabaseClient;
+  channel: RealtimeChannel;
+  handlers: StudentPointsSyncHandlers;
+  isSubscribed: boolean;
+};
+
+const studentPointsChannelEntries = new Map<string, StudentPointsChannelEntry>();
+
+function studentPointsChannelKey(classId: string, channelSuffix = ''): string {
+  return `student_points_${classId}${channelSuffix}`;
+}
+
+function dispatchPostgresUpdate(channelKey: string, classId: string, row: StudentPointsRowPayload): void {
+  const entry = studentPointsChannelEntries.get(channelKey);
+  const studentId = row.id;
+  if (!entry || !studentId) return;
+  entry.handlers.onStudentPointsUpdate?.({
+    studentId,
+    points: row.points ?? 0,
+  });
+}
+
+function dispatchBroadcast(channelKey: string, classId: string, payload: unknown): void {
+  const entry = studentPointsChannelEntries.get(channelKey);
+  if (!entry) return;
+  const broadcastPayload = payload as StudentPointsBroadcastPayload | undefined;
+  if (!broadcastPayload || broadcastPayload.classId !== classId) return;
+  entry.handlers.onBroadcast?.(broadcastPayload);
+}
+
+function getOrCreateStudentPointsChannelEntry(
+  classId: string,
+  channelSuffix: string
+): StudentPointsChannelEntry {
+  const channelKey = studentPointsChannelKey(classId, channelSuffix);
+  const existing = studentPointsChannelEntries.get(channelKey);
+  if (existing) return existing;
+
+  const supabase = createClient();
+  const channel = supabase
+    .channel(channelKey)
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'students',
+        filter: `class_id=eq.${classId}`,
+      },
+      (payload) => {
+        dispatchPostgresUpdate(channelKey, classId, payload.new as StudentPointsRowPayload);
+      }
+    )
+    .on(
+      'broadcast',
+      { event: STUDENT_POINTS_BROADCAST_EVENT },
+      ({ payload }) => {
+        dispatchBroadcast(channelKey, classId, payload);
+      }
+    );
+
+  const entry: StudentPointsChannelEntry = {
+    supabase,
+    channel,
+    handlers: {},
+    isSubscribed: false,
+  };
+  studentPointsChannelEntries.set(channelKey, entry);
+  return entry;
+}
+
+function isBroadcastSendOk(result: string): boolean {
+  return result === 'ok' || result === 'timed out';
+}
+
+async function sendStudentPointsBroadcast(
+  channel: RealtimeChannel,
+  payload: StudentPointsBroadcastPayload
+): Promise<boolean> {
+  const result = await channel.send({
+    type: 'broadcast',
+    event: STUDENT_POINTS_BROADCAST_EVENT,
+    payload,
+  });
+  return isBroadcastSendOk(result);
+}
+
+/** Fallback when no long-lived subscriber is mounted (e.g. award before class sync). */
+async function broadcastStudentPointsViaEphemeralChannel(
+  payload: StudentPointsBroadcastPayload
+): Promise<void> {
+  const supabase = createClient();
+  const channelKey = studentPointsChannelKey(payload.classId);
+  const channel = supabase.channel(channelKey);
+
+  await new Promise<void>((resolve) => {
+    let finished = false;
+    const timeoutMs = 5_000;
+    const timeoutId = setTimeout(() => {
+      if (finished) return;
+      finished = true;
+      void supabase.removeChannel(channel);
+      console.warn(
+        '[broadcastStudentPointsUpdate] ephemeral subscribe timed out; other tabs may rely on postgres_changes.'
+      );
+      resolve();
+    }, timeoutMs);
+
+    const done = () => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timeoutId);
+      void supabase.removeChannel(channel);
+      resolve();
+    };
+
+    channel.subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        void (async () => {
+          try {
+            if (!(await sendStudentPointsBroadcast(channel, payload))) {
+              console.warn('[broadcastStudentPointsUpdate] ephemeral send failed');
+            }
+          } catch (err) {
+            console.warn('[broadcastStudentPointsUpdate] ephemeral send error:', err);
+          } finally {
+            done();
+          }
+        })();
+        return;
+      }
+
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        console.warn(`[broadcastStudentPointsUpdate] ephemeral channel ${status}`);
+        done();
+      }
+    });
+  });
+}
+
+/** Supabase broadcast: notify other tabs that roster point totals changed for a class. */
+export async function broadcastStudentPointsUpdate(
+  payload: StudentPointsBroadcastPayload
+): Promise<void> {
+  const channelKey = studentPointsChannelKey(payload.classId);
+  const entry = studentPointsChannelEntries.get(channelKey);
+
+  if (entry?.isSubscribed) {
+    try {
+      if (!(await sendStudentPointsBroadcast(entry.channel, payload))) {
+        console.warn('[broadcastStudentPointsUpdate] send failed on active channel');
+      }
+    } catch (err) {
+      console.warn('[broadcastStudentPointsUpdate] send error on active channel:', err);
+    }
+    return;
+  }
+
+  await broadcastStudentPointsViaEphemeralChannel(payload);
+}
 
 /** Realtime: `students` row updates + cross-tab broadcast for point totals. */
 export function subscribeToStudentPointsSync(
@@ -293,42 +392,29 @@ export function subscribeToStudentPointsSync(
   },
   options?: { channelSuffix?: string }
 ): { unsubscribe: () => void } {
-  const supabase = createClient();
   const channelSuffix = options?.channelSuffix ?? '';
-  const realtimeChannel = supabase
-    .channel(`student_points_${classId}${channelSuffix}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'students',
-        filter: `class_id=eq.${classId}`,
-      },
-      (payload) => {
-        const nextRow = payload.new as StudentPointsRowPayload;
-        const studentId = nextRow.id;
-        if (!studentId) return;
-        handlers.onStudentPointsUpdate?.({
-          studentId,
-          points: nextRow.points ?? 0,
-        });
+  const channelKey = studentPointsChannelKey(classId, channelSuffix);
+  const entry = getOrCreateStudentPointsChannelEntry(classId, channelSuffix);
+  entry.handlers = { ...handlers };
+
+  if (!entry.isSubscribed) {
+    entry.channel.subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        entry.isSubscribed = true;
+        return;
       }
-    )
-    .on(
-      'broadcast',
-      { event: STUDENT_POINTS_BROADCAST_EVENT },
-      ({ payload }) => {
-        const broadcastPayload = payload as StudentPointsBroadcastPayload | undefined;
-        if (!broadcastPayload || broadcastPayload.classId !== classId) return;
-        handlers.onBroadcast?.(broadcastPayload);
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        entry.isSubscribed = false;
       }
-    )
-    .subscribe();
+    });
+  }
 
   return {
     unsubscribe: () => {
-      void supabase.removeChannel(realtimeChannel);
+      entry.handlers = {};
+      entry.isSubscribed = false;
+      void entry.supabase.removeChannel(entry.channel);
+      studentPointsChannelEntries.delete(channelKey);
     },
   };
 }

@@ -97,7 +97,7 @@ export function broadcastStudentPointsFromStore(classId: string, studentIds: str
     emittedAt: Date.now(),
     updates,
   }).catch((err) => {
-    console.error('Failed to broadcast student points update:', err);
+    console.warn('Failed to broadcast student points update:', err);
   });
 }
 
