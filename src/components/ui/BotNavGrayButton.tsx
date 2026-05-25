@@ -34,7 +34,7 @@ export default function BotNavGrayButton({
   stopPropagation = false,
 }: BotNavGrayButtonProps) {
   const layout =
-    'px-4 py-2 gap-4 md:gap-2 flex items-center justify-center flex-shrink-0 font-semibold text-sm transition-colors select-none';
+    'px-4 py-2 gap-4 md:gap-2 md:w-40 flex items-center justify-center flex-shrink-0 font-semibold text-sm transition-colors select-none';
 
   let surfaceClass = '';
   if (variant === 'primary') {
