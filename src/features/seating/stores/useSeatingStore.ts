@@ -1,7 +1,7 @@
 import type { MouseEvent } from 'react';
 import { create } from 'zustand';
 import type { Student } from '@/lib/types';
-import type { GroupAssignment, SeatingChartRecord, SeatingGroupRecord } from '@/lib/api/seating';
+import type { GroupAssignment, SeatingChartRecord, SeatingGroupRecord } from '@/features/seating/lib/api/seating';
 import { STUDENT_EVENTS, type SeatingStudentPointsDeltaDetail } from '@/lib/events/students';
 
 export type UnseatedSet = Student[] | ((prev: Student[]) => Student[]);

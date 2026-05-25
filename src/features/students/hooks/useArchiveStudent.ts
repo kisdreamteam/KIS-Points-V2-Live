@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { archiveStudentById } from '@/lib/api/students';
-import { deleteStudentSeatAssignmentsByStudentId } from '@/lib/api/seating';
+import { archiveStudentById } from '@/features/students/lib/api/students';
+import { deleteStudentSeatAssignmentsByStudentId } from '@/features/seating/lib/api/seating';
 import {
   invalidateStudentsCacheForClass,
   refreshDashboardStudents,

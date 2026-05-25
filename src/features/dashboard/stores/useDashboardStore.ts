@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ClassRecord } from '@/lib/api/classes';
+import type { ClassRecord } from '@/features/classes/lib/api/classes';
 import type { Student } from '@/lib/types';
 
 export type DashboardSetStudents = Student[] | ((prev: Student[]) => Student[]);

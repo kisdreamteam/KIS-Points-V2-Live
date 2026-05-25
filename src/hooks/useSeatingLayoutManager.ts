@@ -9,7 +9,7 @@ import {
   subscribeToSeatingChartRowUpdates,
   updateSeatingLayoutName,
   type SeatingChartRecord,
-} from '@/lib/api/seating';
+} from '@/features/seating/lib/api/seating';
 import {
   refreshLayoutViewSettings,
   refreshSeatingGroupsForLayout,

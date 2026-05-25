@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { fetchPointLogRowsForStudents } from '@/lib/api/points';
+import { fetchPointLogRowsForStudents } from '@/features/dashboard/lib/api/points';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 export type PointLogRow = {

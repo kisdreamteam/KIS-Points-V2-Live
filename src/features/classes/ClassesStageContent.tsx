@@ -7,7 +7,7 @@ import EditClassModal from '@/features/classes/components/modals/EditClassModal'
 import ClassesGridBranch from './ClassesGridBranch';
 import { refreshDashboardClassesForUserAction } from '@/features/dashboard/hooks/sync/useDashboardClassesSync';
 import { useClassesWorkspaceActions } from '@/features/classes/hooks/useClassesWorkspaceActions';
-import type { ClassRecord } from '@/lib/api/classes';
+import type { ClassRecord } from '@/features/classes/lib/api/classes';
 
 type ClassesStageContentProps = {
   classes: ClassRecord[];

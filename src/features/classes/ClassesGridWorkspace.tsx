@@ -5,7 +5,7 @@ import LoadingState from '@/components/ui/LoadingState';
 import EmptyState from '@/components/ui/EmptyState';
 import ClassCardsGrid from './ClassCardsGrid';
 import ClassesGridWorkspaceToolbar from '@/features/classes/ClassesGridWorkspaceToolbar';
-import type { ClassRecord } from '@/lib/api/classes';
+import type { ClassRecord } from '@/features/classes/lib/api/classes';
 
 export type ClassesGridWorkspaceProps = {
   classes: ClassRecord[];

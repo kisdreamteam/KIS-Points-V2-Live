@@ -9,7 +9,7 @@ import {
   fetchSeatingLayoutsByClassId,
   type GroupAssignment,
   type SeatingGroupRecord,
-} from '@/lib/api/seating';
+} from '@/features/seating/lib/api/seating';
 import { STUDENT_EVENTS, type SeatingViewSettingsChangedDetail } from '@/lib/events/students';
 
 function mapAssignmentsToRecord(map: Map<string, GroupAssignment[]>): Record<string, GroupAssignment[]> {

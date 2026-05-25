@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import type { Student } from '@/lib/types';
-import { fetchStudentsByClassId } from '@/lib/api/students';
+import { fetchStudentsByClassId } from '@/features/students/lib/api/students';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 const studentsByClassCache = new Map<string, Student[]>();

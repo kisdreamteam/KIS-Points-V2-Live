@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { logAbsence, removeAbsence } from '@/lib/api/attendanceService';
+import { logAbsence, removeAbsence } from '@/features/students/lib/api/attendanceService';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import { useUserStore } from '@/stores/useUserStore';
 

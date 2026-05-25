@@ -224,7 +224,7 @@ Status: Finished
 
 - transformation-heavy logic (e.g., groups fetch shaping) into:
   - `src/hooks/sync/useSeatingChartDataSync.tsx`, and/or
-  - `src/lib/seatingLogic.ts`
+  - `src/features/seating/lib/seatingLogic.ts`
 
 ### Keep in store
 

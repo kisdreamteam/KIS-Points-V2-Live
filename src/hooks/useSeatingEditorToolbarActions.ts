@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { fetchLayoutViewSettings, updateLayoutViewSettings } from '@/lib/api/seating';
+import { fetchLayoutViewSettings, updateLayoutViewSettings } from '@/features/seating/lib/api/seating';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import {
   emitSeatingAddMultipleGroups,

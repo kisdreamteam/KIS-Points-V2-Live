@@ -3,8 +3,8 @@
 import { useCallback } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import type { Student } from '@/lib/types';
-import type { GroupAssignment, SeatingGroupRecord } from '@/lib/api/seating';
-import { getNextIndex, getSlotIndex } from '@/lib/seatingLogic';
+import type { GroupAssignment, SeatingGroupRecord } from '@/features/seating/lib/api/seating';
+import { getNextIndex, getSlotIndex } from '@/features/seating/lib/seatingLogic';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import { openMultiStudentPointsAward } from '@/features/students/hooks/useBatchPointsAward';
 import { useModalStore } from '@/stores/useModalStore';

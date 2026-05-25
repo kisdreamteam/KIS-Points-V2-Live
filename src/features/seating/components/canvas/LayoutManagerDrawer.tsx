@@ -2,7 +2,7 @@
 
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
 import { useState } from 'react';
-import type { SeatingChartRecord } from '@/lib/api/seating';
+import type { SeatingChartRecord } from '@/features/seating/lib/api/seating';
 
 type LayoutManagerDrawerProps = {
   isOpen: boolean;

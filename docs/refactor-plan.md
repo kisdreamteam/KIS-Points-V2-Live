@@ -59,7 +59,7 @@
 - [x] **Dead Variables:** Clean up declared but unread parameters in hooks/components (e.g., renaming unused props to `_studentId` for TS compliance).
 - [x] **Orphaned Files:** Safely delete disconnected components and outdated documentation (e.g., `AddGroupModal.tsx`, legacy `README.md` files).
 - [x] **Guardrails:** Verify that no Layer 3 API files under [`/src/lib/api/`](../src/lib/api/) were altered during the sweep; dashboard/seating UI state is in Zustand stores, not React Context.
-- [x] **Seating editor hook:** Extracted complex state from [`SeatingChartEditorView.tsx`](../src/components/dashboard/SeatingChartEditorView.tsx) into [`useSeatingChart.ts`](../src/hooks/useSeatingChart.ts) (**named export:** `useSeatingChartEditor`; not the context hook `useSeatingChart`). The hook holds the “Desk” and coordinates with [`@/lib/api/seating`](../src/lib/api/seating.ts) for batch saves.
+- [x] **Seating editor hook:** Extracted complex state from [`SeatingChartEditorView.tsx`](../src/components/dashboard/SeatingChartEditorView.tsx) into [`useSeatingChart.ts`](../src/hooks/useSeatingChart.ts) (**named export:** `useSeatingChartEditor`; not the context hook `useSeatingChart`). The hook holds the “Desk” and coordinates with [`@/features/seating/lib/api/seating`](../src/features/seating/lib/api/seating.ts) for batch saves.
 
 ---
 

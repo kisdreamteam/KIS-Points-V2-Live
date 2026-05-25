@@ -117,7 +117,9 @@ The Dashboard is a fixed coordinate system. Do not use these rules for Auth/Land
 * **Constraint:** **Zustand stores MUST NOT import Supabase.** They are pure data containers.
 * **Forbidden:** React Context is strictly forbidden for global application state.
 
-### Layer 3: The Vault (`@/lib/api/`)
+### Layer 3: The Vault (`@/lib/` global + `@/features/*/lib/`)
+
+Domain API modules live under feature `lib/` (e.g. `@/features/seating/lib/api/seating`). Global: `@/lib/client`, `@/lib/types`, `@/lib/api/auth.service`, `@/lib/api/_shared`.
 
 * **Constraint:** **Dumb Data Access.** Parameters in, typed records out. No React or Zustand knowledge.
 * **Rule:** Supabase clients only in Layer 3, orchestrated by Layer 1 hooks — never from Tier 2/3 UI at runtime.

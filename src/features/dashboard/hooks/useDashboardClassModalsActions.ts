@@ -8,7 +8,7 @@ import {
   insertStudent,
   insertStudentsBulk,
   updateStudentById,
-} from '@/lib/api/students';
+} from '@/features/students/lib/api/students';
 import type { AddStudentsFormSubmitValues } from '@/features/students/components/forms/AddStudentsForm';
 import type { EditStudentModalSubmitValues } from '@/features/students/components/modals/EditStudentModal';
 

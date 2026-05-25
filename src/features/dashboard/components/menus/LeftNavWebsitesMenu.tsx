@@ -2,11 +2,11 @@
 
 import { useCallback, useMemo } from 'react';
 import type { CSSProperties } from 'react';
-import { BOUNCY_BALLS_URL } from '@/lib/bouncyBalls';
-import { formatClassListForClipboard } from '@/lib/classRoster';
-import { DUCK_RACE_GAME_URL } from '@/lib/duckRace';
-import { buildFlippityNamePickerUrl, FLIPPITY_HOME_URL } from '@/lib/flippity';
-import { ONLINE_STOPWATCH_URL } from '@/lib/onlineStopwatch';
+import { BOUNCY_BALLS_URL } from '@/features/dashboard/lib/bouncyBalls';
+import { formatClassListForClipboard } from '@/features/students/lib/classRoster';
+import { DUCK_RACE_GAME_URL } from '@/features/dashboard/lib/duckRace';
+import { buildFlippityNamePickerUrl, FLIPPITY_HOME_URL } from '@/features/dashboard/lib/flippity';
+import { ONLINE_STOPWATCH_URL } from '@/features/dashboard/lib/onlineStopwatch';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 

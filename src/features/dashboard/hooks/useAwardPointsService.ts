@@ -5,8 +5,8 @@ import {
   resolveAwardTargetStudentIds,
   type AwardTargetContext,
   type AwardMode,
-} from '@/lib/awardPointsService';
-import { awardCustomPointsToStudents, awardPointsToStudents, getAuthenticatedUserId } from '@/lib/api/points';
+} from '@/features/dashboard/lib/awardPointsService';
+import { awardCustomPointsToStudents, awardPointsToStudents, getAuthenticatedUserId } from '@/features/dashboard/lib/api/points';
 import { syncStudentsByClassCacheFromStore } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { filterEligibleStudentIds } from '@/lib/awardPointsService';
+import { filterEligibleStudentIds } from '@/features/dashboard/lib/awardPointsService';
 import { useModalStore } from '@/stores/useModalStore';
 
 export function openMultiStudentPointsAward(

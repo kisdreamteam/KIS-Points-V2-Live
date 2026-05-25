@@ -6,7 +6,7 @@ import {
   createClassForCurrentUser,
   fetchStudentCountsByClassIds,
   type ClassRecord,
-} from '@/lib/api/classes';
+} from '@/features/classes/lib/api/classes';
 
 type UseClassesWorkspaceActionsParams = {
   onCreateSuccess: () => void;

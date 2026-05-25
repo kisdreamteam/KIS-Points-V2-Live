@@ -4,7 +4,7 @@ import {
   fetchStudentIdsByClassId,
   fetchStudentIdsByClassIds,
   getAuthenticatedUserId,
-} from '@/lib/api/points';
+} from '@/features/dashboard/lib/api/points';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 export function filterEligibleStudentIds(targetStudentIds: string[]): string[] {

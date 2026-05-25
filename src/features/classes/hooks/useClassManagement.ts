@@ -12,7 +12,7 @@ import {
   lookupTeacherByEmail,
   removeClassCollaborator,
   updateClassInfo,
-} from '@/lib/api/classes';
+} from '@/features/classes/lib/api/classes';
 import {
   bulkUpdateStudents,
   deleteCustomPointEventsByStudentIds,
@@ -21,7 +21,7 @@ import {
   insertStudent,
   insertStudentsBulk,
   resetPointsByStudentIds,
-} from '@/lib/api/students';
+} from '@/features/students/lib/api/students';
 import type { Student } from '@/lib/types';
 import type { AddStudentsFormSubmitValues } from '@/features/students/components/forms/AddStudentsForm';
 import { refreshDashboardRosterIfActive } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';

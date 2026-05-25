@@ -251,7 +251,7 @@ components/ui/                     # shared atoms, icons, WorkspaceToolbar, gene
 | Batch points open (seating group) | `useBatchPointsAward.ts` → `openMultiStudentPointsAward` |
 | UI utilities | `useAnchoredDropdownPortal.ts` (portaled dropdown positioning), `useSortedStudents.ts`, `useClassPointLog.ts`, `useStudentsUrlState.ts`, `useStudentsToolbarEvents.ts`, `useDashboardToolbarInset.ts`, `useSkillManagement.ts`, `useAvailableIcons.ts` |
 
-Pure helpers (no React): `src/lib/awardPointsService.ts` (includes `filterEligibleStudentIds` for bulk awards vs `absentStudentIds`), `src/lib/seatingLogic.ts`, `src/lib/iconUtils.ts`.
+Pure helpers (no React): `src/features/dashboard/lib/awardPointsService.ts` (includes `filterEligibleStudentIds` for bulk awards vs `absentStudentIds`), `src/features/seating/lib/seatingLogic.ts`, `src/lib/iconUtils.ts`.
 
 ### Layer 1b — Route & store sync (`src/hooks/sync/`)
 
@@ -285,17 +285,21 @@ Pure helpers (no React): `src/lib/awardPointsService.ts` (includes `filterEligib
 | `useSeatingStore.ts` | `src/features/seating/stores/` | Layouts, groups, assignments, seating view settings |
 | `dashboardStudentSelectors.ts` | `src/features/students/stores/` | Roster ordering/aggregate selectors (used with `useDashboardStore`) |
 
-### Layer 3 — Vault (`src/lib/api/`)
+### Layer 3 — Vault (global + feature `lib/`)
 
-| Module | Domain |
-|--------|--------|
-| `auth.service.ts` | Session, profile |
-| `classes.ts` | Class records |
-| `students.ts` | Roster CRUD |
-| `points.ts` | Awards, logs |
-| `skills.ts` | Skill definitions |
-| `seating.ts` | Layouts, groups, assignments |
-| `attendanceService.ts` | Daily absence log (`attendance_events`) |
+**Global** (`src/lib/`): `client.ts`, `types.ts`, `iconUtils.ts`, `events/students.ts`, `api/auth.service.ts`, `api/_shared/`.
+
+| Module | Location | Domain |
+|--------|----------|--------|
+| `classes.ts` | `src/features/classes/lib/api/` | Class records |
+| `students.ts` | `src/features/students/lib/api/` | Roster CRUD |
+| `attendanceService.ts` | `src/features/students/lib/api/` | Daily absence log (`attendance_events`) |
+| `classRoster.ts` | `src/features/students/lib/` | Roster clipboard formatting |
+| `points.ts` | `src/features/dashboard/lib/api/` | Awards, logs |
+| `skills.ts` | `src/features/dashboard/lib/api/` | Skill definitions |
+| `awardPointsService.ts` | `src/features/dashboard/lib/` | Award target resolution |
+| `seating.ts` | `src/features/seating/lib/api/` | Layouts, groups, assignments |
+| `seatingLogic.ts` | `src/features/seating/lib/` | Seat-index grid math |
 
 Shared types: `src/lib/types.ts` (includes `AttendanceEvent`).
 
@@ -305,7 +309,7 @@ Shared types: `src/lib/types.ts` (includes `AttendanceEvent`).
 
 | Layer / tier | File | Role |
 |--------------|------|------|
-| Layer 3 | `src/lib/api/attendanceService.ts` | `logAbsence`, `removeAbsence`, `fetchDailyAbsences` (today via UTC `toISOString().split('T')[0]`) |
+| Layer 3 | `src/features/students/lib/api/attendanceService.ts` | `logAbsence`, `removeAbsence`, `fetchDailyAbsences` (today via UTC `toISOString().split('T')[0]`) |
 | Layer 2 | `useDashboardStore.ts` | `absentStudentIds: string[]` (empty = all present), `setAbsentStudentIds` |
 | Layer 1 | `useAttendanceActions.ts` | `toggleAttendance(studentId)`: optimistic store update → API → silent rollback on failure |
 | Layer 1b | `useAttendanceSync.ts`, `AttendanceSync` | On `classId` change: clear `absentStudentIds`, then fetch today’s absences |

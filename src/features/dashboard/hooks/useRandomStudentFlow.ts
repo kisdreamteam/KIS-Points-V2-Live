@@ -6,7 +6,7 @@ import {
   fetchStudentsForRandomByClassId,
   markStudentAsPicked,
   resetPickedStudentsByClassId,
-} from '@/lib/api/students';
+} from '@/features/students/lib/api/students';
 
 export function useRandomStudentFlow() {
   const [students, setStudents] = useState<Student[]>([]);

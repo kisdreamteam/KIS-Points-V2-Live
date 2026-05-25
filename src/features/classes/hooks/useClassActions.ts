@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import {
   archiveClass as archiveClassApi,
   deleteClassPermanently as deleteClassPermanentlyApi,
-} from '@/lib/api/classes';
+} from '@/features/classes/lib/api/classes';
 import { refreshDashboardClassesForUserAction } from '@/features/dashboard/hooks/sync/useDashboardClassesSync';
 
 type ArchiveClassParams = {

@@ -27,9 +27,9 @@ import {
   subscribeToSeatingChartRowUpdates,
   updateSeatingGroupFields,
   updateSeatingGroupsLayoutBatch,
-} from '@/lib/api/seating';
-import type { GroupAssignment } from '@/lib/api/seating';
-import { getCoordinates, getNextIndex, getSlotIndex } from '@/lib/seatingLogic';
+} from '@/features/seating/lib/api/seating';
+import type { GroupAssignment } from '@/features/seating/lib/api/seating';
+import { getCoordinates, getNextIndex, getSlotIndex } from '@/features/seating/lib/seatingLogic';
 import { STUDENT_EVENTS, emitSeatingEditMode } from '@/lib/events/students';
 import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/useSeatingChartDataSync';
 
