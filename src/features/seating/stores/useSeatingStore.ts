@@ -62,6 +62,7 @@ interface SeatingStore {
   addStudentToGroup: (studentId: string, groupId: string) => void;
   resetForClassSwitch: () => void;
   patchGroupAssignmentsForPointsDelta: (studentIds: string[], delta: number) => void;
+  syncGroupAssignmentStudentPoints: (updates: { studentId: string; points: number }[]) => void;
   removeStudentFromSeatingState: (studentId: string) => void;
 }
 
@@ -186,6 +187,30 @@ export const useSeatingStore = create<SeatingStore>((set, get) => ({
             student: {
               ...ga.student,
               points: (ga.student.points ?? 0) + delta,
+            },
+          };
+        });
+      }
+      return touched ? { groupAssignmentsById: nextAssignments } : {};
+    });
+  },
+
+  syncGroupAssignmentStudentPoints: (updates) => {
+    if (updates.length === 0) return;
+    const pointsByStudentId = new Map(updates.map((u) => [u.studentId, u.points]));
+    set((s) => {
+      const nextAssignments: Record<string, GroupAssignment[]> = {};
+      let touched = false;
+      for (const [gid, list] of Object.entries(s.groupAssignmentsById)) {
+        nextAssignments[gid] = list.map((ga) => {
+          const nextPoints = pointsByStudentId.get(ga.student.id);
+          if (nextPoints === undefined || (ga.student.points ?? 0) === nextPoints) return ga;
+          touched = true;
+          return {
+            ...ga,
+            student: {
+              ...ga.student,
+              points: nextPoints,
             },
           };
         });

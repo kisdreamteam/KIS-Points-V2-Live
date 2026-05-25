@@ -7,7 +7,10 @@ import {
   type AwardMode,
 } from '@/features/dashboard/lib/awardPointsService';
 import { awardCustomPointsToStudents, awardPointsToStudents, getAuthenticatedUserId } from '@/features/dashboard/lib/api/points';
-import { syncStudentsByClassCacheFromStore } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
+import {
+  broadcastStudentPointsFromStore,
+  syncStudentsByClassCacheFromStore,
+} from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 interface UseAwardPointsServiceParams {
@@ -146,6 +149,7 @@ export function useAwardPointsService({
           throw apiErr;
         }
 
+        broadcastStudentPointsFromStore(context.classId, eligibleStudentIds);
         afterAwardSuccess(points, category.name, category.icon);
         return true;
       } catch (err) {
@@ -200,6 +204,7 @@ export function useAwardPointsService({
           throw apiErr;
         }
 
+        broadcastStudentPointsFromStore(context.classId, eligibleStudentIds);
         afterAwardSuccess(customPoints, customMemo || 'Custom Points');
         return true;
       } catch (err) {
