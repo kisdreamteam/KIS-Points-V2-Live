@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/client';
 import type { Student } from '@/lib/types';
-import { throwApiError } from '@/lib/api/_shared/errors';
+import { throwApiError } from '@/lib/api/errors';
 
 export type SeatingChartRecord = {
   id: string;

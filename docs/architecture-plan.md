@@ -287,7 +287,7 @@ Pure helpers (no React): `src/features/dashboard/lib/awardPointsService.ts` (inc
 
 ### Layer 3 — Vault (global + feature `lib/`)
 
-**Global** (`src/lib/`): `client.ts`, `types.ts`, `iconUtils.ts`, `events/students.ts`, `api/auth.service.ts`, `api/_shared/`.
+**Global** (`src/lib/`): `client.ts`, `types.ts`, `iconUtils.ts`, `events/students.ts`, `api/auth.service.ts`, `api/auth.ts`, `api/errors.ts`.
 
 | Module | Location | Domain |
 |--------|----------|--------|

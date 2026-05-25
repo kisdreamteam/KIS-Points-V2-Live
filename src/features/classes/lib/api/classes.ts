@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/client';
 import type { Student } from '@/lib/types';
-import { getOptionalSessionUserId, getRequiredSessionUserId } from '@/lib/api/_shared/auth';
-import { throwApiError } from '@/lib/api/_shared/errors';
+import { getOptionalSessionUserId, getRequiredSessionUserId } from '@/lib/api/auth';
+import { throwApiError } from '@/lib/api/errors';
 
 export type ClassRecord = {
   id: string;

@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/client';
-import { ApiError, throwApiError } from '@/lib/api/_shared/errors';
+import { ApiError, throwApiError } from '@/lib/api/errors';
 
 export async function getOptionalSessionUserId(): Promise<string | null> {
   const supabase = createClient();

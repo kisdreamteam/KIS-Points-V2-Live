@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/client';
-import { throwApiError } from '@/lib/api/_shared/errors';
+import { throwApiError } from '@/lib/api/errors';
 
 function getTodayDateString(): string {
   return new Date().toISOString().split('T')[0];

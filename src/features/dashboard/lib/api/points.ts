@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/client';
 import type { PointCategory } from '@/lib/types';
-import { throwApiError } from '@/lib/api/_shared/errors';
-import { getOptionalSessionUserId } from '@/lib/api/_shared/auth';
+import { throwApiError } from '@/lib/api/errors';
+import { getOptionalSessionUserId } from '@/lib/api/auth';
 
 export type PointLogRow = {
   id: string;
