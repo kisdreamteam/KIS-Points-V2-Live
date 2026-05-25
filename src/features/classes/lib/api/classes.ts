@@ -64,7 +64,8 @@ export async function getStudentCountsByClassIds(
   const { data: students, error } = await supabase
     .from('students')
     .select('class_id')
-    .in('class_id', classIds);
+    .in('class_id', classIds)
+    .eq('is_archived', false);
 
   if (error) throwApiError(error, 'getStudentCountsByClassIds');
 
