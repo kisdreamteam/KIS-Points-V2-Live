@@ -144,6 +144,7 @@ export function useSeatingLayoutManager({
         show_grid?: boolean | null;
         show_objects?: boolean | null;
         layout_orientation?: string | null;
+        color_by_gender?: boolean | null;
       }>;
       const detail = customEvent.detail;
       if (!detail || detail.layoutId !== selectedLayoutId) return;

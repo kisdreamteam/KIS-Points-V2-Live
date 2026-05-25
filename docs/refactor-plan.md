@@ -66,6 +66,6 @@
 ## Phase 5: The Furniture (Visual Tier 3)
 *Goal: Make UI components "dumb" and agnostic.*
 
-- [x] **Navbars:** Decouple [`StudentsBottomNav`](../src/components/dashboard/shell/StudentsBottomNav.tsx) / [`SeatingEditorBottomNav`](../src/components/dashboard/shell/SeatingEditorBottomNav.tsx) from persistence; shell + [`SeatingEditorBottomNavBridge`](../src/components/dashboard/shell/SeatingEditorBottomNavBridge.tsx) + [`useSeatingEditBottomNav`](../src/hooks/useSeatingEditBottomNav.ts).
+- [x] **Navbars:** Decouple [`StudentsBottomNav`](../src/components/dashboard/shell/StudentsBottomNav.tsx) / [`SeatingEditorBottomNav`](../src/components/dashboard/shell/SeatingEditorBottomNav.tsx) from persistence; shell + [`SeatingEditorBottomNavBridge`](../src/components/dashboard/shell/SeatingEditorBottomNavBridge.tsx) + [`useSeatingEditorToolbarActions`](../src/hooks/useSeatingEditorToolbarActions.ts) (renamed from `useSeatingEditBottomNav`).
 - [x] **Modals:** Presentational modals with `onSubmit` / parents wiring API (e.g. [`EditStudentModal`](../src/components/ui/modals/EditStudentModal.tsx), [`AddSkillForm`](../src/components/ui/forms/AddSkillForm.tsx)); class edit lives in [`EditClassModalRoot`](../src/components/ui/modals/EditClassModalRoot.tsx) with a thin [`EditClassModal`](../src/components/ui/modals/EditClassModal.tsx) façade.
 - [x] **Atoms:** Keep shared UI under [`/src/components/ui/`](../src/components/ui/) free of `@/lib/api` / Supabase; compose only via props and callbacks (see [architecture-plan.md](architecture-plan.md) §2 Tier 3).

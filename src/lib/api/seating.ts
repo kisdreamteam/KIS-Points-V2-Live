@@ -10,6 +10,7 @@ export type SeatingChartRecord = {
   show_grid?: boolean;
   show_objects?: boolean;
   layout_orientation?: string;
+  color_by_gender?: boolean;
 };
 
 export type SeatingGroupRecord = {
@@ -29,6 +30,7 @@ export type LayoutViewSettings = {
   show_grid?: boolean | null;
   show_objects?: boolean | null;
   layout_orientation?: string | null;
+  color_by_gender?: boolean | null;
 };
 
 type StudentSeatAssignment = {
@@ -81,6 +83,7 @@ export async function createSeatingLayout(params: {
       show_grid: true,
       show_objects: true,
       layout_orientation: 'Left',
+      color_by_gender: true,
     })
     .select()
     .single();
@@ -215,7 +218,7 @@ export async function fetchLayoutViewSettings(
   const supabase = createClient();
   const { data, error } = await supabase
     .from('seating_charts')
-    .select('show_grid, show_objects, layout_orientation')
+    .select('show_grid, show_objects, layout_orientation, color_by_gender')
     .eq('id', layoutId)
     .single();
 

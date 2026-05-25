@@ -152,7 +152,7 @@ Applies when URL/layout reflect **seating chart + edit mode** (`?view=seating` +
 | Toolbar orchestration | `features/seating/SeatingEditorWorkspaceToolbar.tsx` (Tier 2) |
 | Toolbar shell | `components/ui/WorkspaceToolbar.tsx` (Tier 3) |
 | Preset actions (Close, layout manager, …) | `features/dashboard/stage/workspaceToolbarPresets.tsx` + `hooks/dashboard/useWorkspaceToolbarActions.ts` |
-| Editor settings/groups/randomize | `hooks/useSeatingEditBottomNav.ts` (name is legacy; powers toolbar, not a bottom nav) |
+| Editor settings/groups/randomize | `hooks/useSeatingEditorToolbarActions.ts` (consumed by `SeatingEditorWorkspaceToolbar`) |
 | Menu UI | `features/seating/components/menus/SeatingViewSettingsMenu.tsx`, `SeatingSettingsMenu.tsx`, `SeatingEditorAddGroupsMenu.tsx` |
 
 ### Portaled dropdowns

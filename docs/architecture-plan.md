@@ -239,11 +239,11 @@ components/ui/                     # shared atoms, icons, WorkspaceToolbar, gene
 | Class CRUD / archive | `useClassActions.ts`, `useClassManagement.ts`, `useClassesWorkspaceActions.ts` |
 | Student modals / selection | `useStudentsModalsState.ts`, `useStudentsSelection.ts`, `useDashboardClassModalsActions.ts` |
 | Random student tool | `useRandomStudentFlow.ts` |
-| Seating editor canvas | `useSeatingChart.ts`, `useSeatingLayoutManager.ts`, `useSeatingEditBottomNav.ts` (toolbar; not a bottom nav) |
+| Seating editor canvas | `useSeatingChart.ts`, `useSeatingLayoutManager.ts`, `useSeatingEditorToolbarActions.ts` |
 | Session / logout | `useDashboardSessionActions.ts` |
 | Auth forms | `useAuthFlow.ts` |
 | Workspace toolbar presets | `hooks/dashboard/useWorkspaceToolbarActions.ts` (preset actions via window events) |
-| Seating editor toolbar state/actions | `useSeatingEditBottomNav.ts` (view settings, groups, auto-assign/randomize; consumed by `SeatingEditorWorkspaceToolbar`) |
+| Seating editor toolbar state/actions | `useSeatingEditorToolbarActions.ts` (view settings, groups, auto-assign/randomize; consumed by `SeatingEditorWorkspaceToolbar`) |
 | Award points modal (controller) | `useAwardPointsModalController.ts` (composes `usePointAwarding`, `useSkillManagement`, `useAvailable*` for add-skill UX) |
 | Edit skills modal (controller) | `useEditSkillsModalController.ts` (list/delete/edit orchestration + icon picker data for `EditSkillForm`) |
 | Daily attendance toggle | `useAttendanceActions.ts` |
@@ -394,7 +394,7 @@ When `useLayoutStore.isEditMode` is true on the seating chart view, shell and vi
 Orchestrates the editor toolbar using:
 
 - **Tier 3 shell:** `components/ui/WorkspaceToolbar.tsx` (`topSlot`, `bottomSlot`, `topActions`, `bottomActions`)
-- **Layer 1:** `useSeatingEditBottomNav()` (settings toggles, group actions, emits `STUDENT_EVENTS` consumed by `useSeatingChart.ts`), `useWorkspaceToolbarActions()` (Close and other preset buttons from `workspaceToolbarPresets.tsx`)
+- **Layer 1:** `useSeatingEditorToolbarActions()` (settings toggles, group actions, emits `STUDENT_EVENTS` consumed by `useSeatingChart.ts`), `useWorkspaceToolbarActions()` (Close and other preset buttons from `workspaceToolbarPresets.tsx`)
 - **Tier 3 menus:** `SeatingViewSettingsMenu`, `SeatingSettingsMenu`, `SeatingEditorAddGroupsMenu` in `features/seating/components/menus/`
 
 **Button layout (top → bottom on the rail):**

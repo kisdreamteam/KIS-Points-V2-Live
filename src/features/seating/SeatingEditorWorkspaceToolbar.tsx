@@ -17,7 +17,7 @@ import EditorClearGroupsIcon from '@/components/ui/icons/EditorClearGroupsIcon';
 import { buildShellToolbarConfig } from '@/features/dashboard/stage/dashboardToolbarConfig';
 import { useWorkspaceToolbarActions } from '@/features/dashboard/hooks/useWorkspaceToolbarActions';
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
-import { useSeatingEditBottomNav } from '@/hooks/useSeatingEditBottomNav';
+import { useSeatingEditorToolbarActions } from '@/hooks/useSeatingEditorToolbarActions';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 import { useSeatingStore } from '@/stores/useSeatingStore';
 
@@ -66,7 +66,7 @@ export default function SeatingEditorWorkspaceToolbar({
     onAddGroups,
     onClearAllGroups,
     onDeleteAllGroups,
-  } = useSeatingEditBottomNav();
+  } = useSeatingEditorToolbarActions();
 
   const addGroupBottomActions = useMemo<WorkspaceToolbarAction[]>(
     () => [

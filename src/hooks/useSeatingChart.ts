@@ -274,6 +274,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       show_grid?: boolean | null;
       show_objects?: boolean | null;
       layout_orientation?: string | null;
+      color_by_gender?: boolean | null;
     }) => {
       if (data.show_grid !== undefined) {
         setShowGrid(data.show_grid ?? true);
@@ -283,6 +284,9 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       }
       if (data.layout_orientation !== undefined) {
         setLayoutOrientation(data.layout_orientation ?? 'Left');
+      }
+      if (data.color_by_gender !== undefined) {
+        setColorCodeBy(data.color_by_gender ? 'Gender' : 'Level');
       }
     }, []);
     
@@ -921,19 +925,6 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       window.addEventListener(STUDENT_EVENTS.SEATING_DELETE_ALL_GROUPS, handleDeleteAllGroups);
       return () => {
         window.removeEventListener(STUDENT_EVENTS.SEATING_DELETE_ALL_GROUPS, handleDeleteAllGroups);
-      };
-    }, []);
-
-    // Listen for color code by event from bottom nav
-    useEffect(() => {
-      const handleColorCodeBy = (event: CustomEvent) => {
-        const { colorCodeBy: newColorCodeBy } = event.detail;
-        setColorCodeBy(newColorCodeBy);
-      };
-
-      window.addEventListener(STUDENT_EVENTS.SEATING_COLOR_CODE_BY, handleColorCodeBy as EventListener);
-      return () => {
-        window.removeEventListener(STUDENT_EVENTS.SEATING_COLOR_CODE_BY, handleColorCodeBy as EventListener);
       };
     }, []);
 

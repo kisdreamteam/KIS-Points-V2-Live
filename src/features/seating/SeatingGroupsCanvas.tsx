@@ -22,14 +22,16 @@ export default function SeatingGroupsCanvas({
   selectedStudentIds,
   onSelectStudent,
 }: SeatingGroupsCanvasProps) {
-  const { groups, groupAssignmentsById, groupPositionsById, isLoadingGroups } = useSeatingStore(
-    useShallow((s) => ({
-      groups: s.groups,
-      groupAssignmentsById: s.groupAssignmentsById,
-      groupPositionsById: s.groupPositionsById,
-      isLoadingGroups: s.isLoadingGroups,
-    }))
-  );
+  const { groups, groupAssignmentsById, groupPositionsById, isLoadingGroups, colorByGender } =
+    useSeatingStore(
+      useShallow((s) => ({
+        groups: s.groups,
+        groupAssignmentsById: s.groupAssignmentsById,
+        groupPositionsById: s.groupPositionsById,
+        isLoadingGroups: s.isLoadingGroups,
+        colorByGender: s.colorByGender,
+      }))
+    );
 
   const studentAtSlot = useCallback(
     (groupId: string, seatIndex: number): Student | null => {
@@ -129,6 +131,8 @@ export default function SeatingGroupsCanvas({
           let bgColor: string;
           if (isSelected) {
             bgColor = 'bg-yellow-200 border-yellow-400';
+          } else if (!colorByGender) {
+            bgColor = 'bg-white border-gray-200';
           } else if (student.gender === null || student.gender === undefined || student.gender === '') {
             bgColor = 'bg-white border-gray-200';
           } else if (student.gender === 'Boy') {

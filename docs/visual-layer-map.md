@@ -321,7 +321,7 @@ src/
 | `features/dashboard/components/tools/Timer.tsx` | T3 body; opened by `DashboardToolsHost` (T2) |
 | `features/dashboard/tools/Random.tsx` | T2 tool; uses `LargeToolModal` (T3) |
 
-Layer 1 hooks (e.g. `useWorkspaceToolbarActions`, `useSeatingEditBottomNav`) feed Tier 2 toolbars but live under `src/hooks/` — not listed here.
+Layer 1 hooks (e.g. `useWorkspaceToolbarActions`, `useSeatingEditorToolbarActions`) feed Tier 2 toolbars but live under `src/hooks/` — not listed here.
 
 ---
 

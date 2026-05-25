@@ -40,6 +40,7 @@ export type SeatingViewSettingsChangedDetail = {
   show_grid?: boolean;
   show_objects?: boolean;
   layout_orientation?: 'Left' | 'Right';
+  color_by_gender?: boolean;
 };
 export type SeatingSaveDetail = { onSaveComplete?: () => void };
 export type SeatingAddMultipleGroupsDetail = { numGroups: number };

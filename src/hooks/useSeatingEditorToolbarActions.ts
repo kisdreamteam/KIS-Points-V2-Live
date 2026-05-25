@@ -8,15 +8,14 @@ import {
   emitSeatingAddMultipleGroups,
   emitSeatingAutoAssignSeats,
   emitSeatingClearAllGroups,
-  emitSeatingColorCodeBy,
   emitSeatingDeleteAllGroups,
   emitSeatingRandomize,
   emitSeatingViewSettingsChanged,
   STUDENT_EVENTS,
 } from '@/lib/events/students';
-import type { SeatingColorCodeByDetail, SeatingViewSettingsChangedDetail } from '@/lib/events/students';
+import type { SeatingViewSettingsChangedDetail } from '@/lib/events/students';
 
-export type SeatingEditBottomNavViewProps = {
+export type SeatingEditorToolbarActionsReturn = {
   showGrid: boolean;
   showFurniture: boolean;
   teachersDeskLeft: boolean;
@@ -32,7 +31,7 @@ export type SeatingEditBottomNavViewProps = {
   onAutoAssignSeats: () => void;
 };
 
-export function useSeatingEditBottomNav(): SeatingEditBottomNavViewProps {
+export function useSeatingEditorToolbarActions(): SeatingEditorToolbarActionsReturn {
   const searchParams = useSearchParams();
   const layoutId = searchParams?.get('layout');
 
@@ -46,6 +45,7 @@ export function useSeatingEditBottomNav(): SeatingEditBottomNavViewProps {
       show_grid?: boolean;
       show_objects?: boolean;
       layout_orientation?: 'Left' | 'Right';
+      color_by_gender?: boolean;
     }) => {
       if (!layoutId) return;
       emitSeatingViewSettingsChanged({
@@ -62,6 +62,7 @@ export function useSeatingEditBottomNav(): SeatingEditBottomNavViewProps {
     if (detail.layout_orientation !== undefined) {
       setTeachersDeskLeft(detail.layout_orientation === 'Left');
     }
+    if (detail.color_by_gender !== undefined) setColorByGender(detail.color_by_gender);
   }, []);
 
   useEffect(() => {
@@ -75,8 +76,9 @@ export function useSeatingEditBottomNav(): SeatingEditBottomNavViewProps {
         setShowFurniture(data.show_objects ?? true);
         const orient = data.layout_orientation ?? 'Left';
         setTeachersDeskLeft(orient === 'Left');
+        setColorByGender(data.color_by_gender ?? true);
       } catch (err) {
-        console.error('Unexpected error fetching layout view settings (bottom nav):', err);
+        console.error('Unexpected error fetching layout view settings (editor toolbar):', err);
       }
     };
 
@@ -97,19 +99,6 @@ export function useSeatingEditBottomNav(): SeatingEditBottomNavViewProps {
     return () =>
       window.removeEventListener(STUDENT_EVENTS.SEATING_VIEW_SETTINGS_CHANGED, onViewSettings as EventListener);
   }, [layoutId, applyViewDetail]);
-
-  useEffect(() => {
-    const onColorCode = (event: Event) => {
-      const custom = event as CustomEvent<SeatingColorCodeByDetail>;
-      const next = custom.detail?.colorCodeBy;
-      if (next === 'Gender' || next === 'Level') {
-        setColorByGender(next === 'Gender');
-      }
-    };
-
-    window.addEventListener(STUDENT_EVENTS.SEATING_COLOR_CODE_BY, onColorCode as EventListener);
-    return () => window.removeEventListener(STUDENT_EVENTS.SEATING_COLOR_CODE_BY, onColorCode as EventListener);
-  }, []);
 
   const onToggleShowGrid = useCallback(
     async (newValue: boolean) => {
@@ -163,11 +152,19 @@ export function useSeatingEditBottomNav(): SeatingEditBottomNavViewProps {
     [layoutId, showFurniture, emitViewSettingsChanged]
   );
 
-  const onToggleColorByGender = useCallback(() => {
+  const onToggleColorByGender = useCallback(async () => {
+    if (!layoutId) return;
     const next = !colorByGender;
     setColorByGender(next);
-    emitSeatingColorCodeBy({ colorCodeBy: next ? 'Gender' : 'Level' });
-  }, [colorByGender]);
+    try {
+      await updateLayoutViewSettings(layoutId, { color_by_gender: next });
+      useSeatingStore.getState().syncLayoutViewSettings(layoutId, { color_by_gender: next });
+      emitViewSettingsChanged({ color_by_gender: next });
+    } catch (err) {
+      console.error('Unexpected error updating color_by_gender:', err);
+      setColorByGender(!next);
+    }
+  }, [layoutId, colorByGender, emitViewSettingsChanged]);
 
   const onRandomize = useCallback(() => {
     emitSeatingRandomize();

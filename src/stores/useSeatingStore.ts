@@ -27,6 +27,7 @@ interface SeatingStore {
   showGrid: boolean;
   showObjects: boolean;
   layoutOrientation: string;
+  colorByGender: boolean;
   unseatedStudents: Student[];
   selectedStudentForGroup: Student | null;
   setLayouts: (layouts: SeatingChartRecord[]) => void;
@@ -45,6 +46,7 @@ interface SeatingStore {
     show_grid?: boolean | null;
     show_objects?: boolean | null;
     layout_orientation?: string | null;
+    color_by_gender?: boolean | null;
   }) => void;
   syncLayoutViewSettings: (
     layoutId: string,
@@ -52,6 +54,7 @@ interface SeatingStore {
       show_grid?: boolean | null;
       show_objects?: boolean | null;
       layout_orientation?: string | null;
+      color_by_gender?: boolean | null;
     }
   ) => void;
   setUnseatedStudents: (next: UnseatedSet) => void;
@@ -66,6 +69,7 @@ const initialViewSettings = {
   showGrid: true,
   showObjects: true,
   layoutOrientation: 'Left' as string,
+  colorByGender: true,
 };
 
 export const useSeatingStore = create<SeatingStore>((set, get) => ({
@@ -99,6 +103,7 @@ export const useSeatingStore = create<SeatingStore>((set, get) => ({
       showGrid: data.show_grid ?? true,
       showObjects: data.show_objects ?? true,
       layoutOrientation: data.layout_orientation ?? 'Left',
+      colorByGender: data.color_by_gender ?? true,
     }),
 
   syncLayoutViewSettings: (layoutId, patch) =>
@@ -111,6 +116,9 @@ export const useSeatingStore = create<SeatingStore>((set, get) => ({
           ...(patch.show_objects !== undefined ? { show_objects: patch.show_objects ?? undefined } : {}),
           ...(patch.layout_orientation !== undefined
             ? { layout_orientation: patch.layout_orientation ?? undefined }
+            : {}),
+          ...(patch.color_by_gender !== undefined
+            ? { color_by_gender: patch.color_by_gender ?? undefined }
             : {}),
         };
       });
@@ -125,6 +133,8 @@ export const useSeatingStore = create<SeatingStore>((set, get) => ({
         showObjects: patch.show_objects !== undefined ? (patch.show_objects ?? true) : s.showObjects,
         layoutOrientation:
           patch.layout_orientation !== undefined ? (patch.layout_orientation ?? 'Left') : s.layoutOrientation,
+        colorByGender:
+          patch.color_by_gender !== undefined ? (patch.color_by_gender ?? true) : s.colorByGender,
       };
     }),
 
