@@ -11,7 +11,7 @@ import { useAwardPointsFlow } from '@/features/dashboard/hooks/useAwardPointsFlo
 import { useRandomStudentFlow } from '@/features/dashboard/hooks/useRandomStudentFlow';
 import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
 import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/useSeatingChartDataSync';
-import { useSeatingStore } from '@/stores/useSeatingStore';
+import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import IconNoCircleX from '@/components/ui/icons/iconNoCircleX';
 
 type RandomProps = {
@@ -27,7 +27,7 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
   const itemHeight = scalePx(250);
   const slotWindowHeight = scalePx(750);
   const slotWindowWidth = scalePx(375);
-  // Slot window padding — center of the *visible reel* is half of inner height, not half of outer window.
+  // Slot window padding ??center of the *visible reel* is half of inner height, not half of outer window.
   const slotPaddingPx = scalePx(20);
   const pointsListWidth = scalePx(320);
   const fadeOverlayHeight = scalePx(100);

@@ -5,7 +5,7 @@ import {
   fetchStudentIdsByClassIds,
   getAuthenticatedUserId,
 } from '@/lib/api/points';
-import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 export function filterEligibleStudentIds(targetStudentIds: string[]): string[] {
   const absentStudentIds = useDashboardStore.getState().absentStudentIds;

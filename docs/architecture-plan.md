@@ -273,18 +273,17 @@ Pure helpers (no React): `src/lib/awardPointsService.ts` (includes `filterEligib
 - `AttendanceSync` — **recommended** in `src/features/dashboard/DashboardView.tsx` next to `DashboardStudentSync` (hydrates absences on class load; toggles work in-session without it)
 - `useDashboardRouteStateSync`, `useViewPreferenceSync` — `src/features/dashboard/layouts/DashboardShell.tsx`
 
-### Layer 2 — Desk (`src/stores/`)
+### Layer 2 — Desk (global + feature stores)
 
-| Store | Owns |
-|-------|------|
-| `useLayoutStore.ts` | `activeView`, sidebar, multi-select, timer/random overlays, edit mode flags |
-| `useDashboardStore.ts` | `activeClassId`, classes, students, `absentStudentIds`, loading, `applyPointsDelta`, `setAbsentStudentIds` |
-| `useModalStore.ts` | Modal type, targets, open/close |
-| `useSeatingStore.ts` | Layouts, groups, assignments, seating view settings |
-| `usePreferenceStore.ts` | `sortBy`, `viewMode`, `viewPreference` |
-| `useUserStore.ts` | `teacherProfile`, profile loading |
-
-**Selectors:** `src/stores/dashboardStudentSelectors.ts`.
+| Store | Location | Owns |
+|-------|----------|------|
+| `useLayoutStore.ts` | `src/stores/` | `activeView`, sidebar, multi-select, timer/random overlays, edit mode flags |
+| `useModalStore.ts` | `src/stores/` | Modal type, targets, open/close |
+| `usePreferenceStore.ts` | `src/stores/` | `sortBy`, `viewMode`, `viewPreference` |
+| `useUserStore.ts` | `src/stores/` | `teacherProfile`, profile loading |
+| `useDashboardStore.ts` | `src/features/dashboard/stores/` | `activeClassId`, classes, students, `absentStudentIds`, loading, `applyPointsDelta`, `setAbsentStudentIds` |
+| `useSeatingStore.ts` | `src/features/seating/stores/` | Layouts, groups, assignments, seating view settings |
+| `dashboardStudentSelectors.ts` | `src/features/students/stores/` | Roster ordering/aggregate selectors (used with `useDashboardStore`) |
 
 ### Layer 3 — Vault (`src/lib/api/`)
 

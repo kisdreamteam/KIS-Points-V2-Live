@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchPointLogRowsForStudents } from '@/lib/api/points';
-import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 export type PointLogRow = {
   id: string;

@@ -26,9 +26,9 @@ import {
 } from '@/features/dashboard/components/frame/dashboardZoneConfig';
 import { STUDENT_EVENTS } from '@/lib/events/students';
 import { useLayoutStore } from '@/stores/useLayoutStore';
-import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
-import { useSeatingStore } from '@/stores/useSeatingStore';
+import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 
 type DashboardShellProps = {
   children: ReactNode;

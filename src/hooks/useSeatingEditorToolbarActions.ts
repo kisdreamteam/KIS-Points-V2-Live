@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { fetchLayoutViewSettings, updateLayoutViewSettings } from '@/lib/api/seating';
-import { useSeatingStore } from '@/stores/useSeatingStore';
+import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import {
   emitSeatingAddMultipleGroups,
   emitSeatingAutoAssignSeats,

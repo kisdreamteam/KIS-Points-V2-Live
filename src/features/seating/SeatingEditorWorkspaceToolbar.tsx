@@ -19,7 +19,7 @@ import { useWorkspaceToolbarActions } from '@/features/dashboard/hooks/useWorksp
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 import { useSeatingEditorToolbarActions } from '@/hooks/useSeatingEditorToolbarActions';
 import { useLayoutStore } from '@/stores/useLayoutStore';
-import { useSeatingStore } from '@/stores/useSeatingStore';
+import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 
 const toolbarMenuClassName = 'min-w-[220px]';
 const TOOLBAR_TOP_MENU_PLACEMENT = 'leftOfAnchorDown' as const;

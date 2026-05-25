@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { fetchDailyAbsences } from '@/lib/api/attendanceService';
-import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 export function useAttendanceSync(): void {
   const pathname = usePathname();

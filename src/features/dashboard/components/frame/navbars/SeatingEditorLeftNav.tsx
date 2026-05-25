@@ -1,6 +1,6 @@
 'use client';
 
-import { useSeatingStore } from '@/stores/useSeatingStore';
+import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import { Student } from '@/lib/types';
 
 export default function SeatingEditorLeftNav() {

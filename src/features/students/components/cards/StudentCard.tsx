@@ -6,7 +6,7 @@ import { normalizeAvatarPath } from '@/lib/iconUtils';
 import IconSettingsWheel from '@/components/ui/icons/iconSettingsWheel';
 import BaseCard from '@/components/ui/BaseCard';
 import StudentCardActionsMenu from '@/features/students/components/menus/StudentCardActionsMenu';
-import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 
 interface StudentCardProps {

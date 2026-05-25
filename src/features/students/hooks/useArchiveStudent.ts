@@ -8,8 +8,8 @@ import {
   refreshDashboardStudents,
 } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
 import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/useSeatingChartDataSync';
-import { useDashboardStore } from '@/stores/useDashboardStore';
-import { useSeatingStore } from '@/stores/useSeatingStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
+import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import { useModalStore } from '@/stores/useModalStore';
 
 type ArchiveStudentOptions = {

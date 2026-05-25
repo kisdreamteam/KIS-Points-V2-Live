@@ -20,7 +20,7 @@ import {
   subscribeSeatingPointsDeltaForClass,
   type SeatingLayoutNavHandlers,
   useSeatingStore,
-} from '@/stores/useSeatingStore';
+} from '@/features/seating/stores/useSeatingStore';
 
 type UseSeatingLayoutManagerParams = {
   classId: string;

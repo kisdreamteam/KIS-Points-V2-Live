@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
-import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import { useAwardPointsFlow, type AwardPointsInfo } from '@/features/dashboard/hooks/useAwardPointsFlow';
 import { useModalStore } from '@/stores/useModalStore';
 import { useDashboardClassModalsActions } from '@/features/dashboard/hooks/useDashboardClassModalsActions';

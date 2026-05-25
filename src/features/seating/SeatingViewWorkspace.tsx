@@ -13,7 +13,7 @@ import SeatingViewWorkspaceToolbar from '@/features/seating/SeatingViewWorkspace
 import StageTwoColumnSplit from '@/components/ui/StageTwoColumnSplit';
 import { useClassPointLog } from '@/hooks/useClassPointLog';
 import { useSeatingLayoutManager } from '@/hooks/useSeatingLayoutManager';
-import { useSeatingStore } from '@/stores/useSeatingStore';
+import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 
 type SeatingViewWorkspaceProps = {
   classId: string;

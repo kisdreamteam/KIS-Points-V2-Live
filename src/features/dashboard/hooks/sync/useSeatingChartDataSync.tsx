@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useDashboardStore } from '@/stores/useDashboardStore';
-import { useSeatingStore } from '@/stores/useSeatingStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
+import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import {
   fetchLayoutViewSettings,
   fetchSeatingGroupsWithAssignments,

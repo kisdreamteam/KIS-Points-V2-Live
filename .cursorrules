@@ -40,7 +40,7 @@ You must identify the active shell before applying layout or state rules. They a
 * **Tools host (Tier 2):** `@/features/dashboard/DashboardToolsHost.tsx` — Timer via `@/components/ui/MovableToolPanel.tsx`; Random via `@/components/ui/LargeToolModal.tsx` (90% viewport). `BottomNav` opens via `setTimerOpen` / `setRandomOpen`. Canvas always `{children}`.
 * **Award / edit-skills (Tier 2 + Layer 1):** `@/features/dashboard/AwardPointsModalHost.tsx` + `hooks/useAwardPointsModalController.ts`; `@/features/dashboard/EditSkillsModalHost.tsx` + `hooks/useEditSkillsModalController.ts`. Prefer this **host + controller** pattern when a dashboard modal subtree needs orchestration hooks but the UI itself should stay Tier 3.
 * **Layout Logic:** Shell chrome grid (`dashboardZoneConfig.ts`); main stage 2-column layout is **workspace-owned** (`StageTwoColumnSplit` + co-located `*WorkspaceToolbar` in each `*Workspace`).
-* **State:** `useUserStore`, `useDashboardStore` (includes `absentStudentIds` for daily attendance), `useLayoutStore`, `useSeatingStore`, `useModalStore`, `usePreferenceStore`.
+* **State:** Global desk (`src/stores/`): `useLayoutStore`, `useModalStore`, `usePreferenceStore`, `useUserStore`. Feature desk: `features/dashboard/stores/useDashboardStore`, `features/seating/stores/useSeatingStore`, `features/students/stores/dashboardStudentSelectors`.
 * **Source of Truth:** The **URL** is the primary source of truth for `classId`, `view`, and `mode`.
 * **Rule:** Do not apply dashboard grid rules to auth/landing, or auth flex rules to the dashboard workspace.
 * **App folder:** See **§0** — off-limits for refactors; dashboard pages import `DashboardView` only.
@@ -68,7 +68,7 @@ You must identify the active shell before applying layout or state rules. They a
   * ✅ `const students = useDashboardStore(s => s.students)`
   * ❌ `const { students } = useDashboardStore()`
   * **No runtime** `@/lib/api/*` calls; type-only imports are OK.
-  * Prefer `@/stores/dashboardStudentSelectors.ts` for roster ordering/aggregates.
+  * Prefer `@/features/students/stores/dashboardStudentSelectors.ts` for roster ordering/aggregates.
 
 ### Tier 3: The Actors (Pure UI)
 

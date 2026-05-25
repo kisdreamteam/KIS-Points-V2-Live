@@ -7,7 +7,7 @@ import {
   emitSelectionCountChanged,
 } from '@/lib/events/students';
 import { useModalStore } from '@/stores/useModalStore';
-import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 export function useStudentsSelection() {
   const isMultiSelectMode = useLayoutStore((s) => s.isMultiSelectMode);

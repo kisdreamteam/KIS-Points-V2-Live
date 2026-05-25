@@ -9,7 +9,7 @@ import IconTimerClock from '@/components/ui/icons/iconTimerClock';
 import LeftNavWebsitesMenu from '@/features/dashboard/components/menus/LeftNavWebsitesMenu';
 import { useDashboardToolbarInset } from '@/features/dashboard/hooks/useDashboardToolbarInset';
 import { useLayoutStore } from '@/stores/useLayoutStore';
-import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
 
 /** Set to `true` to show the Archived Classes row in the sidebar again. */

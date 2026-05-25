@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useModalStore } from '@/stores/useModalStore';
-import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 type UseStudentsModalsStateOptions = {
   onRequestDeleteStudent?: (studentId: string, studentName: string) => void;

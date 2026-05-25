@@ -5,7 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import DashboardWorkspaceToolbar from '@/features/dashboard/stage/DashboardWorkspaceToolbar';
 import { buildShellToolbarConfig } from '@/features/dashboard/stage/dashboardToolbarConfig';
 import { useLayoutStore } from '@/stores/useLayoutStore';
-import { useSeatingStore } from '@/stores/useSeatingStore';
+import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 
 export default function StudentsGridWorkspaceToolbar() {
   const activeView = useLayoutStore((s) => s.activeView);

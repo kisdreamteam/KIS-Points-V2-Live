@@ -10,8 +10,8 @@ import { useClassPointLog } from '@/hooks/useClassPointLog';
 import { useStudentsModalsState } from '@/features/students/hooks/useStudentsModalsState';
 import { useStudentsSelection } from '@/features/students/hooks/useStudentsSelection';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
-import { useDashboardStore } from '@/stores/useDashboardStore';
-import { selectOrderedStudentIds, selectTotalClassPoints } from '@/stores/dashboardStudentSelectors';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
+import { selectOrderedStudentIds, selectTotalClassPoints } from '@/features/students/stores/dashboardStudentSelectors';
 
 type StudentsStageContentProps = {
   classId: string;

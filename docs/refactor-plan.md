@@ -46,7 +46,7 @@
 
 - [x] **Auth:** Auth state managed cleanly via standard layout/context orchestrators.
 - [x] **Points:** Implemented [`useAwardPointsService.ts`](../src/hooks/useAwardPointsService.ts) (integration) + [`awardPointsService.ts`](../src/lib/awardPointsService.ts) (domain), and [`useAwardPointsFlow.ts`](../src/hooks/useAwardPointsFlow.ts) for confirmation/modal glue.
-- [x] **Seating:** Editor “desk” state, DnD, and real-time sync live in [`useSeatingChartEditor`](../src/hooks/useSeatingChart.ts) with [`useSeatingStore`](../src/stores/useSeatingStore.ts) (legacy `SeatingChartContext.tsx` removed; see [`zustand-migration-plan.md`](zustand-migration-plan.md)).
+- [x] **Seating:** Editor “desk” state, DnD, and real-time sync live in [`useSeatingChartEditor`](../src/hooks/useSeatingChart.ts) with [`useSeatingStore`](../src/features/seating/stores/useSeatingStore.ts) (legacy `SeatingChartContext.tsx` removed; see [`zustand-migration-plan.md`](zustand-migration-plan.md)).
 - [x] **Students:** Implemented modular hooks under [`/src/hooks/`](../src/hooks/) (`useStudentsSelection.ts`, `useStudentsModalsState.ts`, `useStudentsToolbarEvents.ts`, …).
 - [x] **Performance Optimization:** Wrapped provider values in `useMemo` and orchestrators in `useCallback` where contexts existed; dashboard/seating chrome now use Zustand strict selectors (see [`zustand-migration-plan.md`](zustand-migration-plan.md)).
 

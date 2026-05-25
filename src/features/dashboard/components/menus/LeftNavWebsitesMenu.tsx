@@ -7,7 +7,7 @@ import { formatClassListForClipboard } from '@/lib/classRoster';
 import { DUCK_RACE_GAME_URL } from '@/lib/duckRace';
 import { buildFlippityNamePickerUrl, FLIPPITY_HOME_URL } from '@/lib/flippity';
 import { ONLINE_STOPWATCH_URL } from '@/lib/onlineStopwatch';
-import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 
 export type LeftNavWebsitesMenuProps = {
@@ -115,7 +115,7 @@ export default function LeftNavWebsitesMenu({
           >
             <span className="block font-semibold">Online-Stopwatch Resource Website</span>
             <span className="block text-xs font-normal text-gray-500 mt-0.5">
-              Name list is copied automatically. Opens Online-Stopwatch in a new tab — Must paste into name pickers. Not all are free.
+              Name list is copied automatically. Opens Online-Stopwatch in a new tab ??Must paste into name pickers. Not all are free.
             </span>
           </button>
           <button

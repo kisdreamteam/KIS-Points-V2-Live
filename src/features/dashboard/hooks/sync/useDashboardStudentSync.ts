@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import type { Student } from '@/lib/types';
 import { fetchStudentsByClassId } from '@/lib/api/students';
-import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 const studentsByClassCache = new Map<string, Student[]>();
 
@@ -62,7 +62,7 @@ function rosterInStoreMatchesClass(activeClassId: string): boolean {
   return students.length > 0 && students.every((s) => s.class_id === activeClassId);
 }
 
-/** Mount once under the dashboard layout to sync URL → `activeClassId` and load roster into the store. */
+/** Mount once under the dashboard layout to sync URL ??`activeClassId` and load roster into the store. */
 export function DashboardStudentSync() {
   const pathname = usePathname();
 

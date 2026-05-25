@@ -217,7 +217,7 @@ Status: Finished
 
 Status: Finished
 
-**File:** `src/stores/useSeatingStore.ts`  
+**File:** `src/features/seating/stores/useSeatingStore.ts`  
 **Issue:** heavier transformation logic in Layer 2 store.
 
 ### Move out (if safe)

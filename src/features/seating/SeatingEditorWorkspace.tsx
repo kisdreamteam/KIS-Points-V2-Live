@@ -6,7 +6,7 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import StageTwoColumnSplit from '@/components/ui/StageTwoColumnSplit';
 import SeatingEditorWorkspaceToolbar from '@/features/seating/SeatingEditorWorkspaceToolbar';
 import { useShallow } from 'zustand/react/shallow';
-import { useSeatingStore } from '@/stores/useSeatingStore';
+import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import { Student } from '@/lib/types';
 import CreateLayoutModal from '@/features/seating/components/modals/CreateLayoutModal';
 import EditGroupModal from '@/features/seating/components/modals/EditGroupModal';

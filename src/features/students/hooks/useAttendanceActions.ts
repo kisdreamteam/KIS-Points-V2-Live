@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 import { logAbsence, removeAbsence } from '@/lib/api/attendanceService';
-import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import { useUserStore } from '@/stores/useUserStore';
 
 export function useAttendanceActions() {

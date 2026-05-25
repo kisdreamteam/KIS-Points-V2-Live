@@ -8,7 +8,7 @@ import {
 } from '@/lib/awardPointsService';
 import { awardCustomPointsToStudents, awardPointsToStudents, getAuthenticatedUserId } from '@/lib/api/points';
 import { syncStudentsByClassCacheFromStore } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
-import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 interface UseAwardPointsServiceParams {
   context: AwardTargetContext;

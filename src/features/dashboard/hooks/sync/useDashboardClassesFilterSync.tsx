@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useDashboardStore } from '@/stores/useDashboardStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
 
 /** Mirrors `allAccessibleClasses` + `viewMode` into filtered `classes` on the dashboard store. */

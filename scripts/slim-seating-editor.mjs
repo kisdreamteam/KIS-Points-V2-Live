@@ -14,7 +14,7 @@ const header = `'use client';
 import { useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useShallow } from 'zustand/react/shallow';
-import { useSeatingStore } from '@/stores/useSeatingStore';
+import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import { Student } from '@/lib/types';
 import CreateLayoutModal from '@/components/ui/modals/CreateLayoutModal';
 import EditGroupModal from '@/components/ui/modals/EditGroupModal';
