@@ -10,7 +10,6 @@ import StudentsCardsGrid from './StudentsCardsGrid';
 import StudentsGridWorkspaceToolbar from './StudentsGridWorkspaceToolbar';
 import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
 import { useDashboardToolbarInset } from '@/features/dashboard/hooks/useDashboardToolbarInset';
-import { useStudentsToolbarEvents } from '@/features/students/hooks/useStudentsToolbarEvents';
 import type { PointLogRow } from '@/hooks/useClassPointLog';
 
 export type StudentsGridWorkspaceProps = {
@@ -34,12 +33,6 @@ export type StudentsGridWorkspaceProps = {
   classIcon: string | null;
   totalClassPoints: number;
   openDropdownId: string | null;
-  onToggleMultiSelect: () => void;
-  onSelectAll: () => void;
-  onSelectNone: () => void;
-  onRecentlySelect: () => void;
-  onAwardPoints: () => void;
-  onInverseSelect: () => void;
   setIsPointLogOpen: Dispatch<SetStateAction<boolean>>;
   onWholeClassClick: () => void;
   onSelectStudent: (studentId: string) => void;
@@ -71,12 +64,6 @@ export default function StudentsGridWorkspace({
   classIcon,
   totalClassPoints,
   openDropdownId,
-  onToggleMultiSelect,
-  onSelectAll,
-  onSelectNone,
-  onRecentlySelect,
-  onAwardPoints,
-  onInverseSelect,
   setIsPointLogOpen,
   onWholeClassClick,
   onSelectStudent,
@@ -87,18 +74,6 @@ export default function StudentsGridWorkspace({
   onAddStudent,
 }: StudentsGridWorkspaceProps) {
   const toolbarInset = useDashboardToolbarInset();
-
-  useStudentsToolbarEvents({
-    classId,
-    currentView,
-    onToggleMultiSelect,
-    onSelectAll,
-    onSelectNone,
-    onRecentlySelect,
-    onAwardPoints,
-    onInverseSelect,
-    setIsPointLogOpen,
-  });
 
   const mainContent = (() => {
     if (isLoadingStudents) {

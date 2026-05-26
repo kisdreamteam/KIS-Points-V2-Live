@@ -9,6 +9,7 @@ import { useArchiveStudent } from '@/features/students/hooks/useArchiveStudent';
 import { useClassPointLog } from '@/hooks/useClassPointLog';
 import { useStudentsModalsState } from '@/features/students/hooks/useStudentsModalsState';
 import { useStudentsSelection } from '@/features/students/hooks/useStudentsSelection';
+import { useStudentsToolbarEvents } from '@/features/students/hooks/useStudentsToolbarEvents';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import { selectOrderedStudentIds, selectTotalClassPoints } from '@/features/students/stores/dashboardStudentSelectors';
@@ -111,6 +112,18 @@ export default function StudentsStageContent({
     pagedPointLogRows,
   } = useClassPointLog(classId);
 
+  useStudentsToolbarEvents({
+    classId,
+    currentView,
+    onToggleMultiSelect: toggleMultiSelect,
+    onSelectAll: selectAll,
+    onSelectNone: selectNone,
+    onRecentlySelect: recentlySelect,
+    onAwardPoints: awardPoints,
+    onInverseSelect: inverseSelect,
+    setIsPointLogOpen,
+  });
+
   return (
     <div className="h-full min-h-0 w-full min-w-0">
       {currentView === 'seating' ? (
@@ -145,12 +158,6 @@ export default function StudentsStageContent({
           classIcon={classIcon}
           totalClassPoints={totalClassPoints}
           openDropdownId={openDropdownId}
-          onToggleMultiSelect={toggleMultiSelect}
-          onSelectAll={selectAll}
-          onSelectNone={selectNone}
-          onRecentlySelect={recentlySelect}
-          onAwardPoints={awardPoints}
-          onInverseSelect={inverseSelect}
           setIsPointLogOpen={setIsPointLogOpen}
           onWholeClassClick={handleWholeClassClick}
           onSelectStudent={handleSelectStudent}
