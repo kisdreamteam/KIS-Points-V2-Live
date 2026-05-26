@@ -79,7 +79,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
           shellGrid.dashboardGridColsClassName,
         ].join(' ')}
       >
-        <aside className="h-full overflow-hidden pl-1">
+        <aside className="h-full overflow-hidden pl-0">
           <div className="h-full overflow-hidden bg-white max-w-[19rem] ml-1">
             {shellGrid.useSeatingEditorLeftNav ? (
               <SeatingEditorLeftNav />
