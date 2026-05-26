@@ -12,6 +12,7 @@ import { useRandomStudentFlow } from '@/features/dashboard/hooks/useRandomStuden
 import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
 import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/useSeatingChartDataSync';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
+import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import IconNoCircleX from '@/components/ui/icons/iconNoCircleX';
 
 type RandomProps = {
@@ -48,6 +49,7 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
     markSelectedStudentAsPicked,
     handleResetPickedStudents,
   } = useRandomStudentFlow();
+  const absentStudentIds = useDashboardStore((s) => s.absentStudentIds);
   const [isSpinning, setIsSpinning] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const reelRef = useRef<HTMLDivElement>(null);
@@ -65,8 +67,14 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
   const audioContextRef = useRef<AudioContext | null>(null);
   const totalStudents = students.length;
   const reelStudents = students;
-  const availableStudents = students.filter((student) => !student.has_been_picked);
-  const pickedStudentsCount = totalStudents - availableStudents.length;
+  const availableStudents = students.filter(
+    (student) => !student.has_been_picked && !absentStudentIds.includes(student.id)
+  );
+  const presentStudents = students.filter((student) => !absentStudentIds.includes(student.id));
+  const pickedStudentsCount = presentStudents.filter((student) => student.has_been_picked).length;
+  const allPresentPicked =
+    presentStudents.length > 0 && presentStudents.every((student) => student.has_been_picked);
+  const allPresentAbsent = totalStudents > 0 && presentStudents.length === 0;
   const pointsListStudentIds = pointsListStudents.map((student) => student.id);
   const [lastAwardedStudentIds, setLastAwardedStudentIds] = useState<string[]>([]);
 
@@ -305,14 +313,18 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
                 ? 'Loading students...'
                 : totalStudents === 0
                   ? 'No students found'
-                  : availableStudents.length === 0
-                    ? 'All students have been picked. Reset to start again.'
-                    : `Click the button to randomly select from ${availableStudents.length} students`}
+                  : allPresentAbsent
+                    ? 'All students are marked absent today. No one can be chosen until they are marked present.'
+                    : availableStudents.length === 0
+                      ? allPresentPicked
+                        ? 'All present students have been picked. Reset to start again.'
+                        : 'No present students available to choose.'
+                      : `Click the button to randomly select from ${availableStudents.length} students`}
             </p>
             {!isLoading && totalStudents > 0 && (
               <div className="mb-5 flex items-center justify-center gap-4">
                 <p className="text-white/90 text-base font-semibold">
-                  {pickedStudentsCount} of {totalStudents} students picked
+                  {pickedStudentsCount} of {presentStudents.length} present students picked
                 </p>
                 <button
                   onClick={() => void handleResetPickedStudents(classId, () => setSelectedStudent(null))}

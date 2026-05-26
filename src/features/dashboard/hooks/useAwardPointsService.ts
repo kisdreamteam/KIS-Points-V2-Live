@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { PointCategory, Student } from '@/lib/types';
 import {
+  filterEligibleStudentIds,
   getAwardMode,
   resolveAwardTargetStudentIds,
   type AwardTargetContext,
@@ -45,18 +46,12 @@ export function useAwardPointsService({
 }: UseAwardPointsServiceParams) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const absentStudentIds = useDashboardStore((s) => s.absentStudentIds);
 
   const mode = useMemo<AwardMode>(() => getAwardMode(context), [context]);
 
   const toEligibleStudentIds = useCallback(
-    (studentIds: string[]) => {
-      if (mode === 'wholeClass' || mode === 'multiClass') {
-        return studentIds.filter((id) => !absentStudentIds.includes(id));
-      }
-      return studentIds;
-    },
-    [mode, absentStudentIds]
+    (studentIds: string[]) => filterEligibleStudentIds(studentIds),
+    []
   );
 
   const afterAwardSuccess = useCallback(

@@ -9,6 +9,7 @@ import { DashboardStudentSync } from '@/features/dashboard/hooks/sync/useDashboa
 import { SeatingChartDataSync } from '@/features/dashboard/hooks/sync/useSeatingChartDataSync';
 import { DashboardProfileSync } from '@/features/dashboard/hooks/sync/useDashboardProfileSync';
 import { DashboardClassesFilterSync } from '@/features/dashboard/hooks/sync/useDashboardClassesFilterSync';
+import { AttendanceSync } from '@/features/dashboard/hooks/sync/useAttendanceSync';
 
 function getDashboardClassIdFromPath(pathname: string | null): string | null {
   return pathname?.match(/\/dashboard\/classes\/([^/]+)/)?.[1] ?? null;
@@ -57,6 +58,7 @@ export default function DashboardView() {
     <Suspense fallback={<DashboardViewFallback />}>
       <DashboardStudentSync />
       <SeatingChartDataSync />
+      <AttendanceSync />
       <DashboardProfileSync />
       <DashboardClassesFilterSync />
       {/* <ClassesStage> and <StudentsStage> are the two main stage views for the dashboard */}
