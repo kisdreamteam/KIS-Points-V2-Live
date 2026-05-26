@@ -14,19 +14,24 @@ import StageTwoColumnSplit from '@/components/ui/StageTwoColumnSplit';
 import { useClassPointLog } from '@/hooks/useClassPointLog';
 import { useSeatingLayoutManager } from '@/hooks/useSeatingLayoutManager';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
-
 type SeatingViewWorkspaceProps = {
   classId: string;
   isMultiSelectMode?: boolean;
+  isGroupSelectEnabled?: boolean;
   selectedStudentIds?: string[];
+  selectedGroupIds?: string[];
   onSelectStudent?: (studentId: string) => void;
+  onSelectGroup?: (groupId: string) => void;
 };
 
 export default function SeatingViewWorkspace({
   classId,
   isMultiSelectMode = false,
+  isGroupSelectEnabled = false,
   selectedStudentIds = [],
+  selectedGroupIds = [],
   onSelectStudent,
+  onSelectGroup,
 }: SeatingViewWorkspaceProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -188,8 +193,11 @@ export default function SeatingViewWorkspace({
                         <SeatingGroupsCanvas
                           isTeacherView={isTeacherView}
                           isMultiSelectMode={isMultiSelectMode}
+                          isGroupSelectEnabled={isGroupSelectEnabled}
                           selectedStudentIds={selectedStudentIds}
+                          selectedGroupIds={selectedGroupIds}
                           onSelectStudent={onSelectStudent}
+                          onSelectGroup={onSelectGroup}
                         />
                       </div>
                     )}

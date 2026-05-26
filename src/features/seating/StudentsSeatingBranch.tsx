@@ -10,8 +10,11 @@ type StudentsSeatingBranchProps = {
   isEditModeFromURL: boolean;
   students: Student[];
   isMultiSelectMode: boolean;
+  isGroupSelectEnabled: boolean;
   selectedStudentIds: string[];
+  selectedGroupIds: string[];
   onSelectStudent: (studentId: string) => void;
+  onSelectGroup: (groupId: string) => void;
 };
 
 export default function StudentsSeatingBranch({
@@ -20,8 +23,11 @@ export default function StudentsSeatingBranch({
   isEditModeFromURL,
   students,
   isMultiSelectMode,
+  isGroupSelectEnabled,
   selectedStudentIds,
+  selectedGroupIds,
   onSelectStudent,
+  onSelectGroup,
 }: StudentsSeatingBranchProps) {
   return (
     <div className="h-full min-h-0 w-full text-white-500">
@@ -31,8 +37,11 @@ export default function StudentsSeatingBranch({
         <SeatingViewWorkspace
           classId={classId}
           isMultiSelectMode={isMultiSelectMode}
+          isGroupSelectEnabled={isGroupSelectEnabled}
           selectedStudentIds={selectedStudentIds}
+          selectedGroupIds={selectedGroupIds}
           onSelectStudent={onSelectStudent}
+          onSelectGroup={onSelectGroup}
         />
       )}
     </div>

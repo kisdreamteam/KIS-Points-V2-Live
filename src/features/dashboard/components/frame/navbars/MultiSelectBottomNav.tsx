@@ -1,31 +1,48 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import IconTimerClock from '@/components/ui/icons/iconTimerClock';
 import IconRandomArrows from '@/components/ui/icons/iconRandomArrows';
 import IconCheckCircle from '@/components/ui/icons/iconCheckCircle';
 import IconCircleX from '@/components/ui/icons/iconCircleX';
 import IconNoCircleX from '@/components/ui/icons/iconNoCircleX';
 import IconStarTrophy from '@/components/ui/icons/iconStarTrophy';
+import IconPresentationBoard from '@/components/ui/icons/iconPresentationBoard';
 import BotNavGrayButton from '@/components/ui/BotNavGrayButton';
 import BaseBottomNav from '@/components/ui/BaseBottomNav';
 import { STUDENT_EVENTS } from '@/lib/events/students';
+import { useLayoutStore } from '@/stores/useLayoutStore';
 
 export default function MultiSelectBottomNav() {
-  const [selectedCount, setSelectedCount] = useState(0);
+  const activeView = useLayoutStore((s) => s.activeView);
+  const isSeatingView = activeView === 'seating_chart';
+
+  const [awardableStudentCount, setAwardableStudentCount] = useState(0);
+  const [isGroupSelectEnabled, setIsGroupSelectEnabled] = useState(false);
   const [hasRecentlySelected, setHasRecentlySelected] = useState(false);
 
-  const checkRecentlySelected = () => {
+  const checkRecentlySelected = useCallback(() => {
     const lastSelectedClasses = localStorage.getItem('lastSelectedClasses');
     const lastSelectedStudents = localStorage.getItem('lastSelectedStudents');
-    const hasData = !!(lastSelectedClasses || lastSelectedStudents);
-    setHasRecentlySelected(hasData);
-  };
+    setHasRecentlySelected(!!(lastSelectedClasses || lastSelectedStudents));
+  }, []);
 
   useEffect(() => {
-    const handleSelectionCountChange = (event: CustomEvent) => {
+    const handleSelectionCountChange = (
+      event: CustomEvent<{
+        studentCount?: number;
+        groupCount?: number;
+        awardableStudentCount?: number;
+      }>
+    ) => {
       setTimeout(() => {
-        setSelectedCount(event.detail.count || 0);
+        setAwardableStudentCount(event.detail.awardableStudentCount ?? 0);
+      }, 0);
+    };
+
+    const handleGroupSelectEnabledChange = (event: CustomEvent<{ enabled: boolean }>) => {
+      setTimeout(() => {
+        setIsGroupSelectEnabled(event.detail.enabled);
       }, 0);
     };
 
@@ -36,24 +53,35 @@ export default function MultiSelectBottomNav() {
     checkRecentlySelected();
 
     window.addEventListener(STUDENT_EVENTS.SELECTION_COUNT_CHANGED, handleSelectionCountChange as EventListener);
+    window.addEventListener(
+      STUDENT_EVENTS.GROUP_SELECT_ENABLED_CHANGED,
+      handleGroupSelectEnabledChange as EventListener
+    );
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener(STUDENT_EVENTS.RECENTLY_SELECTED_CLEARED, handleStorageChange);
     window.addEventListener(STUDENT_EVENTS.RECENTLY_SELECTED_UPDATED, handleStorageChange);
 
     return () => {
-      window.removeEventListener(STUDENT_EVENTS.SELECTION_COUNT_CHANGED, handleSelectionCountChange as EventListener);
+      window.removeEventListener(
+        STUDENT_EVENTS.SELECTION_COUNT_CHANGED,
+        handleSelectionCountChange as EventListener
+      );
+      window.removeEventListener(
+        STUDENT_EVENTS.GROUP_SELECT_ENABLED_CHANGED,
+        handleGroupSelectEnabledChange as EventListener
+      );
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener(STUDENT_EVENTS.RECENTLY_SELECTED_CLEARED, handleStorageChange);
       window.removeEventListener(STUDENT_EVENTS.RECENTLY_SELECTED_UPDATED, handleStorageChange);
     };
-  }, []);
+  }, [checkRecentlySelected]);
 
   const handleSelectAll = () => {
     window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.SELECT_ALL));
   };
 
   const handleSelectNone = () => {
-    if (selectedCount > 0) {
+    if (awardableStudentCount > 0) {
       window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.SELECT_NONE));
     }
   };
@@ -73,21 +101,33 @@ export default function MultiSelectBottomNav() {
   };
 
   const handleInverseSelect = () => {
-    if (selectedCount > 0) {
+    if (awardableStudentCount > 0) {
       window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.INVERSE_SELECT));
     }
+  };
+
+  const handleToggleGroupSelect = () => {
+    window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.TOGGLE_GROUP_MULTI_SELECT));
   };
 
   return (
     <BaseBottomNav className="overflow-visible">
       <div className="flex w-full min-w-0 items-center gap-4 overflow-visible">
+        <BotNavGrayButton
+          icon={<IconPresentationBoard />}
+          label="Select Groups"
+          active={isGroupSelectEnabled}
+          onClick={handleToggleGroupSelect}
+          enabled={isSeatingView}
+        />
+
         <BotNavGrayButton icon={<IconCheckCircle />} label="Select All" onClick={handleSelectAll} />
 
         <BotNavGrayButton
           icon={<IconCircleX />}
           label="Select None"
           onClick={handleSelectNone}
-          enabled={selectedCount > 0}
+          enabled={awardableStudentCount > 0}
         />
 
         <BotNavGrayButton
@@ -101,7 +141,7 @@ export default function MultiSelectBottomNav() {
           icon={<IconRandomArrows />}
           label="Inverse Select"
           onClick={handleInverseSelect}
-          enabled={selectedCount > 0}
+          enabled={awardableStudentCount > 0}
         />
 
         <BotNavGrayButton

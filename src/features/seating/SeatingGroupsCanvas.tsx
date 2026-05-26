@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import type { Student } from '@/lib/types';
 import type { GroupAssignment, SeatingGroupRecord } from '@/features/seating/lib/api/seating';
 import { getNextIndex, getSlotIndex } from '@/features/seating/lib/seatingLogic';
+import { getPresentStudentIdsForGroup } from '@/features/seating/lib/seatingSelection';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import { openMultiStudentPointsAward } from '@/features/students/hooks/useBatchPointsAward';
 import { useModalStore } from '@/stores/useModalStore';
@@ -12,16 +13,37 @@ import { useModalStore } from '@/stores/useModalStore';
 type SeatingGroupsCanvasProps = {
   isTeacherView: boolean;
   isMultiSelectMode: boolean;
+  isGroupSelectEnabled: boolean;
   selectedStudentIds: string[];
+  selectedGroupIds: string[];
   onSelectStudent?: (studentId: string) => void;
+  onSelectGroup?: (groupId: string) => void;
 };
+
+function GroupSelectionIndicator({ isSelected }: { isSelected: boolean }) {
+  return (
+    <span
+      className={[
+        'relative inline-flex h-5 w-5 items-center justify-center rounded-full border-[3px] bg-white shadow-sm ring-1',
+        isSelected ? 'border-blue-500 ring-blue-200/80' : 'border-gray-400 ring-gray-200/80',
+      ].join(' ')}
+    >
+      {isSelected ? <span className="h-2.5 w-2.5 rounded-full bg-blue-500" /> : null}
+    </span>
+  );
+}
 
 export default function SeatingGroupsCanvas({
   isTeacherView,
   isMultiSelectMode,
+  isGroupSelectEnabled,
   selectedStudentIds,
+  selectedGroupIds,
   onSelectStudent,
+  onSelectGroup,
 }: SeatingGroupsCanvasProps) {
+  const showGroupSelection = isMultiSelectMode && isGroupSelectEnabled;
+
   const { groups, groupAssignmentsById, groupPositionsById, isLoadingGroups, colorByGender } =
     useSeatingStore(
       useShallow((s) => ({
@@ -125,6 +147,9 @@ export default function SeatingGroupsCanvas({
 
         const studentCardHeight = 32;
         const studentPointsWidth = 36;
+        const isGroupSelected = showGroupSelection && selectedGroupIds.includes(group.id);
+        const canSelectGroup =
+          getPresentStudentIdsForGroup(group.id, groupAssignmentsById).length > 0;
 
         const renderStudentCard = (student: Student) => {
           const isSelected = isMultiSelectMode && selectedStudentIds.includes(student.id);
@@ -150,7 +175,7 @@ export default function SeatingGroupsCanvas({
                 e.stopPropagation();
                 if (isMultiSelectMode && onSelectStudent) {
                   onSelectStudent(student.id);
-                } else {
+                } else if (!isMultiSelectMode) {
                   handleStudentClick(student);
                 }
               }}
@@ -195,7 +220,10 @@ export default function SeatingGroupsCanvas({
         return (
           <div
             key={group.id}
-            className="bg-white rounded-lg border-2 border-gray-300 shadow-lg flex flex-col transition-shadow"
+            className={[
+              'bg-white rounded-lg border-2 shadow-lg flex flex-col transition-shadow',
+              isGroupSelected ? 'border-blue-500 ring-2 ring-blue-500' : 'border-gray-300',
+            ].join(' ')}
             style={{
               position: 'absolute',
               left: `${groupX}px`,
@@ -212,11 +240,22 @@ export default function SeatingGroupsCanvas({
             <div
               onClick={(e) => {
                 e.stopPropagation();
+                if (showGroupSelection && canSelectGroup && onSelectGroup) {
+                  onSelectGroup(group.id);
+                  return;
+                }
                 if (!isMultiSelectMode) {
                   handleGroupClick(group.id);
                 }
               }}
-              className={`border-b border-gray-200 bg-purple-50 rounded-t-lg transition-colors ${!isMultiSelectMode ? 'cursor-pointer hover:bg-purple-100' : ''}`}
+              className={[
+                'border-b border-gray-200 bg-purple-50 rounded-t-lg relative transition-colors',
+                showGroupSelection && canSelectGroup
+                  ? 'cursor-pointer hover:bg-purple-100'
+                  : !isMultiSelectMode
+                    ? 'cursor-pointer hover:bg-purple-100'
+                    : '',
+              ].join(' ')}
               style={{
                 height: '50px',
                 minHeight: '50px',
@@ -228,11 +267,23 @@ export default function SeatingGroupsCanvas({
               }}
             >
               <div
-                className="flex-1"
+                className="flex-1 min-w-0 pr-8"
                 style={isTeacherView ? { display: 'inline-block', transform: 'rotate(-180deg)' } : undefined}
               >
                 <h4 className="font-semibold text-gray-800">{group.name}</h4>
               </div>
+
+              {showGroupSelection && canSelectGroup ? (
+                <div
+                  className="absolute top-2 right-2 pointer-events-none flex items-center justify-center"
+                  style={
+                    isTeacherView ? { display: 'inline-flex', transform: 'rotate(-180deg)' } : undefined
+                  }
+                  aria-hidden
+                >
+                  <GroupSelectionIndicator isSelected={isGroupSelected} />
+                </div>
+              ) : null}
             </div>
 
             {Array.from({ length: numRows }, (_, rowIndex) => (

@@ -39,15 +39,20 @@ export default function StudentsStageContent({
 
   const {
     isMultiSelectMode,
+    isGroupSelectEnabled,
     selectedStudentIds,
+    selectedGroupIds,
     toggleMultiSelect,
+    toggleGroupMultiSelect,
     selectAll,
     selectNone,
     recentlySelect,
     awardPoints,
     inverseSelect,
     handleSelectStudent,
+    handleSelectGroup,
     removeFromSelection,
+    resetGroupSelectEnabled,
   } = useStudentsSelection();
 
   const { archiveStudent, isArchiving } = useArchiveStudent(classId, {
@@ -116,11 +121,13 @@ export default function StudentsStageContent({
     classId,
     currentView,
     onToggleMultiSelect: toggleMultiSelect,
+    onToggleGroupMultiSelect: toggleGroupMultiSelect,
     onSelectAll: selectAll,
     onSelectNone: selectNone,
     onRecentlySelect: recentlySelect,
     onAwardPoints: awardPoints,
     onInverseSelect: inverseSelect,
+    resetGroupSelectEnabled,
     setIsPointLogOpen,
   });
 
@@ -133,8 +140,11 @@ export default function StudentsStageContent({
           isEditModeFromURL={isEditModeFromURL}
           students={students}
           isMultiSelectMode={isMultiSelectMode}
+          isGroupSelectEnabled={isGroupSelectEnabled}
           selectedStudentIds={selectedStudentIds}
+          selectedGroupIds={selectedGroupIds}
           onSelectStudent={handleSelectStudent}
+          onSelectGroup={handleSelectGroup}
         />
       ) : (
         <StudentsGridBranch
