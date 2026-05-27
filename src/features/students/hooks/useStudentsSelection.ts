@@ -70,23 +70,25 @@ export function useStudentsSelection() {
     emitSelectionSummary([], []);
   }, [isMultiSelectMode, emitSelectionSummary]);
 
-  const mergeGenderIntoSelection = useCallback(
+  const selectOnlyByGender = useCallback(
     (gender: 'Boy' | 'Girl') => {
       if (!isMultiSelectMode) return;
       const { students, absentStudentIds } = useDashboardStore.getState();
       const ids = getPresentStudentIdsByGender(students, absentStudentIds, gender);
-      setSelectedStudentIds((prev) => [...new Set([...prev, ...ids])]);
+      setSelectedStudentIds(ids);
+      setSelectedGroupIds([]);
+      emitSelectionSummary(ids, []);
     },
-    [isMultiSelectMode]
+    [isMultiSelectMode, emitSelectionSummary]
   );
 
   const selectAllBoys = useCallback(() => {
-    mergeGenderIntoSelection('Boy');
-  }, [mergeGenderIntoSelection]);
+    selectOnlyByGender('Boy');
+  }, [selectOnlyByGender]);
 
   const selectAllGirls = useCallback(() => {
-    mergeGenderIntoSelection('Girl');
-  }, [mergeGenderIntoSelection]);
+    selectOnlyByGender('Girl');
+  }, [selectOnlyByGender]);
 
   const recentlySelect = useCallback(() => {
     if (!isMultiSelectMode) return;

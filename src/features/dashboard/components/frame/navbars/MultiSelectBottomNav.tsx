@@ -122,13 +122,13 @@ export default function MultiSelectBottomNav() {
 
         <BotNavGrayButton
           icon={<IconCheckCircle />}
-          label="All Boys"
+          label="Boys Only"
           onClick={handleSelectAllBoys}
         />
 
         <BotNavGrayButton
           icon={<IconCheckCircle />}
-          label="All Girls"
+          label="Girls Only"
           onClick={handleSelectAllGirls}
         />
 
