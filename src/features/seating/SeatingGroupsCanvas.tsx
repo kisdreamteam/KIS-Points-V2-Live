@@ -13,7 +13,6 @@ import { useModalStore } from '@/stores/useModalStore';
 type SeatingGroupsCanvasProps = {
   isTeacherView: boolean;
   isMultiSelectMode: boolean;
-  isGroupSelectEnabled: boolean;
   selectedStudentIds: string[];
   selectedGroupIds: string[];
   onSelectStudent?: (studentId: string) => void;
@@ -36,13 +35,12 @@ function GroupSelectionIndicator({ isSelected }: { isSelected: boolean }) {
 export default function SeatingGroupsCanvas({
   isTeacherView,
   isMultiSelectMode,
-  isGroupSelectEnabled,
   selectedStudentIds,
   selectedGroupIds,
   onSelectStudent,
   onSelectGroup,
 }: SeatingGroupsCanvasProps) {
-  const showGroupSelection = isMultiSelectMode && isGroupSelectEnabled;
+  const showGroupSelection = isMultiSelectMode;
 
   const { groups, groupAssignmentsById, groupPositionsById, isLoadingGroups, colorByGender } =
     useSeatingStore(
@@ -152,9 +150,13 @@ export default function SeatingGroupsCanvas({
           getPresentStudentIdsForGroup(group.id, groupAssignmentsById).length > 0;
 
         const renderStudentCard = (student: Student) => {
-          const isSelected = isMultiSelectMode && selectedStudentIds.includes(student.id);
+          const isInSelectedGroup =
+            isMultiSelectMode && selectedGroupIds.includes(group.id);
+          const isExplicitlySelected =
+            isMultiSelectMode && selectedStudentIds.includes(student.id);
+          const isHighlighted = isInSelectedGroup || isExplicitlySelected;
           let bgColor: string;
-          if (isSelected) {
+          if (isHighlighted) {
             bgColor = 'bg-yellow-200 border-yellow-400';
           } else if (!colorByGender) {
             bgColor = 'bg-white border-gray-200';

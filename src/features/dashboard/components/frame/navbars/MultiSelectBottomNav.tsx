@@ -7,18 +7,12 @@ import IconCheckCircle from '@/components/ui/icons/iconCheckCircle';
 import IconCircleX from '@/components/ui/icons/iconCircleX';
 import IconNoCircleX from '@/components/ui/icons/iconNoCircleX';
 import IconStarTrophy from '@/components/ui/icons/iconStarTrophy';
-import IconPresentationBoard from '@/components/ui/icons/iconPresentationBoard';
 import BotNavGrayButton from '@/components/ui/BotNavGrayButton';
 import BaseBottomNav from '@/components/ui/BaseBottomNav';
 import { STUDENT_EVENTS } from '@/lib/events/students';
-import { useLayoutStore } from '@/stores/useLayoutStore';
 
 export default function MultiSelectBottomNav() {
-  const activeView = useLayoutStore((s) => s.activeView);
-  const isSeatingView = activeView === 'seating_chart';
-
   const [awardableStudentCount, setAwardableStudentCount] = useState(0);
-  const [isGroupSelectEnabled, setIsGroupSelectEnabled] = useState(false);
   const [hasRecentlySelected, setHasRecentlySelected] = useState(false);
 
   const checkRecentlySelected = useCallback(() => {
@@ -40,12 +34,6 @@ export default function MultiSelectBottomNav() {
       }, 0);
     };
 
-    const handleGroupSelectEnabledChange = (event: CustomEvent<{ enabled: boolean }>) => {
-      setTimeout(() => {
-        setIsGroupSelectEnabled(event.detail.enabled);
-      }, 0);
-    };
-
     const handleStorageChange = () => {
       checkRecentlySelected();
     };
@@ -53,10 +41,6 @@ export default function MultiSelectBottomNav() {
     checkRecentlySelected();
 
     window.addEventListener(STUDENT_EVENTS.SELECTION_COUNT_CHANGED, handleSelectionCountChange as EventListener);
-    window.addEventListener(
-      STUDENT_EVENTS.GROUP_SELECT_ENABLED_CHANGED,
-      handleGroupSelectEnabledChange as EventListener
-    );
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener(STUDENT_EVENTS.RECENTLY_SELECTED_CLEARED, handleStorageChange);
     window.addEventListener(STUDENT_EVENTS.RECENTLY_SELECTED_UPDATED, handleStorageChange);
@@ -65,10 +49,6 @@ export default function MultiSelectBottomNav() {
       window.removeEventListener(
         STUDENT_EVENTS.SELECTION_COUNT_CHANGED,
         handleSelectionCountChange as EventListener
-      );
-      window.removeEventListener(
-        STUDENT_EVENTS.GROUP_SELECT_ENABLED_CHANGED,
-        handleGroupSelectEnabledChange as EventListener
       );
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener(STUDENT_EVENTS.RECENTLY_SELECTED_CLEARED, handleStorageChange);
@@ -106,21 +86,9 @@ export default function MultiSelectBottomNav() {
     }
   };
 
-  const handleToggleGroupSelect = () => {
-    window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.TOGGLE_GROUP_MULTI_SELECT));
-  };
-
   return (
     <BaseBottomNav className="overflow-visible">
       <div className="flex w-full min-w-0 items-center gap-4 overflow-visible">
-        <BotNavGrayButton
-          icon={<IconPresentationBoard />}
-          label="Select Groups"
-          active={isGroupSelectEnabled}
-          onClick={handleToggleGroupSelect}
-          enabled={isSeatingView}
-        />
-
         <BotNavGrayButton icon={<IconCheckCircle />} label="Select All" onClick={handleSelectAll} />
 
         <BotNavGrayButton

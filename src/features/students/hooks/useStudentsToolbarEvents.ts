@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import {
-  emitGroupSelectEnabledChanged,
   emitMultiSelectStateChanged,
   emitRecentlySelectedCleared,
   STUDENT_EVENTS,
@@ -12,13 +11,12 @@ interface UseStudentsToolbarEventsParams {
   classId: string;
   currentView: string;
   onToggleMultiSelect: () => void;
-  onToggleGroupMultiSelect: () => void;
   onSelectAll: () => void;
   onSelectNone: () => void;
   onRecentlySelect: () => void;
   onAwardPoints: () => void;
   onInverseSelect: () => void;
-  resetGroupSelectEnabled: () => void;
+  clearGroupSelection: () => void;
   setIsPointLogOpen: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -26,21 +24,20 @@ export function useStudentsToolbarEvents({
   classId,
   currentView,
   onToggleMultiSelect,
-  onToggleGroupMultiSelect,
   onSelectAll,
   onSelectNone,
   onRecentlySelect,
   onAwardPoints,
   onInverseSelect,
-  resetGroupSelectEnabled,
+  clearGroupSelection,
   setIsPointLogOpen,
 }: UseStudentsToolbarEventsParams) {
   useEffect(() => {
     useLayoutStore.getState().setMultiSelectMode(false);
     emitMultiSelectStateChanged({ isMultiSelect: false });
-    resetGroupSelectEnabled();
-    emitGroupSelectEnabledChanged({ enabled: false });
-  }, [resetGroupSelectEnabled]);
+    clearGroupSelection();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- class mount reset only
+  }, []);
 
   useEffect(() => {
     if (classId) {
@@ -53,7 +50,6 @@ export function useStudentsToolbarEvents({
 
   useEffect(() => {
     window.addEventListener(STUDENT_EVENTS.TOGGLE_MULTI_SELECT, onToggleMultiSelect);
-    window.addEventListener(STUDENT_EVENTS.TOGGLE_GROUP_MULTI_SELECT, onToggleGroupMultiSelect);
     window.addEventListener(STUDENT_EVENTS.SELECT_ALL, onSelectAll);
     window.addEventListener(STUDENT_EVENTS.SELECT_NONE, onSelectNone);
     window.addEventListener(STUDENT_EVENTS.RECENTLY_SELECT, onRecentlySelect);
@@ -62,7 +58,6 @@ export function useStudentsToolbarEvents({
 
     return () => {
       window.removeEventListener(STUDENT_EVENTS.TOGGLE_MULTI_SELECT, onToggleMultiSelect);
-      window.removeEventListener(STUDENT_EVENTS.TOGGLE_GROUP_MULTI_SELECT, onToggleGroupMultiSelect);
       window.removeEventListener(STUDENT_EVENTS.SELECT_ALL, onSelectAll);
       window.removeEventListener(STUDENT_EVENTS.SELECT_NONE, onSelectNone);
       window.removeEventListener(STUDENT_EVENTS.RECENTLY_SELECT, onRecentlySelect);
@@ -71,7 +66,6 @@ export function useStudentsToolbarEvents({
     };
   }, [
     onToggleMultiSelect,
-    onToggleGroupMultiSelect,
     onSelectAll,
     onSelectNone,
     onRecentlySelect,
@@ -84,9 +78,9 @@ export function useStudentsToolbarEvents({
       setIsPointLogOpen(false);
     }
     if (currentView !== 'seating') {
-      resetGroupSelectEnabled();
+      clearGroupSelection();
     }
-  }, [currentView, setIsPointLogOpen, resetGroupSelectEnabled]);
+  }, [currentView, setIsPointLogOpen, clearGroupSelection]);
 
   useEffect(() => {
     const handleTogglePointLog = () => {

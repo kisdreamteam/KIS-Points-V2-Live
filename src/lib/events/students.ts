@@ -1,13 +1,11 @@
 export const STUDENT_EVENTS = {
   TOGGLE_MULTI_SELECT: 'toggleMultiSelect',
-  TOGGLE_GROUP_MULTI_SELECT: 'toggleGroupMultiSelect',
   SELECT_ALL: 'selectAll',
   SELECT_NONE: 'selectNone',
   RECENTLY_SELECT: 'recentlySelect',
   AWARD_POINTS: 'awardPoints',
   INVERSE_SELECT: 'inverseSelect',
   SELECTION_COUNT_CHANGED: 'selectionCountChanged',
-  GROUP_SELECT_ENABLED_CHANGED: 'groupSelectEnabledChanged',
   MULTI_SELECT_STATE_CHANGED: 'multiSelectStateChanged',
   RECENTLY_SELECTED_CLEARED: 'recentlySelectedCleared',
   RECENTLY_SELECTED_UPDATED: 'recentlySelectedUpdated',
@@ -39,7 +37,6 @@ export type SelectionCountChangedDetail = {
   awardableStudentCount: number;
 };
 
-export type GroupSelectEnabledChangedDetail = { enabled: boolean };
 export type MultiSelectStateChangedDetail = { isMultiSelect: boolean };
 export type SeatingEditModeDetail = { isEditMode: boolean };
 export type SeatingLayoutSelectedDetail = { layoutId: string; classId: string };
@@ -60,10 +57,6 @@ export function emitSelectionCountChanged(detail: SelectionCountChangedDetail) {
 
 export function emitMultiSelectStateChanged(detail: MultiSelectStateChangedDetail) {
   window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.MULTI_SELECT_STATE_CHANGED, { detail }));
-}
-
-export function emitGroupSelectEnabledChanged(detail: GroupSelectEnabledChangedDetail) {
-  window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.GROUP_SELECT_ENABLED_CHANGED, { detail }));
 }
 
 export function emitRecentlySelectedCleared() {

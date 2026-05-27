@@ -39,11 +39,9 @@ export default function StudentsStageContent({
 
   const {
     isMultiSelectMode,
-    isGroupSelectEnabled,
     selectedStudentIds,
     selectedGroupIds,
     toggleMultiSelect,
-    toggleGroupMultiSelect,
     selectAll,
     selectNone,
     recentlySelect,
@@ -52,7 +50,7 @@ export default function StudentsStageContent({
     handleSelectStudent,
     handleSelectGroup,
     removeFromSelection,
-    resetGroupSelectEnabled,
+    clearGroupSelection,
   } = useStudentsSelection();
 
   const { archiveStudent, isArchiving } = useArchiveStudent(classId, {
@@ -121,13 +119,12 @@ export default function StudentsStageContent({
     classId,
     currentView,
     onToggleMultiSelect: toggleMultiSelect,
-    onToggleGroupMultiSelect: toggleGroupMultiSelect,
     onSelectAll: selectAll,
     onSelectNone: selectNone,
     onRecentlySelect: recentlySelect,
     onAwardPoints: awardPoints,
     onInverseSelect: inverseSelect,
-    resetGroupSelectEnabled,
+    clearGroupSelection,
     setIsPointLogOpen,
   });
 
@@ -140,7 +137,6 @@ export default function StudentsStageContent({
           isEditModeFromURL={isEditModeFromURL}
           students={students}
           isMultiSelectMode={isMultiSelectMode}
-          isGroupSelectEnabled={isGroupSelectEnabled}
           selectedStudentIds={selectedStudentIds}
           selectedGroupIds={selectedGroupIds}
           onSelectStudent={handleSelectStudent}

@@ -10,7 +10,6 @@ type StudentsSeatingBranchProps = {
   isEditModeFromURL: boolean;
   students: Student[];
   isMultiSelectMode: boolean;
-  isGroupSelectEnabled: boolean;
   selectedStudentIds: string[];
   selectedGroupIds: string[];
   onSelectStudent: (studentId: string) => void;
@@ -23,7 +22,6 @@ export default function StudentsSeatingBranch({
   isEditModeFromURL,
   students,
   isMultiSelectMode,
-  isGroupSelectEnabled,
   selectedStudentIds,
   selectedGroupIds,
   onSelectStudent,
@@ -37,7 +35,6 @@ export default function StudentsSeatingBranch({
         <SeatingViewWorkspace
           classId={classId}
           isMultiSelectMode={isMultiSelectMode}
-          isGroupSelectEnabled={isGroupSelectEnabled}
           selectedStudentIds={selectedStudentIds}
           selectedGroupIds={selectedGroupIds}
           onSelectStudent={onSelectStudent}

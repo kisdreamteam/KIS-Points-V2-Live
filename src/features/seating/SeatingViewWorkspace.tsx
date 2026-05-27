@@ -17,7 +17,6 @@ import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 type SeatingViewWorkspaceProps = {
   classId: string;
   isMultiSelectMode?: boolean;
-  isGroupSelectEnabled?: boolean;
   selectedStudentIds?: string[];
   selectedGroupIds?: string[];
   onSelectStudent?: (studentId: string) => void;
@@ -27,7 +26,6 @@ type SeatingViewWorkspaceProps = {
 export default function SeatingViewWorkspace({
   classId,
   isMultiSelectMode = false,
-  isGroupSelectEnabled = false,
   selectedStudentIds = [],
   selectedGroupIds = [],
   onSelectStudent,
@@ -193,7 +191,6 @@ export default function SeatingViewWorkspace({
                         <SeatingGroupsCanvas
                           isTeacherView={isTeacherView}
                           isMultiSelectMode={isMultiSelectMode}
-                          isGroupSelectEnabled={isGroupSelectEnabled}
                           selectedStudentIds={selectedStudentIds}
                           selectedGroupIds={selectedGroupIds}
                           onSelectStudent={onSelectStudent}

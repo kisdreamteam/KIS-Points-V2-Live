@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 import {
   STUDENT_EVENTS,
-  emitGroupSelectEnabledChanged,
   emitMultiSelectStateChanged,
   emitRecentlySelectedUpdated,
   emitSelectionCountChanged,
@@ -19,7 +18,6 @@ export function useStudentsSelection() {
   const isMultiSelectMode = useLayoutStore((s) => s.isMultiSelectMode);
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
-  const [isGroupSelectEnabled, setIsGroupSelectEnabled] = useState(false);
 
   const emitSelectionSummary = useCallback((studentIds: string[], groupIds: string[]) => {
     const { groupAssignmentsById } = useSeatingStore.getState();
@@ -50,30 +48,11 @@ export function useStudentsSelection() {
     useLayoutStore.getState().setMultiSelectMode(newState);
     emitMultiSelectStateChanged({ isMultiSelect: newState });
     if (!newState) {
-      setIsGroupSelectEnabled(false);
-      queueMicrotask(() => {
-        emitGroupSelectEnabledChanged({ enabled: false });
-      });
       resetSelections();
     } else {
-      setIsGroupSelectEnabled(false);
-      queueMicrotask(() => {
-        emitGroupSelectEnabledChanged({ enabled: false });
-      });
       emitSelectionSummary([], []);
     }
   }, [emitSelectionSummary, resetSelections]);
-
-  const toggleGroupMultiSelect = useCallback(() => {
-    if (!useLayoutStore.getState().isMultiSelectMode) return;
-    setIsGroupSelectEnabled((prev) => {
-      const next = !prev;
-      queueMicrotask(() => {
-        emitGroupSelectEnabledChanged({ enabled: next });
-      });
-      return next;
-    });
-  }, []);
 
   const selectAll = useCallback(() => {
     if (!isMultiSelectMode) return;
@@ -126,7 +105,7 @@ export function useStudentsSelection() {
     setSelectedStudentIds(newStudentIds);
 
     let newGroupIds = selectedGroupIds;
-    if (isGroupSelectEnabled) {
+    if (useLayoutStore.getState().activeView === 'seating_chart') {
       const { groups, groupAssignmentsById } = useSeatingStore.getState();
       const awardableIds = getAwardableGroupIds(groups, groupAssignmentsById);
       newGroupIds = awardableIds.filter((id) => !selectedGroupIds.includes(id));
@@ -134,13 +113,7 @@ export function useStudentsSelection() {
     }
 
     emitSelectionSummary(newStudentIds, newGroupIds);
-  }, [
-    isMultiSelectMode,
-    isGroupSelectEnabled,
-    selectedStudentIds,
-    selectedGroupIds,
-    emitSelectionSummary,
-  ]);
+  }, [isMultiSelectMode, selectedStudentIds, selectedGroupIds, emitSelectionSummary]);
 
   const handleSelectStudent = useCallback((studentId: string) => {
     setSelectedStudentIds((prev) =>
@@ -191,21 +164,15 @@ export function useStudentsSelection() {
     emitSelectionSummary(selectedStudentIds, selectedGroupIds);
   }, [selectedStudentIds, selectedGroupIds, isMultiSelectMode, emitSelectionSummary]);
 
-  const resetGroupSelectEnabled = useCallback(() => {
-    setIsGroupSelectEnabled(false);
+  const clearGroupSelection = useCallback(() => {
     setSelectedGroupIds([]);
-    queueMicrotask(() => {
-      emitGroupSelectEnabledChanged({ enabled: false });
-    });
   }, []);
 
   return {
     isMultiSelectMode,
-    isGroupSelectEnabled,
     selectedStudentIds,
     selectedGroupIds,
     toggleMultiSelect,
-    toggleGroupMultiSelect,
     selectAll,
     selectNone,
     recentlySelect,
@@ -215,6 +182,6 @@ export function useStudentsSelection() {
     handleSelectGroup,
     removeFromSelection,
     handleAwardComplete,
-    resetGroupSelectEnabled,
+    clearGroupSelection,
   };
 }
