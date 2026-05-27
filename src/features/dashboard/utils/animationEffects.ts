@@ -1,6 +1,6 @@
 import confetti from 'canvas-confetti';
 
-const NEGATIVE_COLORS = ['#64748b', '#475569', '#334155', '#94a3b8', '#1e293b'];
+const DUST_COLORS = ['#475569', '#64748b', '#94a3b8'];
 
 /** Above LargeToolModal (200), Modal (9999), and EditSkillsModal (10000). */
 const CONFETTI_Z_INDEX = 10050;
@@ -78,36 +78,79 @@ function runRisingStars(): void {
   });
 }
 
-function runMutedRain(): void {
-  void confetti({
-    zIndex: CONFETTI_Z_INDEX,
-    particleCount: 80,
-    angle: 270,
-    spread: 45,
-    startVelocity: 25,
-    gravity: 1.4,
-    origin: { x: 0.5, y: 0 },
-    colors: NEGATIVE_COLORS,
+type ScatteredDustRainOptions = {
+  scalar: number;
+  durationMs: number;
+  burstsPerFrame: number;
+  particlesPerBurst: number;
+  spread: number;
+  /** Random spawn band from y=0 through this fraction of viewport height. */
+  ySpawnMax: number;
+};
+
+/** Fine slate dust: random spawn points across the upper viewport, falling straight down over time. */
+function fireScatteredDustRain({
+  scalar,
+  durationMs,
+  burstsPerFrame,
+  particlesPerBurst,
+  spread,
+  ySpawnMax,
+}: ScatteredDustRainOptions): void {
+  const end = Date.now() + durationMs;
+
+  const frame = () => {
+    for (let i = 0; i < burstsPerFrame; i++) {
+      void confetti({
+        zIndex: CONFETTI_Z_INDEX,
+        angle: 268 + Math.random() * 4,
+        spread,
+        scalar,
+        colors: DUST_COLORS,
+        startVelocity: 4 + Math.random() * 4,
+        gravity: 1.5,
+        drift: (Math.random() - 0.5) * 0.25,
+        ticks: 180,
+        particleCount: particlesPerBurst,
+        origin: {
+          x: 0.04 + Math.random() * 0.92,
+          y: Math.random() * ySpawnMax,
+        },
+      });
+    }
+
+    if (Date.now() < end) {
+      requestAnimationFrame(frame);
+    }
+  };
+
+  frame();
+}
+
+function runDustBurst(): void {
+  fireScatteredDustRain({
+    scalar: 0.14,
+    durationMs: 1400,
+    burstsPerFrame: 5,
+    particlesPerBurst: 20,
+    spread: 18,
+    ySpawnMax: 0.4,
   });
 }
 
-function runSinkingBricks(): void {
-  void confetti({
-    zIndex: CONFETTI_Z_INDEX,
-    particleCount: 50,
-    angle: 250,
-    spread: 25,
-    startVelocity: 40,
-    gravity: 1.6,
-    origin: { x: 0.5, y: 0.2 },
-    shapes: ['square'],
-    scalar: 1.3,
-    colors: NEGATIVE_COLORS,
+function runDustBurstWide(): void {
+  fireScatteredDustRain({
+    scalar: 0.11,
+    durationMs: 1800,
+    burstsPerFrame: 7,
+    particlesPerBurst: 24,
+    spread: 24,
+    ySpawnMax: 0.55,
   });
 }
 
 const POSITIVE_EFFECTS = [runClassicBurst, runSideCannons, runRisingStars] as const;
-const NEGATIVE_EFFECTS = [runMutedRain, runSinkingBricks] as const;
+const NEGATIVE_EFFECTS = [runDustBurst, runDustBurstWide] as const;
 
 /** Randomized full-viewport confetti + audio for point awards (presentation only; no store/API). */
 export const triggerPointsAnimation = (pointsDelta: number): void => {
