@@ -8,6 +8,19 @@ export type DashboardToolbarInset = {
   bottom: number;
 };
 
+export type StageDrawerInsets = {
+  topPx: number;
+  bottomPx: number;
+};
+
+/** Shared vertical bounds for fixed stage drawers (websites, point log, layout manager). */
+export function getStageDrawerInsets(inset: DashboardToolbarInset): StageDrawerInsets {
+  return {
+    topPx: inset.top + 2,
+    bottomPx: inset.bottom - 1,
+  };
+}
+
 const FALLBACK_BOTTOM = 80;
 
 function measureInset(): DashboardToolbarInset {

@@ -9,7 +9,10 @@ import ErrorState from '@/components/ui/ErrorState';
 import StudentsCardsGrid from './StudentsCardsGrid';
 import StudentsGridWorkspaceToolbar from './StudentsGridWorkspaceToolbar';
 import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
-import { useDashboardToolbarInset } from '@/features/dashboard/hooks/useDashboardToolbarInset';
+import {
+  getStageDrawerInsets,
+  useDashboardToolbarInset,
+} from '@/features/dashboard/hooks/useDashboardToolbarInset';
 import { useCloseDrawersOnClickOutside } from '@/hooks/useCloseDrawersOnClickOutside';
 import type { PointLogRow } from '@/hooks/useClassPointLog';
 
@@ -75,6 +78,7 @@ export default function StudentsGridWorkspace({
   onAddStudent,
 }: StudentsGridWorkspaceProps) {
   const toolbarInset = useDashboardToolbarInset();
+  const drawerInsets = getStageDrawerInsets(toolbarInset);
 
   useCloseDrawersOnClickOutside({
     isActive: isPointLogOpen,
@@ -96,8 +100,8 @@ export default function StudentsGridWorkspace({
           isOpen={isPointLogOpen}
           position="fixed"
           rightPx={60}
-          topPx={toolbarInset.top}
-          bottomPx={toolbarInset.bottom}
+          topPx={drawerInsets.topPx}
+          bottomPx={drawerInsets.bottomPx}
           zIndex={35}
           logTotalCount={logTotalCount}
           pointLogError={pointLogError}

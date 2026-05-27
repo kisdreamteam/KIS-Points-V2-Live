@@ -11,6 +11,10 @@ import SeatingCanvasDecor from '@/features/seating/components/canvas/SeatingCanv
 import SeatingGroupsCanvas from '@/features/seating/SeatingGroupsCanvas';
 import SeatingViewWorkspaceToolbar from '@/features/seating/SeatingViewWorkspaceToolbar';
 import StageTwoColumnSplit from '@/components/ui/StageTwoColumnSplit';
+import {
+  getStageDrawerInsets,
+  useDashboardToolbarInset,
+} from '@/features/dashboard/hooks/useDashboardToolbarInset';
 import { useClassPointLog } from '@/hooks/useClassPointLog';
 import { useCloseDrawersOnClickOutside } from '@/hooks/useCloseDrawersOnClickOutside';
 import { useSeatingLayoutManager } from '@/hooks/useSeatingLayoutManager';
@@ -99,6 +103,9 @@ export default function SeatingViewWorkspace({
     setIsPointLogOpen,
   });
 
+  const toolbarInset = useDashboardToolbarInset();
+  const drawerInsets = getStageDrawerInsets(toolbarInset);
+
   const hasLayouts = layouts.length > 0;
   const showGroupsLayer = hasLayouts && !isLoadingLayouts && !layoutsError;
 
@@ -119,8 +126,8 @@ export default function SeatingViewWorkspace({
               isOpen={isPointLogOpen}
               position="fixed"
               rightPx={60}
-              topPx={3}
-              bottomPx={80}
+              topPx={drawerInsets.topPx}
+              bottomPx={drawerInsets.bottomPx}
               zIndex={40}
               logTotalCount={logTotalCount}
               pointLogError={pointLogError}
@@ -136,8 +143,8 @@ export default function SeatingViewWorkspace({
               isOpen={isLayoutManagerOpen}
               position="fixed"
               rightPx={60}
-              topPx={3}
-              bottomPx={80}
+              topPx={drawerInsets.topPx}
+              bottomPx={drawerInsets.bottomPx}
               zIndex={35}
               layouts={layouts}
               selectedLayoutId={selectedLayoutId}

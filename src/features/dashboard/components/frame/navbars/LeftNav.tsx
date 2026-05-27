@@ -7,7 +7,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { normalizeClassIconPath } from '@/lib/iconUtils';
 import IconTimerClock from '@/components/ui/icons/iconTimerClock';
 import LeftNavWebsitesMenu from '@/features/dashboard/components/menus/LeftNavWebsitesMenu';
-import { useDashboardToolbarInset } from '@/features/dashboard/hooks/useDashboardToolbarInset';
+import {
+  getStageDrawerInsets,
+  useDashboardToolbarInset,
+} from '@/features/dashboard/hooks/useDashboardToolbarInset';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
@@ -20,6 +23,7 @@ export default function LeftNav() {
   const websitesMenuRef = useRef<HTMLDivElement>(null);
   const websitesToggleRef = useRef<HTMLButtonElement>(null);
   const toolbarInset = useDashboardToolbarInset();
+  const drawerInsets = getStageDrawerInsets(toolbarInset);
   const router = useRouter();
   const searchParams = useSearchParams();
   const allAccessibleClasses = useDashboardStore((s) => s.allAccessibleClasses);
@@ -190,8 +194,8 @@ export default function LeftNav() {
           isOpen={isWebsitesMenuOpen}
           position="fixed"
           leftPx={306}
-          topPx={toolbarInset.top + 2}
-          bottomPx={toolbarInset.bottom - 1}
+          topPx={drawerInsets.topPx}
+          bottomPx={drawerInsets.bottomPx}
           zIndex={35}
         />
       </div>
