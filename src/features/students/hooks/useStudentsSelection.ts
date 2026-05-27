@@ -12,6 +12,7 @@ import {
 } from '@/features/seating/lib/seatingSelection';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import { openMultiStudentPointsAward } from '@/features/students/hooks/useBatchPointsAward';
+import { getPresentStudentIdsByGender } from '@/features/students/lib/selectionFilters';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 export function useStudentsSelection() {
@@ -69,6 +70,24 @@ export function useStudentsSelection() {
     emitSelectionSummary([], []);
   }, [isMultiSelectMode, emitSelectionSummary]);
 
+  const mergeGenderIntoSelection = useCallback(
+    (gender: 'Boy' | 'Girl') => {
+      if (!isMultiSelectMode) return;
+      const { students, absentStudentIds } = useDashboardStore.getState();
+      const ids = getPresentStudentIdsByGender(students, absentStudentIds, gender);
+      setSelectedStudentIds((prev) => [...new Set([...prev, ...ids])]);
+    },
+    [isMultiSelectMode]
+  );
+
+  const selectAllBoys = useCallback(() => {
+    mergeGenderIntoSelection('Boy');
+  }, [mergeGenderIntoSelection]);
+
+  const selectAllGirls = useCallback(() => {
+    mergeGenderIntoSelection('Girl');
+  }, [mergeGenderIntoSelection]);
+
   const recentlySelect = useCallback(() => {
     if (!isMultiSelectMode) return;
     const lastSelected = localStorage.getItem('lastSelectedStudents');
@@ -76,11 +95,12 @@ export function useStudentsSelection() {
     try {
       const ids = JSON.parse(lastSelected) as string[];
       setSelectedStudentIds(ids);
-      emitSelectionSummary(ids, selectedGroupIds);
+      setSelectedGroupIds([]);
+      emitSelectionSummary(ids, []);
     } catch (e) {
       console.error('Error parsing last selected students:', e);
     }
-  }, [isMultiSelectMode, selectedGroupIds, emitSelectionSummary]);
+  }, [isMultiSelectMode, emitSelectionSummary]);
 
   const awardPoints = useCallback(() => {
     if (!isMultiSelectMode) return;
@@ -100,20 +120,15 @@ export function useStudentsSelection() {
   const inverseSelect = useCallback(() => {
     if (!isMultiSelectMode) return;
 
-    const allStudentIds = useDashboardStore.getState().students.map((s) => s.id);
-    const newStudentIds = allStudentIds.filter((id) => !selectedStudentIds.includes(id));
+    const { students, absentStudentIds } = useDashboardStore.getState();
+    const presentStudentIds = students.map((s) => s.id).filter((id) => !absentStudentIds.includes(id));
+
+    const newStudentIds = presentStudentIds.filter((id) => !selectedStudentIds.includes(id));
     setSelectedStudentIds(newStudentIds);
+    setSelectedGroupIds([]);
 
-    let newGroupIds = selectedGroupIds;
-    if (useLayoutStore.getState().activeView === 'seating_chart') {
-      const { groups, groupAssignmentsById } = useSeatingStore.getState();
-      const awardableIds = getAwardableGroupIds(groups, groupAssignmentsById);
-      newGroupIds = awardableIds.filter((id) => !selectedGroupIds.includes(id));
-      setSelectedGroupIds(newGroupIds);
-    }
-
-    emitSelectionSummary(newStudentIds, newGroupIds);
-  }, [isMultiSelectMode, selectedStudentIds, selectedGroupIds, emitSelectionSummary]);
+    emitSelectionSummary(newStudentIds, []);
+  }, [isMultiSelectMode, selectedStudentIds, emitSelectionSummary]);
 
   const handleSelectStudent = useCallback((studentId: string) => {
     setSelectedStudentIds((prev) =>
@@ -175,6 +190,8 @@ export function useStudentsSelection() {
     toggleMultiSelect,
     selectAll,
     selectNone,
+    selectAllBoys,
+    selectAllGirls,
     recentlySelect,
     awardPoints,
     inverseSelect,

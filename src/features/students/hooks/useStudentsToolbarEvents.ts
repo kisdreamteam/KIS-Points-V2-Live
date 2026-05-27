@@ -16,6 +16,8 @@ interface UseStudentsToolbarEventsParams {
   onRecentlySelect: () => void;
   onAwardPoints: () => void;
   onInverseSelect: () => void;
+  onSelectAllBoys: () => void;
+  onSelectAllGirls: () => void;
   clearGroupSelection: () => void;
   setIsPointLogOpen: Dispatch<SetStateAction<boolean>>;
 }
@@ -29,6 +31,8 @@ export function useStudentsToolbarEvents({
   onRecentlySelect,
   onAwardPoints,
   onInverseSelect,
+  onSelectAllBoys,
+  onSelectAllGirls,
   clearGroupSelection,
   setIsPointLogOpen,
 }: UseStudentsToolbarEventsParams) {
@@ -55,6 +59,8 @@ export function useStudentsToolbarEvents({
     window.addEventListener(STUDENT_EVENTS.RECENTLY_SELECT, onRecentlySelect);
     window.addEventListener(STUDENT_EVENTS.AWARD_POINTS, onAwardPoints);
     window.addEventListener(STUDENT_EVENTS.INVERSE_SELECT, onInverseSelect);
+    window.addEventListener(STUDENT_EVENTS.SELECT_ALL_BOYS, onSelectAllBoys);
+    window.addEventListener(STUDENT_EVENTS.SELECT_ALL_GIRLS, onSelectAllGirls);
 
     return () => {
       window.removeEventListener(STUDENT_EVENTS.TOGGLE_MULTI_SELECT, onToggleMultiSelect);
@@ -63,6 +69,8 @@ export function useStudentsToolbarEvents({
       window.removeEventListener(STUDENT_EVENTS.RECENTLY_SELECT, onRecentlySelect);
       window.removeEventListener(STUDENT_EVENTS.AWARD_POINTS, onAwardPoints);
       window.removeEventListener(STUDENT_EVENTS.INVERSE_SELECT, onInverseSelect);
+      window.removeEventListener(STUDENT_EVENTS.SELECT_ALL_BOYS, onSelectAllBoys);
+      window.removeEventListener(STUDENT_EVENTS.SELECT_ALL_GIRLS, onSelectAllGirls);
     };
   }, [
     onToggleMultiSelect,
@@ -71,6 +79,8 @@ export function useStudentsToolbarEvents({
     onRecentlySelect,
     onAwardPoints,
     onInverseSelect,
+    onSelectAllBoys,
+    onSelectAllGirls,
   ]);
 
   useEffect(() => {

@@ -47,6 +47,8 @@ export default function StudentsStageContent({
     recentlySelect,
     awardPoints,
     inverseSelect,
+    selectAllBoys,
+    selectAllGirls,
     handleSelectStudent,
     handleSelectGroup,
     removeFromSelection,
@@ -124,6 +126,8 @@ export default function StudentsStageContent({
     onRecentlySelect: recentlySelect,
     onAwardPoints: awardPoints,
     onInverseSelect: inverseSelect,
+    onSelectAllBoys: selectAllBoys,
+    onSelectAllGirls: selectAllGirls,
     clearGroupSelection,
     setIsPointLogOpen,
   });

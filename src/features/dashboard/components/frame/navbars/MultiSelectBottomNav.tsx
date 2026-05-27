@@ -86,6 +86,14 @@ export default function MultiSelectBottomNav() {
     }
   };
 
+  const handleSelectAllBoys = () => {
+    window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.SELECT_ALL_BOYS));
+  };
+
+  const handleSelectAllGirls = () => {
+    window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.SELECT_ALL_GIRLS));
+  };
+
   return (
     <BaseBottomNav className="overflow-visible">
       <div className="flex w-full min-w-0 items-center gap-4 overflow-visible">
@@ -110,6 +118,18 @@ export default function MultiSelectBottomNav() {
           label="Inverse Select"
           onClick={handleInverseSelect}
           enabled={awardableStudentCount > 0}
+        />
+
+        <BotNavGrayButton
+          icon={<IconCheckCircle />}
+          label="All Boys"
+          onClick={handleSelectAllBoys}
+        />
+
+        <BotNavGrayButton
+          icon={<IconCheckCircle />}
+          label="All Girls"
+          onClick={handleSelectAllGirls}
         />
 
         <BotNavGrayButton

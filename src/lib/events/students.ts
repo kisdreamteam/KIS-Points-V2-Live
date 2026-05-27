@@ -5,6 +5,8 @@ export const STUDENT_EVENTS = {
   RECENTLY_SELECT: 'recentlySelect',
   AWARD_POINTS: 'awardPoints',
   INVERSE_SELECT: 'inverseSelect',
+  SELECT_ALL_BOYS: 'selectAllBoys',
+  SELECT_ALL_GIRLS: 'selectAllGirls',
   SELECTION_COUNT_CHANGED: 'selectionCountChanged',
   MULTI_SELECT_STATE_CHANGED: 'multiSelectStateChanged',
   RECENTLY_SELECTED_CLEARED: 'recentlySelectedCleared',
