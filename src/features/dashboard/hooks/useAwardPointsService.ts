@@ -23,7 +23,7 @@ interface UseAwardPointsServiceParams {
   onPointsAwarded?: (awardInfo: {
     studentAvatar: string;
     studentFirstName: string;
-    points: number;
+    pointsDelta: number;
     categoryName: string;
     categoryIcon?: string;
   }) => void;
@@ -74,7 +74,7 @@ export function useAwardPointsService({
             studentFirstName: `${context.selectedStudentIds.length} ${
               context.selectedStudentIds.length === 1 ? 'Student' : 'Students'
             }`,
-            points: pointsValue,
+            pointsDelta: pointsValue,
             categoryName,
             categoryIcon,
           });
@@ -82,7 +82,7 @@ export function useAwardPointsService({
           onPointsAwarded({
             studentAvatar: classIcon || '/images/dashboard/student-avatars/avatar-01.png',
             studentFirstName: className || 'Whole Class',
-            points: pointsValue,
+            pointsDelta: pointsValue,
             categoryName,
             categoryIcon,
           });
@@ -90,7 +90,7 @@ export function useAwardPointsService({
           onPointsAwarded({
             studentAvatar: student.avatar || '/images/dashboard/student-avatars/avatar-01.png',
             studentFirstName: student.first_name,
-            points: pointsValue,
+            pointsDelta: pointsValue,
             categoryName,
             categoryIcon,
           });

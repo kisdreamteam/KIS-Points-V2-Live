@@ -5,7 +5,7 @@ import { useCallback, useState } from 'react';
 export interface AwardPointsInfo {
   studentAvatar: string;
   studentFirstName: string;
-  points: number;
+  pointsDelta: number;
   categoryName: string;
   categoryIcon?: string;
 }

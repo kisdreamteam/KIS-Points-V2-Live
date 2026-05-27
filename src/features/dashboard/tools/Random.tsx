@@ -272,17 +272,17 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
   const handlePointsAwarded = useCallback((info: {
     studentAvatar: string;
     studentFirstName: string;
-    points: number;
+    pointsDelta: number;
     categoryName: string;
     categoryIcon?: string;
   }) => {
-    if (classId && lastAwardedStudentIds.length > 0 && Number.isFinite(info.points)) {
+    if (classId && lastAwardedStudentIds.length > 0 && Number.isFinite(info.pointsDelta)) {
       // Patch seating store directly because seating listeners can be unmounted while Random is open.
-      useSeatingStore.getState().patchGroupAssignmentsForPointsDelta(lastAwardedStudentIds, info.points);
+      useSeatingStore.getState().patchGroupAssignmentsForPointsDelta(lastAwardedStudentIds, info.pointsDelta);
       emitSeatingStudentPointsDelta({
         classId,
         studentIds: lastAwardedStudentIds,
-        delta: info.points,
+        delta: info.pointsDelta,
       });
     }
     openAwardConfirmation(info);
@@ -552,7 +552,7 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
           onClose={closeAwardConfirmation}
           studentAvatar={awardInfo.studentAvatar}
           studentFirstName={awardInfo.studentFirstName}
-          points={awardInfo.points}
+          pointsDelta={awardInfo.pointsDelta}
           categoryName={awardInfo.categoryName}
           categoryIcon={awardInfo.categoryIcon}
         />

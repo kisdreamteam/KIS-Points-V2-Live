@@ -72,7 +72,7 @@ export default function DashboardClassModalsHost() {
     (info: AwardPointsInfo) => {
       const { modalType: mt, selectedStudentId: sid, awardTargetStudentIds: targetIds } =
         useModalStore.getState();
-      const delta = info.points;
+      const delta = info.pointsDelta;
       let ids: string[] = [];
       if (mt === 'award_points_single' && sid) {
         ids = [sid];
@@ -151,7 +151,7 @@ export default function DashboardClassModalsHost() {
           onClose={closeAwardConfirmation}
           studentAvatar={awardInfo.studentAvatar}
           studentFirstName={awardInfo.studentFirstName}
-          points={awardInfo.points}
+          pointsDelta={awardInfo.pointsDelta}
           categoryName={awardInfo.categoryName}
           categoryIcon={awardInfo.categoryIcon}
         />

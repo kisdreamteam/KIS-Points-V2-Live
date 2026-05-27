@@ -40,7 +40,7 @@ type UsePointAwardingParams = {
   onPointsAwarded?: (awardInfo: {
     studentAvatar: string;
     studentFirstName: string;
-    points: number;
+    pointsDelta: number;
     categoryName: string;
     categoryIcon?: string;
   }) => void;
