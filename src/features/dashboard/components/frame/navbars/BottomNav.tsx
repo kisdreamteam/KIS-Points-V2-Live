@@ -17,6 +17,7 @@ import IconCheckBox from '@/components/ui/icons/iconCheckBox';
 import IconAttendanceCheck from '@/components/ui/icons/iconAttendanceCheck';
 import IconRandomArrows from '@/components/ui/icons/iconRandomArrows';
 import IconTimerClock from '@/components/ui/icons/iconTimerClock';
+import IconBell from '@/components/ui/icons/iconBell';
 import IconSettingsWheel from '@/components/ui/icons/iconSettingsWheel';
 import BotNavGrayButton from '@/components/ui/BotNavGrayButton';
 import BaseBottomNav from '@/components/ui/BaseBottomNav';
@@ -65,6 +66,7 @@ export default function BottomNav({
   const { toggleAttendance } = useAttendanceActions();
   const setTimerOpen = useLayoutStore((s) => s.setTimerOpen);
   const setRandomOpen = useLayoutStore((s) => s.setRandomOpen);
+  const setBellsOpen = useLayoutStore((s) => s.setBellsOpen);
 
   const navEnabled = !buttonsDisabled;
   const classRosterToolsEnabled = navEnabled && !!currentClassName;
@@ -201,6 +203,15 @@ export default function BottomNav({
           onClick={() => {
             if (!classRosterToolsEnabled) return;
             setTimerOpen(true);
+          }}
+          enabled={classRosterToolsEnabled}
+        />
+        <BotNavGrayButton
+          icon={<IconBell />}
+          label="Bells"
+          onClick={() => {
+            if (!classRosterToolsEnabled) return;
+            setBellsOpen(true);
           }}
           enabled={classRosterToolsEnabled}
         />

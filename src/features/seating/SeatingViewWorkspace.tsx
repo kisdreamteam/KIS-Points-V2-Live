@@ -12,6 +12,7 @@ import SeatingGroupsCanvas from '@/features/seating/SeatingGroupsCanvas';
 import SeatingViewWorkspaceToolbar from '@/features/seating/SeatingViewWorkspaceToolbar';
 import StageTwoColumnSplit from '@/components/ui/StageTwoColumnSplit';
 import { useClassPointLog } from '@/hooks/useClassPointLog';
+import { useCloseDrawersOnClickOutside } from '@/hooks/useCloseDrawersOnClickOutside';
 import { useSeatingLayoutManager } from '@/hooks/useSeatingLayoutManager';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 type SeatingViewWorkspaceProps = {
@@ -68,6 +69,7 @@ export default function SeatingViewWorkspace({
 
   const {
     isLayoutManagerOpen,
+    setIsLayoutManagerOpen,
     isTeacherView,
     isDeleteModalOpen,
     isEditLayoutModalOpen,
@@ -99,6 +101,14 @@ export default function SeatingViewWorkspace({
 
   const hasLayouts = layouts.length > 0;
   const showGroupsLayer = hasLayouts && !isLoadingLayouts && !layoutsError;
+
+  useCloseDrawersOnClickOutside({
+    isActive: isPointLogOpen || isLayoutManagerOpen,
+    onClose: () => {
+      setIsPointLogOpen(false);
+      setIsLayoutManagerOpen(false);
+    },
+  });
 
   return (
     <StageTwoColumnSplit rightRail={<SeatingViewWorkspaceToolbar />}>

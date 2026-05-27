@@ -73,6 +73,7 @@ export default function WorkspaceToolbar({
 
   return (
     <div
+      data-workspace-toolbar
       className={`flex w-full min-h-0 flex-col gap-2 ${overflowClass} p-2 bg-white/80 border-0 border-top-brand-purple ${className}`}
       style={style}
       aria-label={ariaLabel}

@@ -1,17 +1,39 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+
+const COUNTDOWN_END_SOUND = '/sounds/bell-3.mp3';
 
 export default function Timer() {
   const [activeTab, setActiveTab] = useState<'stopwatch' | 'countdown'>('countdown');
   const [isRunning, setIsRunning] = useState(false);
   const [time, setTime] = useState(600);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownEndAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const [stopwatchTime, setStopwatchTime] = useState(0);
 
   const [countdownMinutes, setCountdownMinutes] = useState(10);
   const [countdownSeconds, setCountdownSeconds] = useState(0);
+
+  useEffect(() => {
+    const audio = new Audio(COUNTDOWN_END_SOUND);
+    audio.volume = 0.75;
+    countdownEndAudioRef.current = audio;
+
+    return () => {
+      audio.pause();
+      countdownEndAudioRef.current = null;
+    };
+  }, []);
+
+  const playCountdownEndSound = useCallback(() => {
+    const audio = countdownEndAudioRef.current;
+    if (!audio) return;
+    audio.pause();
+    audio.currentTime = 0;
+    void audio.play().catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (isRunning) {
@@ -26,7 +48,13 @@ export default function Timer() {
               setIsRunning(false);
               return 0;
             }
-            return prev - 1;
+            const next = prev - 1;
+            if (next === 0) {
+              setIsRunning(false);
+              playCountdownEndSound();
+              return 0;
+            }
+            return next;
           });
         }, 1000);
       }
@@ -42,7 +70,7 @@ export default function Timer() {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning, activeTab]);
+  }, [isRunning, activeTab, playCountdownEndSound]);
 
   const handleStart = () => {
     setIsRunning(true);

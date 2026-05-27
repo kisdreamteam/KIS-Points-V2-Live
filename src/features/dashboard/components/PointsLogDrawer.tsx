@@ -52,7 +52,11 @@ export default function PointsLogDrawer({
   };
 
   return (
-    <div className="transition-all duration-300 ease-out bg-brand-white/10 backdrop-blur-md" style={style}>
+    <div
+      data-points-log-drawer
+      className="transition-all duration-300 ease-out bg-brand-white/10 backdrop-blur-md"
+      style={style}
+    >
       <div className="h-full rounded-xl border-2 border-black bg-brand-cream/10 backdrop-blur-lg shadow-lg shadow-lg overflow-hidden flex flex-col">
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-brand-cream/60">
           <h3 className="font-semibold text-gray-900">Point Log</h3>

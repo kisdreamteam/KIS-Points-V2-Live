@@ -10,6 +10,7 @@ import StudentsCardsGrid from './StudentsCardsGrid';
 import StudentsGridWorkspaceToolbar from './StudentsGridWorkspaceToolbar';
 import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
 import { useDashboardToolbarInset } from '@/features/dashboard/hooks/useDashboardToolbarInset';
+import { useCloseDrawersOnClickOutside } from '@/hooks/useCloseDrawersOnClickOutside';
 import type { PointLogRow } from '@/hooks/useClassPointLog';
 
 export type StudentsGridWorkspaceProps = {
@@ -74,6 +75,11 @@ export default function StudentsGridWorkspace({
   onAddStudent,
 }: StudentsGridWorkspaceProps) {
   const toolbarInset = useDashboardToolbarInset();
+
+  useCloseDrawersOnClickOutside({
+    isActive: isPointLogOpen,
+    onClose: () => setIsPointLogOpen(false),
+  });
 
   const mainContent = (() => {
     if (isLoadingStudents) {

@@ -88,7 +88,7 @@ export default function LayoutManagerDrawer({
   };
 
   return (
-    <div className="transition-all duration-300 ease-out " style={style}>
+    <div data-layout-manager-drawer className="transition-all duration-300 ease-out " style={style}>
       <div className="h-full rounded-xl border-2 border-black bg-brand-cream/10 backdrop-blur-lg shadow-lg overflow-hidden flex flex-col font-spartan">
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-brand-cream/60 backdrop-blur-lg">
           <h3 className="font-semibold text-gray-900">Layouts</h3>

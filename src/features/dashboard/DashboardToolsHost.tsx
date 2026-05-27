@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import MovableToolPanel from '@/components/ui/MovableToolPanel';
 import LargeToolModal from '@/components/ui/LargeToolModal';
 import Timer from '@/features/dashboard/components/tools/Timer';
+import Bells from '@/features/dashboard/components/tools/Bells';
 import Random from '@/features/dashboard/tools/Random';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 
@@ -16,10 +17,13 @@ export default function DashboardToolsHost() {
   const setTimerOpen = useLayoutStore((s) => s.setTimerOpen);
   const isRandomOpen = useLayoutStore((s) => s.isRandomOpen);
   const setRandomOpen = useLayoutStore((s) => s.setRandomOpen);
+  const isBellsOpen = useLayoutStore((s) => s.isBellsOpen);
+  const setBellsOpen = useLayoutStore((s) => s.setBellsOpen);
 
   const randomCloseHandlerRef = useRef<(() => void) | null>(null);
 
   const handleCloseTimer = () => setTimerOpen(false);
+  const handleCloseBells = () => setBellsOpen(false);
 
   const handleCloseRandom = useCallback(() => {
     if (randomCloseHandlerRef.current) {
@@ -41,6 +45,14 @@ export default function DashboardToolsHost() {
         title="Timer"
       >
         <Timer />
+      </MovableToolPanel>
+
+      <MovableToolPanel
+        isOpen={isBellsOpen}
+        onClose={handleCloseBells}
+        title="Bells"
+      >
+        <Bells />
       </MovableToolPanel>
 
       <LargeToolModal
