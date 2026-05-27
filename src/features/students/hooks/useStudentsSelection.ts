@@ -115,7 +115,7 @@ export function useStudentsSelection() {
       alert('Please select at least one student to award points.');
       return;
     }
-    openMultiStudentPointsAward(studentIds, { excludeAbsent: true });
+    openMultiStudentPointsAward(studentIds);
   }, [isMultiSelectMode, selectedStudentIds, selectedGroupIds]);
 
   const inverseSelect = useCallback(() => {

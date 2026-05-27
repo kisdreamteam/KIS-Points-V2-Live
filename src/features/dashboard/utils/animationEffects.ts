@@ -2,6 +2,9 @@ import confetti from 'canvas-confetti';
 
 const NEGATIVE_COLORS = ['#64748b', '#475569', '#334155', '#94a3b8', '#1e293b'];
 
+/** Above LargeToolModal (200), Modal (9999), and EditSkillsModal (10000). */
+const CONFETTI_Z_INDEX = 10050;
+
 const POINTS_GAIN_AUDIO =
   typeof window !== 'undefined' ? new Audio('/sounds/points-gain.mp3') : null;
 const POINTS_LOSS_AUDIO =
@@ -23,6 +26,7 @@ function playPointsAudio(pointsDelta: number): void {
 
 function runClassicBurst(): void {
   void confetti({
+    zIndex: CONFETTI_Z_INDEX,
     particleCount: 120,
     spread: 80,
     startVelocity: 45,
@@ -36,6 +40,7 @@ function runSideCannons(): void {
 
   const frame = () => {
     void confetti({
+      zIndex: CONFETTI_Z_INDEX,
       particleCount: 3,
       angle: 60,
       spread: 55,
@@ -43,6 +48,7 @@ function runSideCannons(): void {
       origin: { x: 0, y: 0.5 },
     });
     void confetti({
+      zIndex: CONFETTI_Z_INDEX,
       particleCount: 3,
       angle: 120,
       spread: 55,
@@ -60,6 +66,7 @@ function runSideCannons(): void {
 
 function runRisingStars(): void {
   void confetti({
+    zIndex: CONFETTI_Z_INDEX,
     particleCount: 60,
     spread: 100,
     startVelocity: 35,
@@ -73,6 +80,7 @@ function runRisingStars(): void {
 
 function runMutedRain(): void {
   void confetti({
+    zIndex: CONFETTI_Z_INDEX,
     particleCount: 80,
     angle: 270,
     spread: 45,
@@ -85,6 +93,7 @@ function runMutedRain(): void {
 
 function runSinkingBricks(): void {
   void confetti({
+    zIndex: CONFETTI_Z_INDEX,
     particleCount: 50,
     angle: 250,
     spread: 25,

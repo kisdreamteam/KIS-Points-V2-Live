@@ -121,7 +121,10 @@ export function useAwardPointsService({
       const points = category.points ?? category.default_points ?? 0;
       try {
         const studentIds = await resolveAwardTargetStudentIds(context);
-        const eligibleStudentIds = toEligibleStudentIds(studentIds);
+        const eligibleStudentIds =
+          mode === 'wholeClass' || mode === 'multiClass'
+            ? toEligibleStudentIds(studentIds)
+            : studentIds;
         if (eligibleStudentIds.length === 0) {
           alert('No present students found for the current selection.');
           return false;
@@ -156,7 +159,7 @@ export function useAwardPointsService({
         setIsSubmitting(false);
       }
     },
-    [afterAwardSuccess, context, toEligibleStudentIds]
+    [afterAwardSuccess, context, mode, toEligibleStudentIds]
   );
 
   const awardCustom = useCallback(
@@ -176,7 +179,10 @@ export function useAwardPointsService({
         }
 
         const studentIds = await resolveAwardTargetStudentIds(context);
-        const eligibleStudentIds = toEligibleStudentIds(studentIds);
+        const eligibleStudentIds =
+          mode === 'wholeClass' || mode === 'multiClass'
+            ? toEligibleStudentIds(studentIds)
+            : studentIds;
         if (eligibleStudentIds.length === 0) {
           alert('No present students found for the current selection.');
           return false;
@@ -211,7 +217,7 @@ export function useAwardPointsService({
         setIsSubmitting(false);
       }
     },
-    [afterAwardSuccess, context, toEligibleStudentIds]
+    [afterAwardSuccess, context, mode, toEligibleStudentIds]
   );
 
   return {

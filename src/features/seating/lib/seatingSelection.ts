@@ -48,6 +48,6 @@ export function resolveAwardableStudentIds(
   groupAssignmentsById: Record<string, GroupAssignment[]>
 ): string[] {
   const fromGroups = getStudentIdsForGroups(selectedGroupIds, groupAssignmentsById);
-  const merged = [...new Set([...selectedStudentIds, ...fromGroups])];
-  return filterEligibleStudentIds(merged);
+  const presentFromGroups = filterEligibleStudentIds(fromGroups);
+  return [...new Set([...selectedStudentIds, ...presentFromGroups])];
 }
