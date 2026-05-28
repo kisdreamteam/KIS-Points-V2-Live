@@ -21,6 +21,14 @@ export default function DashboardToolsHost() {
   const setBellsOpen = useLayoutStore((s) => s.setBellsOpen);
 
   const randomCloseHandlerRef = useRef<(() => void) | null>(null);
+  const timerBaseWidth =
+    typeof window !== 'undefined'
+      ? Math.max(672, Math.floor(window.innerWidth * 0.9))
+      : 672;
+  const timerBaseHeight =
+    typeof window !== 'undefined'
+      ? Math.max(400, Math.floor(window.innerHeight * 0.9))
+      : 400;
 
   const handleCloseTimer = () => setTimerOpen(false);
   const handleCloseBells = () => setBellsOpen(false);
@@ -43,6 +51,15 @@ export default function DashboardToolsHost() {
         isOpen={isTimerOpen}
         onClose={handleCloseTimer}
         title="Timer"
+        resizable
+        minScale={1}
+        initialScale={1}
+        maxScale={1}
+        baseWidth={timerBaseWidth}
+        baseHeight={timerBaseHeight}
+        maxWidthPx={timerBaseWidth}
+        maxHeightPx={timerBaseHeight}
+        storageKey="dashboard.timerPanel.v5"
       >
         <Timer />
       </MovableToolPanel>

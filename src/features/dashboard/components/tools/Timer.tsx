@@ -32,7 +32,7 @@ export default function Timer() {
     if (!audio) return;
     audio.pause();
     audio.currentTime = 0;
-    void audio.play().catch(() => {});
+    void audio.play().catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -134,7 +134,7 @@ export default function Timer() {
         <button
           type="button"
           onClick={() => handleTabChange('countdown')}
-          className="text-xl font-semibold pb-2 transition-colors text-brand-purple"
+          className="text-lg md:text-2xl font-semibold pb-2 transition-colors text-brand-purple"
           style={{
             borderBottom: `3px solid ${activeTab === 'countdown' ? 'var(--color-brand-purple)' : 'transparent'}`,
           }}
@@ -144,7 +144,7 @@ export default function Timer() {
         <button
           type="button"
           onClick={() => handleTabChange('stopwatch')}
-          className="text-xl font-semibold pb-2 transition-colors text-brand-purple"
+          className="text-lg md:text-2xl font-semibold pb-2 transition-colors text-brand-purple"
           style={{
             borderBottom: `3px solid ${activeTab === 'stopwatch' ? 'var(--color-brand-purple)' : 'transparent'}`,
           }}
@@ -156,19 +156,19 @@ export default function Timer() {
       <div className="bg-brand-pink rounded-2xl p-6 md:p-8 mb-6 border-4 border-white">
         <div className="flex items-center justify-center gap-4">
           <div className="text-center">
-            <div className="text-6xl md:text-7xl font-bold text-white mb-2 leading-none">
+            <div className="text-4xl md:text-9xl font-bold text-white mb-2 leading-none">
               {displayTime.minutes}
             </div>
-            <div className="text-xl text-white/80">Minutes</div>
+            <div className="text-lg md:text-2xl text-white/80">Minutes</div>
           </div>
 
-          <div className="text-6xl md:text-7xl -translate-y-4 font-bold text-white leading-none">:</div>
+          <div className="text-4xl md:text-9xl -translate-y-4 font-bold text-white leading-none">:</div>
 
           <div className="text-center">
-            <div className="text-6xl md:text-7xl font-bold text-white mb-2 leading-none">
+            <div className="text-4xl md:text-9xl font-bold text-white mb-2 leading-none">
               {displayTime.seconds}
             </div>
-            <div className="text-xl text-white/80">Seconds</div>
+            <div className="text-lg md:text-2xl text-white/80">Seconds</div>
           </div>
         </div>
       </div>

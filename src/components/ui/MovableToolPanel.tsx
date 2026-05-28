@@ -16,14 +16,18 @@ type MovableToolPanelProps = {
   className?: string;
   resizable?: boolean;
   minScale?: number;
+  maxScale?: number;
   initialScale?: number;
+  baseWidth?: number;
+  baseHeight?: number;
+  maxWidthPx?: number;
+  maxHeightPx?: number;
   storageKey?: string;
   defaultPlacement?: PanelPlacement;
 };
 
 const DEFAULT_PANEL_WIDTH = 672;
 const DEFAULT_PANEL_HEIGHT = 400;
-const PANEL_ASPECT = DEFAULT_PANEL_WIDTH / DEFAULT_PANEL_HEIGHT;
 
 function getCenteredPosition(width: number, height: number): Position {
   if (typeof window === 'undefined') {
@@ -72,17 +76,30 @@ function getDefaultPosition(
   return getCenteredPosition(width, height);
 }
 
-function getResizeBounds(minScale: number) {
-  const minWidth = Math.round(DEFAULT_PANEL_WIDTH * minScale);
-  const minHeight = Math.round(DEFAULT_PANEL_HEIGHT * minScale);
-  const maxWidth =
+function getResizeBounds(
+  minScale: number,
+  maxScale: number,
+  baseWidth: number,
+  baseHeight: number,
+  maxWidthPx?: number,
+  maxHeightPx?: number
+) {
+  const minWidth = Math.round(baseWidth * minScale);
+  const minHeight = Math.round(baseHeight * minScale);
+  const scaledMaxWidth = Math.round(baseWidth * maxScale);
+  const scaledMaxHeight = Math.round(baseHeight * maxScale);
+  const defaultViewportMaxWidth =
     typeof window !== 'undefined'
       ? Math.min(window.innerWidth - 32, 42 * 16)
       : 42 * 16;
-  const maxHeight =
+  const defaultViewportMaxHeight =
     typeof window !== 'undefined'
       ? Math.min(window.innerHeight * 0.9, 720)
       : 720;
+  const viewportMaxWidth = maxWidthPx ?? defaultViewportMaxWidth;
+  const viewportMaxHeight = maxHeightPx ?? defaultViewportMaxHeight;
+  const maxWidth = Math.min(viewportMaxWidth, scaledMaxWidth);
+  const maxHeight = Math.min(viewportMaxHeight, scaledMaxHeight);
   return { minWidth, minHeight, maxWidth, maxHeight };
 }
 
@@ -126,7 +143,8 @@ function readStoredPanelState(
   minWidth: number,
   minHeight: number,
   maxWidth: number,
-  maxHeight: number
+  maxHeight: number,
+  aspect: number
 ): StoredPanelState | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -148,7 +166,7 @@ function readStoredPanelState(
       minHeight,
       maxWidth,
       maxHeight,
-      PANEL_ASPECT
+      aspect
     );
     return { ...clamped, x: parsed.x, y: parsed.y };
   } catch {
@@ -170,11 +188,31 @@ function getInitialPanelState(
   defaultWidth: number,
   defaultHeight: number,
   minScale: number,
+  maxScale: number,
+  baseWidth: number,
+  baseHeight: number,
+  maxWidthPx: number | undefined,
+  maxHeightPx: number | undefined,
+  aspect: number,
   placement: PanelPlacement
 ): StoredPanelState {
-  const { minWidth, minHeight, maxWidth, maxHeight } = getResizeBounds(minScale);
+  const { minWidth, minHeight, maxWidth, maxHeight } = getResizeBounds(
+    minScale,
+    maxScale,
+    baseWidth,
+    baseHeight,
+    maxWidthPx,
+    maxHeightPx
+  );
   if (storageKey) {
-    const stored = readStoredPanelState(storageKey, minWidth, minHeight, maxWidth, maxHeight);
+    const stored = readStoredPanelState(
+      storageKey,
+      minWidth,
+      minHeight,
+      maxWidth,
+      maxHeight,
+      aspect
+    );
     if (stored) return stored;
   }
   const size = clampProportionalSize(
@@ -184,7 +222,7 @@ function getInitialPanelState(
     minHeight,
     maxWidth,
     maxHeight,
-    PANEL_ASPECT
+    aspect
   );
   const position = getDefaultPosition(size.width, size.height, placement);
   return { ...size, ...position };
@@ -198,13 +236,19 @@ export default function MovableToolPanel({
   className = '',
   resizable = false,
   minScale = 0.5,
+  maxScale = 1,
   initialScale = 1,
+  baseWidth = DEFAULT_PANEL_WIDTH,
+  baseHeight = DEFAULT_PANEL_HEIGHT,
+  maxWidthPx,
+  maxHeightPx,
   storageKey,
   defaultPlacement = 'center',
 }: MovableToolPanelProps) {
   const clampedInitialScale = Math.max(minScale, Math.min(1, initialScale));
-  const defaultWidth = Math.round(DEFAULT_PANEL_WIDTH * clampedInitialScale);
-  const defaultHeight = Math.round(DEFAULT_PANEL_HEIGHT * clampedInitialScale);
+  const panelAspect = baseWidth / baseHeight;
+  const defaultWidth = Math.round(baseWidth * clampedInitialScale);
+  const defaultHeight = Math.round(baseHeight * clampedInitialScale);
 
   const [isMounted, setIsMounted] = useState(false);
   const [position, setPosition] = useState<Position>(() => {
@@ -213,6 +257,12 @@ export default function MovableToolPanel({
       defaultWidth,
       defaultHeight,
       minScale,
+      maxScale,
+      baseWidth,
+      baseHeight,
+      maxWidthPx,
+      maxHeightPx,
+      panelAspect,
       defaultPlacement
     );
     return { x: initial.x, y: initial.y };
@@ -223,6 +273,12 @@ export default function MovableToolPanel({
       defaultWidth,
       defaultHeight,
       minScale,
+      maxScale,
+      baseWidth,
+      baseHeight,
+      maxWidthPx,
+      maxHeightPx,
+      panelAspect,
       defaultPlacement
     );
     return { width: initial.width, height: initial.height };
@@ -255,7 +311,14 @@ export default function MovableToolPanel({
 
   const applyClampedSize = useCallback(
     (width: number, height: number) => {
-      const { minWidth, minHeight, maxWidth, maxHeight } = getResizeBounds(minScale);
+      const { minWidth, minHeight, maxWidth, maxHeight } = getResizeBounds(
+        minScale,
+        maxScale,
+        baseWidth,
+        baseHeight,
+        maxWidthPx,
+        maxHeightPx
+      );
       const clamped = clampProportionalSize(
         width,
         height,
@@ -263,7 +326,7 @@ export default function MovableToolPanel({
         minHeight,
         maxWidth,
         maxHeight,
-        PANEL_ASPECT
+        panelAspect
       );
 
       const node = panelRef.current;
@@ -276,7 +339,7 @@ export default function MovableToolPanel({
       sizeRef.current = clamped;
       return clamped;
     },
-    [minScale]
+    [baseHeight, baseWidth, maxHeightPx, maxScale, maxWidthPx, minScale, panelAspect]
   );
 
   const applyProportionalResize = useCallback(
@@ -308,8 +371,22 @@ export default function MovableToolPanel({
     if (!justOpened) return;
 
     if (storageKey && !hasHydratedFromStorageRef.current) {
-      const { minWidth, minHeight, maxWidth, maxHeight } = getResizeBounds(minScale);
-      const stored = readStoredPanelState(storageKey, minWidth, minHeight, maxWidth, maxHeight);
+      const { minWidth, minHeight, maxWidth, maxHeight } = getResizeBounds(
+        minScale,
+        maxScale,
+        baseWidth,
+        baseHeight,
+        maxWidthPx,
+        maxHeightPx
+      );
+      const stored = readStoredPanelState(
+        storageKey,
+        minWidth,
+        minHeight,
+        maxWidth,
+        maxHeight,
+        panelAspect
+      );
       if (stored) {
         setSize({ width: stored.width, height: stored.height });
         setPosition({ x: stored.x, y: stored.y });
@@ -335,7 +412,20 @@ export default function MovableToolPanel({
       node.style.width = `${width}px`;
       node.style.height = `${height}px`;
     }
-  }, [defaultHeight, defaultWidth, isOpen, minScale, resizable, storageKey]);
+  }, [
+    baseHeight,
+    baseWidth,
+    defaultHeight,
+    defaultWidth,
+    isOpen,
+    maxScale,
+    maxHeightPx,
+    maxWidthPx,
+    minScale,
+    panelAspect,
+    resizable,
+    storageKey,
+  ]);
 
   // Keep DOM inline size in sync when panel opens (no ResizeObserver — it was resetting size after drag)
   useEffect(() => {
@@ -427,7 +517,14 @@ export default function MovableToolPanel({
 
   if (!isOpen || !isMounted) return null;
 
-  const { minWidth, minHeight } = getResizeBounds(minScale);
+  const { minWidth, minHeight } = getResizeBounds(
+    minScale,
+    maxScale,
+    baseWidth,
+    baseHeight,
+    maxWidthPx,
+    maxHeightPx
+  );
 
   return createPortal(
     <div
