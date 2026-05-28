@@ -52,8 +52,10 @@ export default function DashboardToolsHost() {
         onClose={handleCloseBells}
         title="Bells"
         resizable
-        minScale={0.5}
-        initialScale={0.5}
+        minScale={0.6}
+        initialScale={0.6}
+        storageKey="dashboard.bellsPanel"
+        defaultPlacement="bottom-right"
       >
         <Bells />
       </MovableToolPanel>

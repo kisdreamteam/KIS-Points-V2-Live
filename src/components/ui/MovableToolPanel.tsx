@@ -4,6 +4,9 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom';
 
 type Position = { x: number; y: number };
+type PanelSize = { width: number; height: number };
+type StoredPanelState = PanelSize & Position;
+type PanelPlacement = 'center' | 'bottom-right';
 
 type MovableToolPanelProps = {
   isOpen: boolean;
@@ -14,11 +17,13 @@ type MovableToolPanelProps = {
   resizable?: boolean;
   minScale?: number;
   initialScale?: number;
+  storageKey?: string;
+  defaultPlacement?: PanelPlacement;
 };
 
 const DEFAULT_PANEL_WIDTH = 672;
 const DEFAULT_PANEL_HEIGHT = 400;
-const SIZE_EPSILON = 1;
+const PANEL_ASPECT = DEFAULT_PANEL_WIDTH / DEFAULT_PANEL_HEIGHT;
 
 function getCenteredPosition(width: number, height: number): Position {
   if (typeof window === 'undefined') {
@@ -28,6 +33,43 @@ function getCenteredPosition(width: number, height: number): Position {
     x: Math.max(16, (window.innerWidth - width) / 2),
     y: Math.max(16, (window.innerHeight - height) / 2),
   };
+}
+
+function getBottomRightPosition(width: number, height: number): Position {
+  const margin = 16;
+  const gapAboveNav = 12;
+
+  if (typeof window === 'undefined') {
+    return { x: margin, y: margin };
+  }
+
+  const nav = document.querySelector('[data-bottom-nav]');
+  const navHeight = nav?.getBoundingClientRect().height ?? 80;
+  const main = document.querySelector('main');
+
+  if (main) {
+    const rect = main.getBoundingClientRect();
+    return {
+      x: Math.max(margin, rect.right - width - margin),
+      y: Math.max(margin, rect.bottom - height - navHeight - gapAboveNav),
+    };
+  }
+
+  return {
+    x: Math.max(margin, window.innerWidth - width - margin),
+    y: Math.max(margin, window.innerHeight - height - navHeight - gapAboveNav),
+  };
+}
+
+function getDefaultPosition(
+  width: number,
+  height: number,
+  placement: PanelPlacement
+): Position {
+  if (placement === 'bottom-right') {
+    return getBottomRightPosition(width, height);
+  }
+  return getCenteredPosition(width, height);
 }
 
 function getResizeBounds(minScale: number) {
@@ -44,40 +86,108 @@ function getResizeBounds(minScale: number) {
   return { minWidth, minHeight, maxWidth, maxHeight };
 }
 
-function clampResizableSize(
+function clampProportionalSize(
   width: number,
   height: number,
   minWidth: number,
   minHeight: number,
   maxWidth: number,
   maxHeight: number,
-  heightCapAtMaxWidth: number
+  aspect: number
 ) {
-  let nextWidth = Math.round(Math.min(Math.max(minWidth, width), maxWidth));
-  let nextHeight = Math.round(Math.min(Math.max(minHeight, height), maxHeight));
+  let nextWidth = Math.round(width);
+  let nextHeight = Math.round(nextWidth / aspect);
 
-  const atMaxWidth = nextWidth >= maxWidth - SIZE_EPSILON;
-  const atMaxHeight = nextHeight >= maxHeight - SIZE_EPSILON;
-
-  if (atMaxWidth) {
-    nextWidth = maxWidth;
-    nextHeight = Math.min(nextHeight, heightCapAtMaxWidth);
+  if (nextWidth < minWidth) {
+    nextWidth = minWidth;
+    nextHeight = Math.round(nextWidth / aspect);
   }
-
-  if (atMaxHeight) {
+  if (nextWidth > maxWidth) {
+    nextWidth = maxWidth;
+    nextHeight = Math.round(nextWidth / aspect);
+  }
+  if (nextHeight < minHeight) {
+    nextHeight = minHeight;
+    nextWidth = Math.round(nextHeight * aspect);
+  }
+  if (nextHeight > maxHeight) {
     nextHeight = maxHeight;
-    nextWidth = maxWidth;
-  }
-
-  if (nextWidth >= maxWidth - SIZE_EPSILON) {
-    nextWidth = maxWidth;
-    nextHeight = Math.min(nextHeight, heightCapAtMaxWidth);
+    nextWidth = Math.round(nextHeight * aspect);
   }
 
   nextWidth = Math.round(Math.min(Math.max(minWidth, nextWidth), maxWidth));
   nextHeight = Math.round(Math.min(Math.max(minHeight, nextHeight), maxHeight));
 
   return { width: nextWidth, height: nextHeight };
+}
+
+function readStoredPanelState(
+  storageKey: string,
+  minWidth: number,
+  minHeight: number,
+  maxWidth: number,
+  maxHeight: number
+): StoredPanelState | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<StoredPanelState>;
+    if (
+      typeof parsed.width !== 'number' ||
+      typeof parsed.height !== 'number' ||
+      typeof parsed.x !== 'number' ||
+      typeof parsed.y !== 'number'
+    ) {
+      return null;
+    }
+    const clamped = clampProportionalSize(
+      parsed.width,
+      parsed.height,
+      minWidth,
+      minHeight,
+      maxWidth,
+      maxHeight,
+      PANEL_ASPECT
+    );
+    return { ...clamped, x: parsed.x, y: parsed.y };
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredPanelState(storageKey: string, state: StoredPanelState) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(state));
+  } catch {
+    // ignore quota / private mode errors
+  }
+}
+
+function getInitialPanelState(
+  storageKey: string | undefined,
+  defaultWidth: number,
+  defaultHeight: number,
+  minScale: number,
+  placement: PanelPlacement
+): StoredPanelState {
+  const { minWidth, minHeight, maxWidth, maxHeight } = getResizeBounds(minScale);
+  if (storageKey) {
+    const stored = readStoredPanelState(storageKey, minWidth, minHeight, maxWidth, maxHeight);
+    if (stored) return stored;
+  }
+  const size = clampProportionalSize(
+    defaultWidth,
+    defaultHeight,
+    minWidth,
+    minHeight,
+    maxWidth,
+    maxHeight,
+    PANEL_ASPECT
+  );
+  const position = getDefaultPosition(size.width, size.height, placement);
+  return { ...size, ...position };
 }
 
 export default function MovableToolPanel({
@@ -89,35 +199,71 @@ export default function MovableToolPanel({
   resizable = false,
   minScale = 0.5,
   initialScale = 1,
+  storageKey,
+  defaultPlacement = 'center',
 }: MovableToolPanelProps) {
   const clampedInitialScale = Math.max(minScale, Math.min(1, initialScale));
   const defaultWidth = Math.round(DEFAULT_PANEL_WIDTH * clampedInitialScale);
   const defaultHeight = Math.round(DEFAULT_PANEL_HEIGHT * clampedInitialScale);
+
   const [isMounted, setIsMounted] = useState(false);
-  const [position, setPosition] = useState<Position>(() =>
-    getCenteredPosition(defaultWidth, defaultHeight)
-  );
-  const [size, setSize] = useState(() => ({
-    width: defaultWidth,
-    height: defaultHeight,
-  }));
+  const [position, setPosition] = useState<Position>(() => {
+    const initial = getInitialPanelState(
+      storageKey,
+      defaultWidth,
+      defaultHeight,
+      minScale,
+      defaultPlacement
+    );
+    return { x: initial.x, y: initial.y };
+  });
+  const [size, setSize] = useState<PanelSize>(() => {
+    const initial = getInitialPanelState(
+      storageKey,
+      defaultWidth,
+      defaultHeight,
+      minScale,
+      defaultPlacement
+    );
+    return { width: initial.width, height: initial.height };
+  });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const dragOffsetRef = useRef<Position>({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, x: 0, y: 0 });
+  const sizeRef = useRef(size);
+  const positionRef = useRef(position);
+  const hasHydratedFromStorageRef = useRef(false);
+  const wasOpenRef = useRef(false);
+
+  sizeRef.current = size;
+  positionRef.current = position;
+
+  const persistPanelState = useCallback(
+    (nextSize: PanelSize, nextPosition: Position) => {
+      if (!storageKey) return;
+      writeStoredPanelState(storageKey, {
+        width: nextSize.width,
+        height: nextSize.height,
+        x: nextPosition.x,
+        y: nextPosition.y,
+      });
+    },
+    [storageKey]
+  );
 
   const applyClampedSize = useCallback(
     (width: number, height: number) => {
       const { minWidth, minHeight, maxWidth, maxHeight } = getResizeBounds(minScale);
-      const clamped = clampResizableSize(
+      const clamped = clampProportionalSize(
         width,
         height,
         minWidth,
         minHeight,
         maxWidth,
         maxHeight,
-        defaultHeight
+        PANEL_ASPECT
       );
 
       const node = panelRef.current;
@@ -127,9 +273,23 @@ export default function MovableToolPanel({
       }
 
       setSize(clamped);
+      sizeRef.current = clamped;
       return clamped;
     },
-    [defaultHeight, minScale]
+    [minScale]
+  );
+
+  const applyProportionalResize = useCallback(
+    (deltaX: number, deltaY: number) => {
+      const start = resizeStartRef.current;
+      const scaleFactor =
+        ((start.width + deltaX) / start.width + (start.height + deltaY) / start.height) / 2;
+      return applyClampedSize(
+        Math.round(start.width * scaleFactor),
+        Math.round(start.height * scaleFactor)
+      );
+    },
+    [applyClampedSize]
   );
 
   useEffect(() => {
@@ -137,52 +297,54 @@ export default function MovableToolPanel({
   }, []);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !resizable) {
+      wasOpenRef.current = isOpen;
+      return;
+    }
+
+    const justOpened = !wasOpenRef.current;
+    wasOpenRef.current = true;
+
+    if (!justOpened) return;
+
+    if (storageKey && !hasHydratedFromStorageRef.current) {
+      const { minWidth, minHeight, maxWidth, maxHeight } = getResizeBounds(minScale);
+      const stored = readStoredPanelState(storageKey, minWidth, minHeight, maxWidth, maxHeight);
+      if (stored) {
+        setSize({ width: stored.width, height: stored.height });
+        setPosition({ x: stored.x, y: stored.y });
+        const node = panelRef.current;
+        if (node) {
+          node.style.width = `${stored.width}px`;
+          node.style.height = `${stored.height}px`;
+        }
+        hasHydratedFromStorageRef.current = true;
+        return;
+      }
+      hasHydratedFromStorageRef.current = true;
+    }
+
+    if (storageKey) return;
+
     const width = defaultWidth;
     const height = defaultHeight;
     setSize({ width, height });
     setPosition(getCenteredPosition(width, height));
     const node = panelRef.current;
-    if (node && resizable) {
+    if (node) {
       node.style.width = `${width}px`;
       node.style.height = `${height}px`;
     }
-  }, [defaultHeight, defaultWidth, isOpen, resizable]);
+  }, [defaultHeight, defaultWidth, isOpen, minScale, resizable, storageKey]);
 
+  // Keep DOM inline size in sync when panel opens (no ResizeObserver — it was resetting size after drag)
   useEffect(() => {
-    if (!resizable) return;
+    if (!isOpen || !resizable) return;
     const node = panelRef.current;
-    if (!node || typeof ResizeObserver === 'undefined') return;
-
-    const { minWidth, minHeight, maxWidth, maxHeight } = getResizeBounds(minScale);
-
-    const observer = new ResizeObserver((entries) => {
-      if (isResizing) return;
-      const entry = entries[0];
-      if (!entry) return;
-      const { width, height } = entry.contentRect;
-      const clamped = clampResizableSize(
-        width,
-        height,
-        minWidth,
-        minHeight,
-        maxWidth,
-        maxHeight,
-        defaultHeight
-      );
-      if (
-        Math.abs(clamped.width - width) > SIZE_EPSILON ||
-        Math.abs(clamped.height - height) > SIZE_EPSILON
-      ) {
-        node.style.width = `${clamped.width}px`;
-        node.style.height = `${clamped.height}px`;
-      }
-      setSize(clamped);
-    });
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [defaultHeight, isResizing, minScale, resizable]);
+    if (!node) return;
+    node.style.width = `${sizeRef.current.width}px`;
+    node.style.height = `${sizeRef.current.height}px`;
+  }, [isOpen, resizable]);
 
   const handleResizePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
@@ -206,24 +368,24 @@ export default function MovableToolPanel({
       if (!isResizing) return;
       const deltaX = e.clientX - resizeStartRef.current.x;
       const deltaY = e.clientY - resizeStartRef.current.y;
-      applyClampedSize(
-        resizeStartRef.current.width + deltaX,
-        resizeStartRef.current.height + deltaY
-      );
+      applyProportionalResize(deltaX, deltaY);
     },
-    [applyClampedSize, isResizing]
+    [applyProportionalResize, isResizing]
   );
 
   const handleResizePointerUp = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (!isResizing) return;
-      applyClampedSize(size.width, size.height);
+      const deltaX = e.clientX - resizeStartRef.current.x;
+      const deltaY = e.clientY - resizeStartRef.current.y;
+      const clamped = applyProportionalResize(deltaX, deltaY);
       setIsResizing(false);
+      persistPanelState(clamped, positionRef.current);
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         e.currentTarget.releasePointerCapture(e.pointerId);
       }
     },
-    [applyClampedSize, isResizing, size.height, size.width]
+    [applyProportionalResize, isResizing, persistPanelState]
   );
 
   const handleHeaderPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -245,13 +407,23 @@ export default function MovableToolPanel({
     });
   }, [isDragging]);
 
-  const handleHeaderPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    }
-  }, [isDragging]);
+  const handleHeaderPointerUp = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!isDragging) return;
+      const nextPosition = {
+        x: e.clientX - dragOffsetRef.current.x,
+        y: e.clientY - dragOffsetRef.current.y,
+      };
+      setPosition(nextPosition);
+      positionRef.current = nextPosition;
+      setIsDragging(false);
+      persistPanelState(sizeRef.current, nextPosition);
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    },
+    [isDragging, persistPanelState]
+  );
 
   if (!isOpen || !isMounted) return null;
 
