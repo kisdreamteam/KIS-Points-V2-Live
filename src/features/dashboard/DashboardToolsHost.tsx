@@ -51,6 +51,9 @@ export default function DashboardToolsHost() {
         isOpen={isBellsOpen}
         onClose={handleCloseBells}
         title="Bells"
+        resizable
+        minScale={0.5}
+        initialScale={0.5}
       >
         <Bells />
       </MovableToolPanel>

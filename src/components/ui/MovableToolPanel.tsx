@@ -11,10 +11,14 @@ type MovableToolPanelProps = {
   title?: string;
   children: ReactNode;
   className?: string;
+  resizable?: boolean;
+  minScale?: number;
+  initialScale?: number;
 };
 
 const DEFAULT_PANEL_WIDTH = 672;
 const DEFAULT_PANEL_HEIGHT = 400;
+const SIZE_EPSILON = 1;
 
 function getCenteredPosition(width: number, height: number): Position {
   if (typeof window === 'undefined') {
@@ -26,20 +30,107 @@ function getCenteredPosition(width: number, height: number): Position {
   };
 }
 
+function getResizeBounds(minScale: number) {
+  const minWidth = Math.round(DEFAULT_PANEL_WIDTH * minScale);
+  const minHeight = Math.round(DEFAULT_PANEL_HEIGHT * minScale);
+  const maxWidth =
+    typeof window !== 'undefined'
+      ? Math.min(window.innerWidth - 32, 42 * 16)
+      : 42 * 16;
+  const maxHeight =
+    typeof window !== 'undefined'
+      ? Math.min(window.innerHeight * 0.9, 720)
+      : 720;
+  return { minWidth, minHeight, maxWidth, maxHeight };
+}
+
+function clampResizableSize(
+  width: number,
+  height: number,
+  minWidth: number,
+  minHeight: number,
+  maxWidth: number,
+  maxHeight: number,
+  heightCapAtMaxWidth: number
+) {
+  let nextWidth = Math.round(Math.min(Math.max(minWidth, width), maxWidth));
+  let nextHeight = Math.round(Math.min(Math.max(minHeight, height), maxHeight));
+
+  const atMaxWidth = nextWidth >= maxWidth - SIZE_EPSILON;
+  const atMaxHeight = nextHeight >= maxHeight - SIZE_EPSILON;
+
+  if (atMaxWidth) {
+    nextWidth = maxWidth;
+    nextHeight = Math.min(nextHeight, heightCapAtMaxWidth);
+  }
+
+  if (atMaxHeight) {
+    nextHeight = maxHeight;
+    nextWidth = maxWidth;
+  }
+
+  if (nextWidth >= maxWidth - SIZE_EPSILON) {
+    nextWidth = maxWidth;
+    nextHeight = Math.min(nextHeight, heightCapAtMaxWidth);
+  }
+
+  nextWidth = Math.round(Math.min(Math.max(minWidth, nextWidth), maxWidth));
+  nextHeight = Math.round(Math.min(Math.max(minHeight, nextHeight), maxHeight));
+
+  return { width: nextWidth, height: nextHeight };
+}
+
 export default function MovableToolPanel({
   isOpen,
   onClose,
   title,
   children,
   className = '',
+  resizable = false,
+  minScale = 0.5,
+  initialScale = 1,
 }: MovableToolPanelProps) {
+  const clampedInitialScale = Math.max(minScale, Math.min(1, initialScale));
+  const defaultWidth = Math.round(DEFAULT_PANEL_WIDTH * clampedInitialScale);
+  const defaultHeight = Math.round(DEFAULT_PANEL_HEIGHT * clampedInitialScale);
   const [isMounted, setIsMounted] = useState(false);
   const [position, setPosition] = useState<Position>(() =>
-    getCenteredPosition(DEFAULT_PANEL_WIDTH, DEFAULT_PANEL_HEIGHT)
+    getCenteredPosition(defaultWidth, defaultHeight)
   );
+  const [size, setSize] = useState(() => ({
+    width: defaultWidth,
+    height: defaultHeight,
+  }));
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const dragOffsetRef = useRef<Position>({ x: 0, y: 0 });
+  const resizeStartRef = useRef({ width: 0, height: 0, x: 0, y: 0 });
+
+  const applyClampedSize = useCallback(
+    (width: number, height: number) => {
+      const { minWidth, minHeight, maxWidth, maxHeight } = getResizeBounds(minScale);
+      const clamped = clampResizableSize(
+        width,
+        height,
+        minWidth,
+        minHeight,
+        maxWidth,
+        maxHeight,
+        defaultHeight
+      );
+
+      const node = panelRef.current;
+      if (node) {
+        node.style.width = `${clamped.width}px`;
+        node.style.height = `${clamped.height}px`;
+      }
+
+      setSize(clamped);
+      return clamped;
+    },
+    [defaultHeight, minScale]
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -47,11 +138,93 @@ export default function MovableToolPanel({
 
   useEffect(() => {
     if (!isOpen) return;
-    const el = panelRef.current;
-    const width = el?.offsetWidth ?? DEFAULT_PANEL_WIDTH;
-    const height = el?.offsetHeight ?? DEFAULT_PANEL_HEIGHT;
+    const width = defaultWidth;
+    const height = defaultHeight;
+    setSize({ width, height });
     setPosition(getCenteredPosition(width, height));
-  }, [isOpen]);
+    const node = panelRef.current;
+    if (node && resizable) {
+      node.style.width = `${width}px`;
+      node.style.height = `${height}px`;
+    }
+  }, [defaultHeight, defaultWidth, isOpen, resizable]);
+
+  useEffect(() => {
+    if (!resizable) return;
+    const node = panelRef.current;
+    if (!node || typeof ResizeObserver === 'undefined') return;
+
+    const { minWidth, minHeight, maxWidth, maxHeight } = getResizeBounds(minScale);
+
+    const observer = new ResizeObserver((entries) => {
+      if (isResizing) return;
+      const entry = entries[0];
+      if (!entry) return;
+      const { width, height } = entry.contentRect;
+      const clamped = clampResizableSize(
+        width,
+        height,
+        minWidth,
+        minHeight,
+        maxWidth,
+        maxHeight,
+        defaultHeight
+      );
+      if (
+        Math.abs(clamped.width - width) > SIZE_EPSILON ||
+        Math.abs(clamped.height - height) > SIZE_EPSILON
+      ) {
+        node.style.width = `${clamped.width}px`;
+        node.style.height = `${clamped.height}px`;
+      }
+      setSize(clamped);
+    });
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [defaultHeight, isResizing, minScale, resizable]);
+
+  const handleResizePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      resizeStartRef.current = {
+        width: size.width,
+        height: size.height,
+        x: e.clientX,
+        y: e.clientY,
+      };
+      setIsResizing(true);
+      e.currentTarget.setPointerCapture(e.pointerId);
+    },
+    [size.height, size.width]
+  );
+
+  const handleResizePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!isResizing) return;
+      const deltaX = e.clientX - resizeStartRef.current.x;
+      const deltaY = e.clientY - resizeStartRef.current.y;
+      applyClampedSize(
+        resizeStartRef.current.width + deltaX,
+        resizeStartRef.current.height + deltaY
+      );
+    },
+    [applyClampedSize, isResizing]
+  );
+
+  const handleResizePointerUp = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!isResizing) return;
+      applyClampedSize(size.width, size.height);
+      setIsResizing(false);
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    },
+    [applyClampedSize, isResizing, size.height, size.width]
+  );
 
   const handleHeaderPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
@@ -82,15 +255,28 @@ export default function MovableToolPanel({
 
   if (!isOpen || !isMounted) return null;
 
+  const { minWidth, minHeight } = getResizeBounds(minScale);
+
   return createPortal(
     <div
       ref={panelRef}
       className={[
         'fixed z-[120] flex flex-col rounded-xl bg-white shadow-2xl border border-gray-200',
-        'w-[min(100vw-2rem,42rem)] max-h-[min(90dvh,720px)] overflow-hidden',
+        resizable ? 'overflow-hidden' : 'w-[min(100vw-2rem,42rem)] max-h-[min(90dvh,720px)] overflow-hidden',
         className,
       ].join(' ')}
-      style={{ left: position.x, top: position.y }}
+      style={{
+        left: position.x,
+        top: position.y,
+        ...(resizable
+          ? {
+              width: `${size.width}px`,
+              height: `${size.height}px`,
+              minWidth: `${minWidth}px`,
+              minHeight: `${minHeight}px`,
+            }
+          : {}),
+      }}
       role="dialog"
       aria-modal="false"
       aria-label={title ?? 'Tool panel'}
@@ -136,6 +322,27 @@ export default function MovableToolPanel({
       >
         {children}
       </div>
+      {resizable ? (
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Resize panel"
+          className="absolute bottom-0 right-0 z-10 h-4 w-4 cursor-nwse-resize touch-none select-none"
+          onPointerDown={handleResizePointerDown}
+          onPointerMove={handleResizePointerMove}
+          onPointerUp={handleResizePointerUp}
+          onPointerCancel={handleResizePointerUp}
+        >
+          <svg
+            className="absolute bottom-0.5 right-0.5 h-3 w-3 text-gray-400 pointer-events-none"
+            viewBox="0 0 12 12"
+            fill="currentColor"
+            aria-hidden
+          >
+            <path d="M12 12H8V10H10V8H12V12ZM10 12H6V10H8V8H10V12ZM8 12H4V10H6V8H8V12Z" />
+          </svg>
+        </div>
+      ) : null}
     </div>,
     document.body
   );
