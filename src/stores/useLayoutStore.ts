@@ -38,23 +38,13 @@ export const useLayoutStore = create<LayoutStore>((set) => ({
   setSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
   setMultiSelectMode: (isMultiSelectMode) => set({ isMultiSelectMode }),
   toggleMultiSelectMode: () => set((state) => ({ isMultiSelectMode: !state.isMultiSelectMode })),
-  setTimerOpen: (isTimerOpen) =>
-    set(
-      isTimerOpen
-        ? { isTimerOpen: true, isRandomOpen: false, isBellsOpen: false }
-        : { isTimerOpen: false }
-    ),
+  setTimerOpen: (isTimerOpen) => set({ isTimerOpen }),
   setRandomOpen: (isRandomOpen) =>
     set(
       isRandomOpen
         ? { isRandomOpen: true, isTimerOpen: false, isBellsOpen: false }
         : { isRandomOpen: false }
     ),
-  setBellsOpen: (isBellsOpen) =>
-    set(
-      isBellsOpen
-        ? { isBellsOpen: true, isTimerOpen: false, isRandomOpen: false }
-        : { isBellsOpen: false }
-    ),
+  setBellsOpen: (isBellsOpen) => set({ isBellsOpen }),
   setEditClassModalOpen: (isEditClassModalOpen) => set({ isEditClassModalOpen }),
 }));

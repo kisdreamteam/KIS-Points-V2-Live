@@ -1,7 +1,5 @@
 import confetti from 'canvas-confetti';
 
-const DUST_COLORS = ['#475569', '#64748b', '#94a3b8'];
-
 /** Above LargeToolModal (200), Modal (9999), and EditSkillsModal (10000). */
 const CONFETTI_Z_INDEX = 10050;
 
@@ -78,79 +76,7 @@ function runRisingStars(): void {
   });
 }
 
-type ScatteredDustRainOptions = {
-  scalar: number;
-  durationMs: number;
-  burstsPerFrame: number;
-  particlesPerBurst: number;
-  spread: number;
-  /** Random spawn band from y=0 through this fraction of viewport height. */
-  ySpawnMax: number;
-};
-
-/** Fine slate dust: random spawn points across the upper viewport, falling straight down over time. */
-function fireScatteredDustRain({
-  scalar,
-  durationMs,
-  burstsPerFrame,
-  particlesPerBurst,
-  spread,
-  ySpawnMax,
-}: ScatteredDustRainOptions): void {
-  const end = Date.now() + durationMs;
-
-  const frame = () => {
-    for (let i = 0; i < burstsPerFrame; i++) {
-      void confetti({
-        zIndex: CONFETTI_Z_INDEX,
-        angle: 268 + Math.random() * 4,
-        spread,
-        scalar,
-        colors: DUST_COLORS,
-        startVelocity: 4 + Math.random() * 4,
-        gravity: 1.5,
-        drift: (Math.random() - 0.5) * 0.25,
-        ticks: 180,
-        particleCount: particlesPerBurst,
-        origin: {
-          x: 0.04 + Math.random() * 0.92,
-          y: Math.random() * ySpawnMax,
-        },
-      });
-    }
-
-    if (Date.now() < end) {
-      requestAnimationFrame(frame);
-    }
-  };
-
-  frame();
-}
-
-function runDustBurst(): void {
-  fireScatteredDustRain({
-    scalar: 0.14,
-    durationMs: 1400,
-    burstsPerFrame: 5,
-    particlesPerBurst: 20,
-    spread: 18,
-    ySpawnMax: 0.4,
-  });
-}
-
-function runDustBurstWide(): void {
-  fireScatteredDustRain({
-    scalar: 0.11,
-    durationMs: 1800,
-    burstsPerFrame: 7,
-    particlesPerBurst: 24,
-    spread: 24,
-    ySpawnMax: 0.55,
-  });
-}
-
 const POSITIVE_EFFECTS = [runClassicBurst, runSideCannons, runRisingStars] as const;
-const NEGATIVE_EFFECTS = [runDustBurst, runDustBurstWide] as const;
 
 /** Randomized full-viewport confetti + audio for point awards (presentation only; no store/API). */
 export const triggerPointsAnimation = (pointsDelta: number): void => {
@@ -158,12 +84,8 @@ export const triggerPointsAnimation = (pointsDelta: number): void => {
 
   playPointsAudio(pointsDelta);
 
-  if (pointsDelta > 0) {
-    const index = Math.floor(Math.random() * POSITIVE_EFFECTS.length);
-    POSITIVE_EFFECTS[index]();
-    return;
-  }
+  if (pointsDelta <= 0) return;
 
-  const index = Math.floor(Math.random() * NEGATIVE_EFFECTS.length);
-  NEGATIVE_EFFECTS[index]();
+  const index = Math.floor(Math.random() * POSITIVE_EFFECTS.length);
+  POSITIVE_EFFECTS[index]();
 };
