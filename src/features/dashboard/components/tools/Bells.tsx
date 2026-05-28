@@ -2,25 +2,24 @@
 
 import { useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { normalizeAvatarPath } from '@/lib/iconUtils';
 
 const BELLS = [
   {
     id: 1,
     label: 'Bell 1',
-    avatar: '/images/dashboard/student-avatars/avatar-01.png',
+    avatar: '/images/dashboard/tools/bell-icon-1.png',
     sound: '/sounds/bell-1.mp3',
   },
   {
     id: 2,
     label: 'Bell 2',
-    avatar: '/images/dashboard/student-avatars/avatar-02.png',
+    avatar: '/images/dashboard/tools/bell-icon-2.png',
     sound: '/sounds/bell-2.mp3',
   },
   {
     id: 3,
     label: 'Bell 3',
-    avatar: '/images/dashboard/student-avatars/avatar-03.png',
+    avatar: '/images/dashboard/tools/bell-icon-3.png',
     sound: '/sounds/bell-3.mp3',
   },
 ] as const;
@@ -52,7 +51,7 @@ export default function Bells() {
     }
     const audio = audioMapRef.current.get(id);
     if (!audio) return;
-    void audio.play().catch(() => {});
+    void audio.play().catch(() => { });
   };
 
   return (
@@ -67,7 +66,7 @@ export default function Bells() {
           >
             <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-white bg-white shrink-0">
               <Image
-                src={normalizeAvatarPath(bell.avatar)}
+                src={bell.avatar}
                 alt={bell.label}
                 fill
                 className="object-cover"
