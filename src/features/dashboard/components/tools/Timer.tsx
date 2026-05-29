@@ -6,7 +6,7 @@ import {
   BELLS_PANEL_WIDTH,
 } from '@/features/dashboard/components/tools/Bells';
 
-const COUNTDOWN_END_SOUND = '/sounds/bell-3.mp3';
+const COUNTDOWN_END_SOUND = '/sounds/timer-end-1.mp3';
 
 export type TimerPanelSize = 'large' | 'small';
 
