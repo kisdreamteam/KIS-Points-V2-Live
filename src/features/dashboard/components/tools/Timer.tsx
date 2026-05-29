@@ -1,10 +1,39 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  BELLS_PANEL_HEIGHT,
+  BELLS_PANEL_WIDTH,
+} from '@/features/dashboard/components/tools/Bells';
 
 const COUNTDOWN_END_SOUND = '/sounds/bell-3.mp3';
 
-export default function Timer() {
+export type TimerPanelSize = 'large' | 'small';
+
+export const TIMER_SIZE_STORAGE_KEY = 'dashboard.timerPanel.size';
+
+export function getTimerPanelDimensions(size: TimerPanelSize): {
+  width: number;
+  height: number;
+} {
+  if (size === 'small') {
+    return { width: BELLS_PANEL_WIDTH, height: BELLS_PANEL_HEIGHT };
+  }
+  if (typeof window === 'undefined') {
+    return { width: 672, height: 400 };
+  }
+  return {
+    width: Math.max(672, Math.floor(window.innerWidth * 0.9)),
+    height: Math.max(400, Math.floor(window.innerHeight * 0.9)),
+  };
+}
+
+type TimerProps = {
+  size?: TimerPanelSize;
+};
+
+export default function Timer({ size = 'small' }: TimerProps) {
+  const isSmall = size === 'small';
   const [activeTab, setActiveTab] = useState<'stopwatch' | 'countdown'>('countdown');
   const [isRunning, setIsRunning] = useState(false);
   const [time, setTime] = useState(600);
@@ -128,6 +157,96 @@ export default function Timer() {
     ? formatTime(stopwatchTime)
     : formatTime(time);
 
+  if (isSmall) {
+    return (
+      <div className="w-full overflow-hidden">
+        <div className="mb-2 flex gap-3">
+          <button
+            type="button"
+            onClick={() => handleTabChange('countdown')}
+            className="text-xs font-semibold pb-1 transition-colors text-brand-purple"
+            style={{
+              borderBottom: `2px solid ${activeTab === 'countdown' ? 'var(--color-brand-purple)' : 'transparent'}`,
+            }}
+          >
+            Countdown
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange('stopwatch')}
+            className="text-xs font-semibold pb-1 transition-colors text-brand-purple"
+            style={{
+              borderBottom: `2px solid ${activeTab === 'stopwatch' ? 'var(--color-brand-purple)' : 'transparent'}`,
+            }}
+          >
+            Stopwatch
+          </button>
+        </div>
+
+        <div className="mb-2 rounded-xl border-2 border-white bg-brand-pink p-2">
+          <div className="flex items-center justify-center font-bold leading-none text-white text-3xl tabular-nums">
+            <span>{displayTime.minutes}</span>
+            <span className="mx-1">:</span>
+            <span>{displayTime.seconds}</span>
+          </div>
+        </div>
+
+        {activeTab === 'countdown' && !isRunning && (
+          <div className="mb-2 flex items-center justify-center gap-2">
+            <input
+              type="number"
+              min="0"
+              max="99"
+              value={countdownMinutes}
+              onChange={(e) => handleMinutesChange(parseInt(e.target.value, 10) || 0)}
+              aria-label="Minutes"
+              className="w-12 rounded-md border border-brand-purple/30 bg-brand-purple/10 px-1 py-0.5 text-center text-sm font-bold text-brand-purple focus:border-brand-purple focus:outline-none"
+            />
+            <span className="text-sm text-brand-purple">:</span>
+            <input
+              type="number"
+              min="0"
+              max="59"
+              value={countdownSeconds}
+              onChange={(e) => handleSecondsChange(parseInt(e.target.value, 10) || 0)}
+              aria-label="Seconds"
+              className="w-12 rounded-md border border-brand-purple/30 bg-brand-purple/10 px-1 py-0.5 text-center text-sm font-bold text-brand-purple focus:border-brand-purple focus:outline-none"
+            />
+          </div>
+        )}
+
+        <div className="flex items-center justify-center gap-2">
+          {!isRunning ? (
+            <button
+              type="button"
+              onClick={handleStart}
+              className="rounded-lg border-2 border-white bg-brand-pink px-3 py-1.5 text-xs font-semibold text-white shadow transition-opacity hover:opacity-90"
+            >
+              Start
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handlePause}
+                className="rounded-lg bg-brand-purple px-3 py-1.5 text-xs font-semibold text-white shadow transition-opacity hover:opacity-90"
+              >
+                Pause
+              </button>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="rounded-lg bg-gray-200 px-3 py-1.5 text-xs font-semibold text-brand-purple shadow transition-colors hover:bg-gray-300"
+              >
+                Reset
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       <div className="flex gap-8 mb-6">
@@ -182,7 +301,7 @@ export default function Timer() {
               min="0"
               max="99"
               value={countdownMinutes}
-              onChange={(e) => handleMinutesChange(parseInt(e.target.value) || 0)}
+              onChange={(e) => handleMinutesChange(parseInt(e.target.value, 10) || 0)}
               className="w-20 px-3 py-2 rounded-lg bg-brand-purple/10 text-brand-purple text-center text-xl font-bold border-2 border-brand-purple/30 focus:border-brand-purple focus:outline-none"
             />
           </div>
@@ -194,7 +313,7 @@ export default function Timer() {
               min="0"
               max="59"
               value={countdownSeconds}
-              onChange={(e) => handleSecondsChange(parseInt(e.target.value) || 0)}
+              onChange={(e) => handleSecondsChange(parseInt(e.target.value, 10) || 0)}
               className="w-20 px-3 py-2 rounded-lg bg-brand-purple/10 text-brand-purple text-center text-xl font-bold border-2 border-brand-purple/30 focus:border-brand-purple focus:outline-none"
             />
           </div>

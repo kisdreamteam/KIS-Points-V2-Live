@@ -6,7 +6,14 @@ import { createPortal } from 'react-dom';
 type Position = { x: number; y: number };
 type PanelSize = { width: number; height: number };
 type StoredPanelState = PanelSize & Position;
-type PanelPlacement = 'center' | 'bottom-right';
+type PanelPlacement = 'center' | 'bottom-right' | 'bottom-right-left-of';
+
+type PlacementOptions = {
+  placement: PanelPlacement;
+  neighborWidth?: number;
+  neighborHeight?: number;
+  gap?: number;
+};
 
 type MovableToolPanelProps = {
   isOpen: boolean;
@@ -24,8 +31,12 @@ type MovableToolPanelProps = {
   maxHeightPx?: number;
   storageKey?: string;
   defaultPlacement?: PanelPlacement;
+  placementNeighborWidth?: number;
+  placementNeighborHeight?: number;
+  placementGap?: number;
   fixedWidth?: number;
   fixedHeight?: number;
+  headerActions?: ReactNode;
 };
 
 const DEFAULT_PANEL_WIDTH = 672;
@@ -67,11 +78,42 @@ function getBottomRightPosition(width: number, height: number): Position {
   };
 }
 
+function getBottomRightPositionLeftOf(
+  width: number,
+  height: number,
+  neighborWidth: number,
+  neighborHeight: number,
+  gap = 12
+): Position {
+  const margin = 16;
+  const neighborPos = getBottomRightPosition(neighborWidth, neighborHeight);
+  return {
+    x: Math.max(margin, neighborPos.x - gap - width),
+    y: Math.max(margin, neighborPos.y + neighborHeight - height),
+  };
+}
+
 function getDefaultPosition(
   width: number,
   height: number,
-  placement: PanelPlacement
+  options: PlacementOptions
 ): Position {
+  const { placement, neighborWidth, neighborHeight, gap = 12 } = options;
+  if (placement === 'bottom-right-left-of') {
+    if (
+      typeof neighborWidth === 'number' &&
+      typeof neighborHeight === 'number'
+    ) {
+      return getBottomRightPositionLeftOf(
+        width,
+        height,
+        neighborWidth,
+        neighborHeight,
+        gap
+      );
+    }
+    return getBottomRightPosition(width, height);
+  }
   if (placement === 'bottom-right') {
     return getBottomRightPosition(width, height);
   }
@@ -204,7 +246,7 @@ function getInitialFixedPanelState(
   storageKey: string | undefined,
   width: number,
   height: number,
-  placement: PanelPlacement
+  placementOptions: PlacementOptions
 ): StoredPanelState {
   if (storageKey) {
     const storedPosition = readStoredPanelPosition(storageKey);
@@ -212,7 +254,7 @@ function getInitialFixedPanelState(
       return { width, height, ...storedPosition };
     }
   }
-  const position = getDefaultPosition(width, height, placement);
+  const position = getDefaultPosition(width, height, placementOptions);
   return { width, height, ...position };
 }
 
@@ -227,7 +269,7 @@ function getInitialPanelState(
   maxWidthPx: number | undefined,
   maxHeightPx: number | undefined,
   aspect: number,
-  placement: PanelPlacement
+  placementOptions: PlacementOptions
 ): StoredPanelState {
   const { minWidth, minHeight, maxWidth, maxHeight } = getResizeBounds(
     minScale,
@@ -257,7 +299,7 @@ function getInitialPanelState(
     maxHeight,
     aspect
   );
-  const position = getDefaultPosition(size.width, size.height, placement);
+  const position = getDefaultPosition(size.width, size.height, placementOptions);
   return { ...size, ...position };
 }
 
@@ -277,9 +319,19 @@ export default function MovableToolPanel({
   maxHeightPx,
   storageKey,
   defaultPlacement = 'center',
+  placementNeighborWidth,
+  placementNeighborHeight,
+  placementGap = 12,
   fixedWidth,
   fixedHeight,
+  headerActions,
 }: MovableToolPanelProps) {
+  const placementOptions: PlacementOptions = {
+    placement: defaultPlacement,
+    neighborWidth: placementNeighborWidth,
+    neighborHeight: placementNeighborHeight,
+    gap: placementGap,
+  };
   const isFixedSize =
     !resizable && typeof fixedWidth === 'number' && typeof fixedHeight === 'number';
   const clampedInitialScale = Math.max(minScale, Math.min(1, initialScale));
@@ -297,47 +349,47 @@ export default function MovableToolPanel({
   const [position, setPosition] = useState<Position>(() => {
     const initial = isFixedSize
       ? getInitialFixedPanelState(
-          storageKey,
-          fixedWidth,
-          fixedHeight,
-          defaultPlacement
-        )
+        storageKey,
+        fixedWidth,
+        fixedHeight,
+        placementOptions
+      )
       : getInitialPanelState(
-          storageKey,
-          defaultWidth,
-          defaultHeight,
-          minScale,
-          maxScale,
-          baseWidth,
-          baseHeight,
-          maxWidthPx,
-          maxHeightPx,
-          panelAspect,
-          defaultPlacement
-        );
+        storageKey,
+        defaultWidth,
+        defaultHeight,
+        minScale,
+        maxScale,
+        baseWidth,
+        baseHeight,
+        maxWidthPx,
+        maxHeightPx,
+        panelAspect,
+        placementOptions
+      );
     return { x: initial.x, y: initial.y };
   });
   const [size, setSize] = useState<PanelSize>(() => {
     const initial = isFixedSize
       ? getInitialFixedPanelState(
-          storageKey,
-          fixedWidth,
-          fixedHeight,
-          defaultPlacement
-        )
+        storageKey,
+        fixedWidth,
+        fixedHeight,
+        placementOptions
+      )
       : getInitialPanelState(
-          storageKey,
-          defaultWidth,
-          defaultHeight,
-          minScale,
-          maxScale,
-          baseWidth,
-          baseHeight,
-          maxWidthPx,
-          maxHeightPx,
-          panelAspect,
-          defaultPlacement
-        );
+        storageKey,
+        defaultWidth,
+        defaultHeight,
+        minScale,
+        maxScale,
+        baseWidth,
+        baseHeight,
+        maxWidthPx,
+        maxHeightPx,
+        panelAspect,
+        placementOptions
+      );
     return { width: initial.width, height: initial.height };
   });
   const [isDragging, setIsDragging] = useState(false);
@@ -540,6 +592,13 @@ export default function MovableToolPanel({
     node.style.height = `${sizeRef.current.height}px`;
   }, [fixedHeight, fixedWidth, isFixedSize, isOpen, resizable]);
 
+  useEffect(() => {
+    if (!isOpen || !isFixedSize) return;
+    const next = { width: fixedWidth, height: fixedHeight };
+    setSize(next);
+    sizeRef.current = next;
+  }, [fixedWidth, fixedHeight, isFixedSize, isOpen]);
+
   const handleResizePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (e.button !== 0) return;
@@ -636,7 +695,7 @@ export default function MovableToolPanel({
     <div
       ref={panelRef}
       className={[
-        'fixed z-[120] flex flex-col rounded-xl bg-white shadow-2xl border border-gray-200',
+        'fixed z-[120] flex flex-col rounded-xl bg-white/80 shadow-2xl border border-gray-200 border-2',
         usesPixelSize
           ? 'overflow-hidden'
           : 'w-[min(100vw-2rem,42rem)] max-h-[min(90dvh,720px)] overflow-hidden',
@@ -647,15 +706,15 @@ export default function MovableToolPanel({
         top: position.y,
         ...(usesPixelSize
           ? {
-              width: `${size.width}px`,
-              height: `${size.height}px`,
-              ...(resizable
-                ? {
-                    minWidth: `${minWidth}px`,
-                    minHeight: `${minHeight}px`,
-                  }
-                : {}),
-            }
+            width: `${size.width}px`,
+            height: `${size.height}px`,
+            ...(resizable
+              ? {
+                minWidth: `${minWidth}px`,
+                minHeight: `${minHeight}px`,
+              }
+              : {}),
+          }
           : {}),
       }}
       role="dialog"
@@ -672,9 +731,17 @@ export default function MovableToolPanel({
         onPointerUp={handleHeaderPointerUp}
         onPointerCancel={handleHeaderPointerUp}
       >
-        <span className="text-white font-semibold text-sm truncate">
+        <span className="text-white font-semibold text-sm truncate min-w-0 flex-1">
           {title ?? 'Tool'}
         </span>
+        {headerActions ? (
+          <div
+            className="flex items-center gap-1 shrink-0"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            {headerActions}
+          </div>
+        ) : null}
         <button
           type="button"
           onClick={onClose}
