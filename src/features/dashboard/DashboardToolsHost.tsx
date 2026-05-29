@@ -5,7 +5,10 @@ import { usePathname } from 'next/navigation';
 import MovableToolPanel from '@/components/ui/MovableToolPanel';
 import LargeToolModal from '@/components/ui/LargeToolModal';
 import Timer from '@/features/dashboard/components/tools/Timer';
-import Bells from '@/features/dashboard/components/tools/Bells';
+import Bells, {
+  BELLS_PANEL_HEIGHT,
+  BELLS_PANEL_WIDTH,
+} from '@/features/dashboard/components/tools/Bells';
 import Random from '@/features/dashboard/tools/Random';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 
@@ -68,10 +71,10 @@ export default function DashboardToolsHost() {
         isOpen={isBellsOpen}
         onClose={handleCloseBells}
         title="Bells"
-        resizable
-        minScale={0.6}
-        initialScale={0.6}
-        storageKey="dashboard.bellsPanel"
+        resizable={false}
+        fixedWidth={BELLS_PANEL_WIDTH}
+        fixedHeight={BELLS_PANEL_HEIGHT}
+        storageKey="dashboard.bellsPanel.v2"
         defaultPlacement="bottom-right"
       >
         <Bells />

@@ -3,6 +3,10 @@
 import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 
+/** Fixed movable panel size (matches prior 0.6 scale of default panel). */
+export const BELLS_PANEL_WIDTH = 403;
+export const BELLS_PANEL_HEIGHT = 240;
+
 const BELLS = [
   {
     id: 1,

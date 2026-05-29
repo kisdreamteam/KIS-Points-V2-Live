@@ -24,6 +24,8 @@ type MovableToolPanelProps = {
   maxHeightPx?: number;
   storageKey?: string;
   defaultPlacement?: PanelPlacement;
+  fixedWidth?: number;
+  fixedHeight?: number;
 };
 
 const DEFAULT_PANEL_WIDTH = 672;
@@ -183,6 +185,37 @@ function writeStoredPanelState(storageKey: string, state: StoredPanelState) {
   }
 }
 
+function readStoredPanelPosition(storageKey: string): Position | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<StoredPanelState>;
+    if (typeof parsed.x !== 'number' || typeof parsed.y !== 'number') {
+      return null;
+    }
+    return { x: parsed.x, y: parsed.y };
+  } catch {
+    return null;
+  }
+}
+
+function getInitialFixedPanelState(
+  storageKey: string | undefined,
+  width: number,
+  height: number,
+  placement: PanelPlacement
+): StoredPanelState {
+  if (storageKey) {
+    const storedPosition = readStoredPanelPosition(storageKey);
+    if (storedPosition) {
+      return { width, height, ...storedPosition };
+    }
+  }
+  const position = getDefaultPosition(width, height, placement);
+  return { width, height, ...position };
+}
+
 function getInitialPanelState(
   storageKey: string | undefined,
   defaultWidth: number,
@@ -244,43 +277,67 @@ export default function MovableToolPanel({
   maxHeightPx,
   storageKey,
   defaultPlacement = 'center',
+  fixedWidth,
+  fixedHeight,
 }: MovableToolPanelProps) {
+  const isFixedSize =
+    !resizable && typeof fixedWidth === 'number' && typeof fixedHeight === 'number';
   const clampedInitialScale = Math.max(minScale, Math.min(1, initialScale));
-  const panelAspect = baseWidth / baseHeight;
-  const defaultWidth = Math.round(baseWidth * clampedInitialScale);
-  const defaultHeight = Math.round(baseHeight * clampedInitialScale);
+  const panelAspect = isFixedSize
+    ? fixedWidth / fixedHeight
+    : baseWidth / baseHeight;
+  const defaultWidth = isFixedSize
+    ? fixedWidth
+    : Math.round(baseWidth * clampedInitialScale);
+  const defaultHeight = isFixedSize
+    ? fixedHeight
+    : Math.round(baseHeight * clampedInitialScale);
 
   const [isMounted, setIsMounted] = useState(false);
   const [position, setPosition] = useState<Position>(() => {
-    const initial = getInitialPanelState(
-      storageKey,
-      defaultWidth,
-      defaultHeight,
-      minScale,
-      maxScale,
-      baseWidth,
-      baseHeight,
-      maxWidthPx,
-      maxHeightPx,
-      panelAspect,
-      defaultPlacement
-    );
+    const initial = isFixedSize
+      ? getInitialFixedPanelState(
+          storageKey,
+          fixedWidth,
+          fixedHeight,
+          defaultPlacement
+        )
+      : getInitialPanelState(
+          storageKey,
+          defaultWidth,
+          defaultHeight,
+          minScale,
+          maxScale,
+          baseWidth,
+          baseHeight,
+          maxWidthPx,
+          maxHeightPx,
+          panelAspect,
+          defaultPlacement
+        );
     return { x: initial.x, y: initial.y };
   });
   const [size, setSize] = useState<PanelSize>(() => {
-    const initial = getInitialPanelState(
-      storageKey,
-      defaultWidth,
-      defaultHeight,
-      minScale,
-      maxScale,
-      baseWidth,
-      baseHeight,
-      maxWidthPx,
-      maxHeightPx,
-      panelAspect,
-      defaultPlacement
-    );
+    const initial = isFixedSize
+      ? getInitialFixedPanelState(
+          storageKey,
+          fixedWidth,
+          fixedHeight,
+          defaultPlacement
+        )
+      : getInitialPanelState(
+          storageKey,
+          defaultWidth,
+          defaultHeight,
+          minScale,
+          maxScale,
+          baseWidth,
+          baseHeight,
+          maxWidthPx,
+          maxHeightPx,
+          panelAspect,
+          defaultPlacement
+        );
     return { width: initial.width, height: initial.height };
   });
   const [isDragging, setIsDragging] = useState(false);
@@ -299,14 +356,17 @@ export default function MovableToolPanel({
   const persistPanelState = useCallback(
     (nextSize: PanelSize, nextPosition: Position) => {
       if (!storageKey) return;
+      const sizeToStore = isFixedSize
+        ? { width: fixedWidth, height: fixedHeight }
+        : nextSize;
       writeStoredPanelState(storageKey, {
-        width: nextSize.width,
-        height: nextSize.height,
+        width: sizeToStore.width,
+        height: sizeToStore.height,
         x: nextPosition.x,
         y: nextPosition.y,
       });
     },
-    [storageKey]
+    [fixedHeight, fixedWidth, isFixedSize, storageKey]
   );
 
   const applyClampedSize = useCallback(
@@ -360,7 +420,15 @@ export default function MovableToolPanel({
   }, []);
 
   useEffect(() => {
-    if (!isOpen || !resizable) {
+    if (!isOpen || isFixedSize) {
+      if (!isOpen) {
+        wasOpenRef.current = false;
+        hasHydratedFromStorageRef.current = false;
+      }
+      return;
+    }
+
+    if (!resizable) {
       wasOpenRef.current = isOpen;
       return;
     }
@@ -417,6 +485,7 @@ export default function MovableToolPanel({
     baseWidth,
     defaultHeight,
     defaultWidth,
+    isFixedSize,
     isOpen,
     maxScale,
     maxHeightPx,
@@ -427,14 +496,49 @@ export default function MovableToolPanel({
     storageKey,
   ]);
 
+  useEffect(() => {
+    if (!isOpen || !isFixedSize) {
+      return;
+    }
+
+    const justOpened = !wasOpenRef.current;
+    wasOpenRef.current = true;
+
+    if (!justOpened) return;
+
+    const fixedSize = { width: fixedWidth, height: fixedHeight };
+    setSize(fixedSize);
+    sizeRef.current = fixedSize;
+
+    if (storageKey && !hasHydratedFromStorageRef.current) {
+      const storedPosition = readStoredPanelPosition(storageKey);
+      if (storedPosition) {
+        setPosition(storedPosition);
+        positionRef.current = storedPosition;
+      }
+      hasHydratedFromStorageRef.current = true;
+    }
+
+    const node = panelRef.current;
+    if (node) {
+      node.style.width = `${fixedWidth}px`;
+      node.style.height = `${fixedHeight}px`;
+    }
+  }, [fixedHeight, fixedWidth, isFixedSize, isOpen, storageKey]);
+
   // Keep DOM inline size in sync when panel opens (no ResizeObserver — it was resetting size after drag)
   useEffect(() => {
-    if (!isOpen || !resizable) return;
+    if (!isOpen || (!resizable && !isFixedSize)) return;
     const node = panelRef.current;
     if (!node) return;
+    if (isFixedSize) {
+      node.style.width = `${fixedWidth}px`;
+      node.style.height = `${fixedHeight}px`;
+      return;
+    }
     node.style.width = `${sizeRef.current.width}px`;
     node.style.height = `${sizeRef.current.height}px`;
-  }, [isOpen, resizable]);
+  }, [fixedHeight, fixedWidth, isFixedSize, isOpen, resizable]);
 
   const handleResizePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
@@ -526,23 +630,31 @@ export default function MovableToolPanel({
     maxHeightPx
   );
 
+  const usesPixelSize = resizable || isFixedSize;
+
   return createPortal(
     <div
       ref={panelRef}
       className={[
         'fixed z-[120] flex flex-col rounded-xl bg-white shadow-2xl border border-gray-200',
-        resizable ? 'overflow-hidden' : 'w-[min(100vw-2rem,42rem)] max-h-[min(90dvh,720px)] overflow-hidden',
+        usesPixelSize
+          ? 'overflow-hidden'
+          : 'w-[min(100vw-2rem,42rem)] max-h-[min(90dvh,720px)] overflow-hidden',
         className,
       ].join(' ')}
       style={{
         left: position.x,
         top: position.y,
-        ...(resizable
+        ...(usesPixelSize
           ? {
               width: `${size.width}px`,
               height: `${size.height}px`,
-              minWidth: `${minWidth}px`,
-              minHeight: `${minHeight}px`,
+              ...(resizable
+                ? {
+                    minWidth: `${minWidth}px`,
+                    minHeight: `${minHeight}px`,
+                  }
+                : {}),
             }
           : {}),
       }}
