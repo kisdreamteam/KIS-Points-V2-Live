@@ -8,7 +8,11 @@ export type AnchoredDropdownPlacement =
   | 'belowAnchorAlignEnd'
   | 'leftOfAnchor'
   | 'leftOfAnchorDown'
-  | 'leftOfAnchorAbove';
+  | 'leftOfAnchorAbove'
+  /** Above anchor; left edges aligned (bottom-nav menus). */
+  | 'aboveAnchorAlignStart'
+  /** Above anchor; right edges aligned (bottom-nav menus). */
+  | 'aboveAnchorAlignEnd';
 
 interface UseAnchoredDropdownPortalArgs {
   isOpen: boolean;
@@ -75,6 +79,24 @@ export function useAnchoredDropdownPortal({
       setPosition({
         top: Math.round(rect.bottom + gapPx),
         left: Math.round(rect.right - widthPx),
+      });
+      return;
+    }
+
+    if (placement === 'aboveAnchorAlignStart') {
+      setPosition({
+        top: Math.round(rect.top),
+        left: Math.round(rect.left),
+        transform: `translateY(calc(-100% - ${gapPx}px))`,
+      });
+      return;
+    }
+
+    if (placement === 'aboveAnchorAlignEnd') {
+      setPosition({
+        top: Math.round(rect.top),
+        left: Math.round(rect.right),
+        transform: `translate(calc(-100%), calc(-100% - ${gapPx}px))`,
       });
       return;
     }

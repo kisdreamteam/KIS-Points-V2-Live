@@ -1,21 +1,39 @@
 'use client';
 
+import { type RefObject } from 'react';
+import { createPortal } from 'react-dom';
 import MenuItem from '@/components/ui/menu/MenuItem';
 import MenuLabel from '@/components/ui/menu/MenuLabel';
 import MenuSurface from '@/components/ui/menu/MenuSurface';
+import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 import type { SortOption } from '@/stores/usePreferenceStore';
 
 interface StudentsSortingMenuProps {
   isOpen: boolean;
+  anchorRef: RefObject<HTMLElement | null>;
   sortBy: SortOption;
   onPick: (next: SortOption) => void;
 }
 
-export default function StudentsSortingMenu({ isOpen, sortBy, onPick }: StudentsSortingMenuProps) {
-  if (!isOpen) return null;
+export default function StudentsSortingMenu({
+  isOpen,
+  anchorRef,
+  sortBy,
+  onPick,
+}: StudentsSortingMenuProps) {
+  const { isMounted, portalStyle } = useAnchoredDropdownPortal({
+    isOpen,
+    anchorRef,
+    placement: 'aboveAnchorAlignStart',
+    widthPx: 200,
+    gapPx: 8,
+    zIndex: 110,
+  });
 
-  return (
-    <MenuSurface className="absolute bottom-full left-0 z-[100] mb-2">
+  if (!isOpen || !isMounted || !portalStyle) return null;
+
+  return createPortal(
+    <MenuSurface data-bottom-nav-menu style={portalStyle}>
       <MenuLabel className="border-b border-gray-200">Sort by:</MenuLabel>
       <MenuItem active={sortBy === 'number'} onClick={() => onPick('number')}>
         Student Number
@@ -26,6 +44,7 @@ export default function StudentsSortingMenu({ isOpen, sortBy, onPick }: Students
       <MenuItem active={sortBy === 'points'} onClick={() => onPick('points')}>
         Points
       </MenuItem>
-    </MenuSurface>
+    </MenuSurface>,
+    document.body
   );
 }

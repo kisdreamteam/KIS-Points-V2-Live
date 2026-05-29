@@ -69,7 +69,7 @@ export default function BottomNav({
   const setBellsOpen = useLayoutStore((s) => s.setBellsOpen);
 
   const navEnabled = !buttonsDisabled;
-  const classContextEnabled = !!currentClassName;
+  const classContextEnabled = !!classId;
   const classRosterToolsEnabled = navEnabled && classContextEnabled;
   const multiSelectEnabled =
     classRosterToolsEnabled &&
@@ -89,14 +89,31 @@ export default function BottomNav({
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
       const attendanceMenu = document.querySelector('[data-attendance-menu]');
+      const clickInBottomNavMenu =
+        target instanceof Element && Boolean(target.closest('[data-bottom-nav-menu]'));
 
-      if (isSortPopupOpen && sortButtonRef.current && !sortButtonRef.current.contains(target)) {
+      if (
+        isSortPopupOpen &&
+        sortButtonRef.current &&
+        !sortButtonRef.current.contains(target) &&
+        !clickInBottomNavMenu
+      ) {
         setIsSortPopupOpen(false);
       }
-      if (isSettingsPopupOpen && settingsButtonRef.current && !settingsButtonRef.current.contains(target)) {
+      if (
+        isSettingsPopupOpen &&
+        settingsButtonRef.current &&
+        !settingsButtonRef.current.contains(target) &&
+        !clickInBottomNavMenu
+      ) {
         setIsSettingsPopupOpen(false);
       }
-      if (isViewPopupOpen && viewButtonRef.current && !viewButtonRef.current.contains(target)) {
+      if (
+        isViewPopupOpen &&
+        viewButtonRef.current &&
+        !viewButtonRef.current.contains(target) &&
+        !clickInBottomNavMenu
+      ) {
         setIsViewPopupOpen(false);
       }
       if (isAttendanceOpen && !attendanceButtonRef.current?.contains(target)) {
@@ -128,7 +145,7 @@ export default function BottomNav({
           />
           <StudentsViewMenu
             isOpen={isViewPopupOpen}
-            onClose={() => setIsViewPopupOpen(false)}
+            anchorRef={viewButtonRef}
             currentView={currentView}
             onViewChange={(view) => {
               onViewChange(view);
@@ -152,6 +169,7 @@ export default function BottomNav({
           />
           <StudentsSortingMenu
             isOpen={isSortPopupOpen}
+            anchorRef={sortButtonRef}
             sortBy={sortBy}
             onPick={(next) => {
               onSortChange(next);
@@ -229,6 +247,7 @@ export default function BottomNav({
 
           <StudentsSettingsMenu
             isOpen={isSettingsPopupOpen}
+            anchorRef={settingsButtonRef}
             classId={classId}
             onEditClass={onEditClass}
             onCloseMenu={() => setIsSettingsPopupOpen(false)}

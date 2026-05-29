@@ -1,21 +1,41 @@
 'use client';
 
+import { type RefObject } from 'react';
+import { createPortal } from 'react-dom';
 import MenuItem from '@/components/ui/menu/MenuItem';
 import MenuSurface from '@/components/ui/menu/MenuSurface';
+import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 
 interface StudentsSettingsMenuProps {
   isOpen: boolean;
+  anchorRef: RefObject<HTMLElement | null>;
   classId?: string | null;
   onEditClass?: () => void;
   onCloseMenu: () => void;
   onLogout: () => void;
 }
 
-export default function StudentsSettingsMenu({ isOpen, classId, onEditClass, onCloseMenu, onLogout }: StudentsSettingsMenuProps) {
-  if (!isOpen) return null;
+export default function StudentsSettingsMenu({
+  isOpen,
+  anchorRef,
+  classId,
+  onEditClass,
+  onCloseMenu,
+  onLogout,
+}: StudentsSettingsMenuProps) {
+  const { isMounted, portalStyle } = useAnchoredDropdownPortal({
+    isOpen,
+    anchorRef,
+    placement: 'aboveAnchorAlignEnd',
+    widthPx: 200,
+    gapPx: 8,
+    zIndex: 110,
+  });
 
-  return (
-    <MenuSurface className="absolute bottom-full right-0 z-[100] mb-2">
+  if (!isOpen || !isMounted || !portalStyle) return null;
+
+  return createPortal(
+    <MenuSurface data-bottom-nav-menu style={portalStyle}>
       {classId && onEditClass && (
         <MenuItem
           onClick={() => {
@@ -26,9 +46,8 @@ export default function StudentsSettingsMenu({ isOpen, classId, onEditClass, onC
           Edit Class
         </MenuItem>
       )}
-      <MenuItem onClick={onLogout}>
-        Log out
-      </MenuItem>
-    </MenuSurface>
+      <MenuItem onClick={onLogout}>Log out</MenuItem>
+    </MenuSurface>,
+    document.body
   );
 }
