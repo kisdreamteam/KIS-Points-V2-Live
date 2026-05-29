@@ -69,18 +69,19 @@ export default function BottomNav({
   const setBellsOpen = useLayoutStore((s) => s.setBellsOpen);
 
   const navEnabled = !buttonsDisabled;
-  const classRosterToolsEnabled = navEnabled && !!currentClassName;
+  const classContextEnabled = !!currentClassName;
+  const classRosterToolsEnabled = navEnabled && classContextEnabled;
   const multiSelectEnabled =
     classRosterToolsEnabled &&
     (currentView !== 'seating' || seatingLayoutsCount > 0);
 
   useEffect(() => {
-    if (!buttonsDisabled) return;
+    if (!buttonsDisabled && classContextEnabled) return;
     setIsSortPopupOpen(false);
     setIsSettingsPopupOpen(false);
     setIsViewPopupOpen(false);
     setIsAttendanceOpen(false);
-  }, [buttonsDisabled]);
+  }, [buttonsDisabled, classContextEnabled]);
 
   useEffect(() => {
     if (!isSortPopupOpen && !isSettingsPopupOpen && !isViewPopupOpen && !isAttendanceOpen) return;
@@ -112,56 +113,52 @@ export default function BottomNav({
   return (
     <BaseBottomNav className="overflow-visible">
       <div className="flex w-full min-w-0 items-center md:gap-4 gap-2 overflow-visible">
-        {currentClassName && (
-          <div className="relative flex-shrink-0" ref={viewButtonRef}>
-            <BotNavGrayButton
-              icon={<IconViewDots />}
-              label="View"
-              active={isViewPopupOpen}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!navEnabled) return;
-                setIsViewPopupOpen(!isViewPopupOpen);
-              }}
-              stopPropagation={true}
-              enabled={navEnabled}
-            />
-            <StudentsViewMenu
-              isOpen={isViewPopupOpen}
-              onClose={() => setIsViewPopupOpen(false)}
-              currentView={currentView}
-              onViewChange={(view) => {
-                onViewChange(view);
-                setIsViewPopupOpen(false);
-              }}
-            />
-          </div>
-        )}
+        <div className="relative flex-shrink-0" ref={viewButtonRef}>
+          <BotNavGrayButton
+            icon={<IconViewDots />}
+            label="View"
+            active={isViewPopupOpen}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!navEnabled || !classContextEnabled) return;
+              setIsViewPopupOpen(!isViewPopupOpen);
+            }}
+            stopPropagation={true}
+            enabled={navEnabled && classContextEnabled}
+          />
+          <StudentsViewMenu
+            isOpen={isViewPopupOpen}
+            onClose={() => setIsViewPopupOpen(false)}
+            currentView={currentView}
+            onViewChange={(view) => {
+              onViewChange(view);
+              setIsViewPopupOpen(false);
+            }}
+          />
+        </div>
 
-        {currentClassName && (
-          <div className="relative flex-shrink-0" ref={sortButtonRef}>
-            <BotNavGrayButton
-              icon={<IconSortingArrows />}
-              label="Sorting"
-              active={isSortPopupOpen}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!navEnabled || sortingDisabled) return;
-                setIsSortPopupOpen(!isSortPopupOpen);
-              }}
-              stopPropagation={true}
-              enabled={navEnabled && !sortingDisabled}
-            />
-            <StudentsSortingMenu
-              isOpen={isSortPopupOpen}
-              sortBy={sortBy}
-              onPick={(next) => {
-                onSortChange(next);
-                setIsSortPopupOpen(false);
-              }}
-            />
-          </div>
-        )}
+        <div className="relative flex-shrink-0" ref={sortButtonRef}>
+          <BotNavGrayButton
+            icon={<IconSortingArrows />}
+            label="Sorting"
+            active={isSortPopupOpen}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!navEnabled || !classContextEnabled || sortingDisabled) return;
+              setIsSortPopupOpen(!isSortPopupOpen);
+            }}
+            stopPropagation={true}
+            enabled={navEnabled && classContextEnabled && !sortingDisabled}
+          />
+          <StudentsSortingMenu
+            isOpen={isSortPopupOpen}
+            sortBy={sortBy}
+            onPick={(next) => {
+              onSortChange(next);
+              setIsSortPopupOpen(false);
+            }}
+          />
+        </div>
 
         <BotNavGrayButton
           icon={<IconCheckBox />}

@@ -47,7 +47,7 @@ export default function EditClassStudentsTab({
       </button>
 
       {students.length > 0 && (
-        <div className="w-full flex items-center justify-between px-3 py-2 bg-gray-100 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 uppercase">
+        <div className="w-full flex items-center justify-start px-8 py-2 bg-gray-100 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 uppercase">
           <div className="w-10 flex-shrink-0" />
           <span className="w-32 flex-shrink-0">First Name</span>
           <span className="w-32 flex-shrink-0">Last Name</span>

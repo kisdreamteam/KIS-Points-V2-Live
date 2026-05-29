@@ -12,7 +12,7 @@ if (POINTS_GAIN_AUDIO) {
   POINTS_GAIN_AUDIO.volume = 0.55;
 }
 if (POINTS_LOSS_AUDIO) {
-  POINTS_LOSS_AUDIO.volume = 0.5;
+  POINTS_LOSS_AUDIO.volume = 0.2;
 }
 
 function playPointsAudio(pointsDelta: number): void {
