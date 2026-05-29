@@ -10,7 +10,9 @@ import LayoutManagerDrawer from '@/features/seating/components/canvas/LayoutMana
 import SeatingCanvasDecor from '@/features/seating/components/canvas/SeatingCanvasDecor';
 import SeatingGroupsCanvas from '@/features/seating/SeatingGroupsCanvas';
 import SeatingViewWorkspaceToolbar from '@/features/seating/SeatingViewWorkspaceToolbar';
-import StageTwoColumnSplit from '@/components/ui/StageTwoColumnSplit';
+import StageTwoColumnSplit, {
+  STAGE_DRAWER_RIGHT_OFFSET_PX,
+} from '@/components/ui/StageTwoColumnSplit';
 import {
   getStageDrawerInsets,
   useDashboardToolbarInset,
@@ -125,7 +127,7 @@ export default function SeatingViewWorkspace({
             <PointsLogDrawer
               isOpen={isPointLogOpen}
               position="fixed"
-              rightPx={60}
+              rightPx={STAGE_DRAWER_RIGHT_OFFSET_PX}
               topPx={drawerInsets.topPx}
               bottomPx={drawerInsets.bottomPx}
               zIndex={40}
@@ -142,7 +144,7 @@ export default function SeatingViewWorkspace({
             <LayoutManagerDrawer
               isOpen={isLayoutManagerOpen}
               position="fixed"
-              rightPx={60}
+              rightPx={STAGE_DRAWER_RIGHT_OFFSET_PX}
               topPx={drawerInsets.topPx}
               bottomPx={drawerInsets.bottomPx}
               zIndex={35}

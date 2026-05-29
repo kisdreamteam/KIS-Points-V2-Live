@@ -75,7 +75,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
       <DashboardClassesSync />
       <div
         className={[
-          'h-[100dvh] md:h-screen w-screen overflow-hidden bg-brand-purple grid transition-all duration-300 ease-in-out',
+          'h-[100dvh] md:h-screen w-full max-w-full overflow-hidden bg-brand-purple grid transition-all duration-300 ease-in-out',
           shellGrid.dashboardGridColsClassName,
         ].join(' ')}
       >
@@ -96,7 +96,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
             ].join(' ')}
           >
             <header
-              className={`${mainHeaderRowClassName} h-auto overflow-hidden`}
+              className={`${mainHeaderRowClassName} h-auto min-w-0 overflow-hidden`}
             >
               <TopNav
                 currentClassName={currentClassName}
@@ -117,7 +117,7 @@ export default function DashboardShell({ children }: DashboardShellProps) {
             </section>
 
             <footer
-              className={`${mainFooterRowClassName} flex min-h-20 h-auto w-full flex-col overflow-visible relative z-20`}
+              className={`${mainFooterRowClassName} relative z-20 flex min-h-20 h-auto w-full min-w-0 flex-col overflow-hidden`}
             >
               {isMultiSelectMode ? (
                 <MultiSelectBottomNav />

@@ -1,7 +1,9 @@
 'use client';
 
 import type { Dispatch, SetStateAction } from 'react';
-import StageTwoColumnSplit from '@/components/ui/StageTwoColumnSplit';
+import StageTwoColumnSplit, {
+  STAGE_DRAWER_RIGHT_OFFSET_PX,
+} from '@/components/ui/StageTwoColumnSplit';
 import PointsLogDrawer from '@/features/dashboard/components/PointsLogDrawer';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingState from '@/components/ui/LoadingState';
@@ -99,7 +101,7 @@ export default function StudentsGridWorkspace({
         <PointsLogDrawer
           isOpen={isPointLogOpen}
           position="fixed"
-          rightPx={60}
+          rightPx={STAGE_DRAWER_RIGHT_OFFSET_PX}
           topPx={drawerInsets.topPx}
           bottomPx={drawerInsets.bottomPx}
           zIndex={35}

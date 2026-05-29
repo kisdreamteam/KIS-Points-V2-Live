@@ -30,8 +30,8 @@ export function getShellGridConfig({
   const isSeatingChartView = activeView === 'seating_chart';
   return {
     dashboardGridColsClassName: isSidebarOpen
-      ? 'grid-cols-[0px_1fr] md:grid-cols-[19rem_1fr]'
-      : 'grid-cols-[0px_1fr]',
+      ? 'grid-cols-[0px_minmax(0,1fr)] md:grid-cols-[19rem_minmax(0,1fr)]'
+      : 'grid-cols-[0px_minmax(0,1fr)]',
     useSeatingEditorLeftNav: isSeatingChartView && isEditMode,
   };
 }

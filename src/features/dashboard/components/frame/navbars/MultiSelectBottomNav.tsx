@@ -96,7 +96,7 @@ export default function MultiSelectBottomNav() {
 
   return (
     <BaseBottomNav className="overflow-visible">
-      <div className="flex w-full min-w-0 items-center gap-4 overflow-visible">
+      <div className="flex w-full min-w-0 items-center gap-1 overflow-x-auto overflow-y-visible sm:gap-2 md:gap-4">
         <BotNavGrayButton icon={<IconCheckCircle />} label="Select All" onClick={handleSelectAll} />
 
         <BotNavGrayButton

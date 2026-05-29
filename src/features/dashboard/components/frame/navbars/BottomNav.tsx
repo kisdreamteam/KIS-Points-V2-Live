@@ -112,7 +112,7 @@ export default function BottomNav({
 
   return (
     <BaseBottomNav className="overflow-visible">
-      <div className="flex w-full min-w-0 items-center md:gap-4 gap-2 overflow-visible">
+      <div className="flex w-full min-w-0 items-center gap-1 overflow-x-auto overflow-y-visible sm:gap-2 md:gap-4">
         <div className="relative flex-shrink-0" ref={viewButtonRef}>
           <BotNavGrayButton
             icon={<IconViewDots />}

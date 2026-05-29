@@ -86,7 +86,10 @@ export default function TopNav({ currentClassName, suppressTeacherFallback = fal
   }, [isLoadingProfile, currentClassName, teacherProfile, suppressTeacherFallback, getTitleText]);
 
   return (
-    <div className="bg-white h-30 py-6 flex flex-row items-center justify-between w-full pl-2 md:pl-7 pt-8" data-top-nav>
+    <div
+      className="flex h-30 min-w-0 w-full flex-row items-center justify-between overflow-hidden bg-white py-6 pl-2 pt-8 md:pl-7"
+      data-top-nav
+    >
       <div className="bg-white flex flex-row items-start justify-start flex-1 min-w-0">
         <div ref={titleContainerRef} className="flex-1 min-w-0 overflow-hidden pt-0">
           <h1
@@ -114,8 +117,8 @@ export default function TopNav({ currentClassName, suppressTeacherFallback = fal
           </h1>
         </div>
       </div>
-      <div className="flex items-center md:w-40 w-30 justify-end">
-        <div className="relative md:h-40 h-30 md:w-40 w-30 shrink-0">
+      <div className="flex shrink-0 items-center justify-end">
+        <div className="relative h-16 w-16 shrink-0 md:h-40 md:w-40">
           <Image
             src="/images/shared/profile-avatar-dashboard.png"
             alt="KIS Points"

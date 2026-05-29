@@ -36,7 +36,7 @@ export default function ClassesGridWorkspace({
 
   return (
     <StageTwoColumnSplit rightRail={<ClassesGridWorkspaceToolbar />}>
-      <div className="max-w-full h-full min-h-0">
+      <div className="h-full min-h-0 w-full min-w-0 max-w-full">
         {isArchivedView && (
           <div className="bg-blue-100 rounded-3xl p-6 mb-6">
             <h1 className="text-3xl font-bold text-gray-800">Archived Classes</h1>

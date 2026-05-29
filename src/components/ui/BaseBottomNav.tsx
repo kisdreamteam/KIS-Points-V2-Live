@@ -16,8 +16,7 @@ export default function BaseBottomNav({
       data-bottom-nav
       className={[
         // border-t border-brand-purple
-        'relative w-full shrink-0 h-20 font-spartan bg-white',
-        'flex items-center px-4',
+        'relative flex h-20 min-w-0 w-full shrink-0 items-center px-4 font-spartan bg-white',
         className,
       ]
         .filter(Boolean)
