@@ -24,7 +24,7 @@ export default function SkillCard({
       onClick={onClick}
       className="bg-white font-spartan rounded-3xl hover:bg-blue-100 hover:rounded-3xl shadow-md p-6 overflow-hidden hover:shadow-lg transition-shadow duration-200 relative group cursor-pointer aspect-square flex flex-col"
     >
-      <div className="flex justify-center mb-1 pointer-events-none flex-shrink-0">
+      <div className="hidden block md:flex justify-center mb-1 pointer-events-none flex-shrink-0">
         {icon ? (
           <img
             key={`${id}-${imageCacheKey}`}
@@ -32,7 +32,7 @@ export default function SkillCard({
             alt={name}
             width={100}
             height={100}
-            className="rounded-xl bg-[#FDF2F0] object-contain"
+            className="rounded-xl object-contain"
             decoding="async"
           />
         ) : (
@@ -44,10 +44,10 @@ export default function SkillCard({
         )}
       </div>
       <div className="text-center mb-0 pointer-events-none flex-shrink-0">
-        <h3 className="text-lg font-semibold text-gray-900">{name}</h3>
+        <h3 className="text-xs md:text-lg font-semibold text-gray-900 overflow-hidden whitespace-nowrap">{name}</h3>
       </div>
       <div className="text-center pointer-events-none mt-auto">
-        <div className="inline-flex items-center px-3 py-0 rounded-full bg-[#FDF2F0] text-red-400 text-xl font-large font-bold">
+        <div className="inline-flex items-center px-1 py-0 rounded-full bg-brand-cream text-red-400 text-sm md:text-xl font-large font-bold">
           {points > 0 ? `+${points}` : points}
         </div>
       </div>

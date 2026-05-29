@@ -5,11 +5,7 @@ import Modal from '@/components/ui/modals/Modal';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import SuccessNotificationModal from '@/components/ui/modals/SuccessNotificationModal';
 import AddStudentsModal from '@/features/students/components/modals/AddStudentsModal';
-import EditClassModalTabs, { type EditClassTab } from '@/features/classes/components/forms/edit-class/EditClassModalTabs';
-import EditClassInfoTab from '@/features/classes/components/forms/edit-class/EditClassInfoTab';
-import EditClassStudentsTab from '@/features/classes/components/forms/edit-class/EditClassStudentsTab';
-import EditClassTeachersTab from '@/features/classes/components/forms/edit-class/EditClassTeachersTab';
-import EditClassSettingsTab from '@/features/classes/components/forms/edit-class/EditClassSettingsTab';
+import EditClassForm from '@/features/classes/components/forms/EditClassForm';
 import EditClassResetPointsDialog from '@/features/classes/components/forms/edit-class/EditClassResetPointsDialog';
 import { useClassManagement } from '@/features/classes/hooks/useClassManagement';
 
@@ -21,12 +17,9 @@ export interface EditClassModalProps {
 }
 
 export default function EditClassModalRoot({ isOpen, onClose, classId, onRefresh }: EditClassModalProps) {
-  const [activeTab, setActiveTab] = useState<EditClassTab>('info');
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
 
   const mgmt = useClassManagement({ isOpen, classId, onRefresh, onClose });
-
-  const handleInfoCancel = () => onClose();
 
   return (
     <>
@@ -34,62 +27,11 @@ export default function EditClassModalRoot({ isOpen, onClose, classId, onRefresh
         <div className="p-6">
           <h2 className="text-2xl font-extrabold text-brand-purple mb-4">Edit Class</h2>
 
-          <EditClassModalTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
-          {mgmt.isLoadingData ? (
-            <div className="py-16 text-center text-gray-500">Loading class data...</div>
-          ) : (
-            <>
-              {activeTab === 'info' && (
-                <EditClassInfoTab
-                  className={mgmt.className}
-                  grade={mgmt.grade}
-                  selectedIcon={mgmt.selectedIcon}
-                  onClassNameChange={mgmt.setClassName}
-                  onGradeChange={mgmt.setGrade}
-                  onIconChange={mgmt.setSelectedIcon}
-                  isClassOwner={mgmt.isClassOwner}
-                  isLoading={mgmt.isLoading}
-                  onSave={() => void mgmt.handleSaveInfo()}
-                  onCancel={handleInfoCancel}
-                />
-              )}
-
-              {activeTab === 'students' && (
-                <EditClassStudentsTab
-                  students={mgmt.students}
-                  hasUnsavedChanges={mgmt.hasUnsavedChanges}
-                  isLoading={mgmt.isLoading}
-                  onAddStudent={() => setIsAddStudentModalOpen(true)}
-                  onSwitchNames={mgmt.handleSwitchFirstAndLastNames}
-                  onCancel={mgmt.handleCancelChanges}
-                  onSave={() => void mgmt.handleSaveAllChanges()}
-                  onFieldChange={mgmt.updateStudentField}
-                  onGenderToggle={mgmt.handleGenderToggle}
-                />
-              )}
-
-              {activeTab === 'teachers' && (
-                <EditClassTeachersTab
-                  newTeacherEmail={mgmt.newTeacherEmail}
-                  onEmailChange={mgmt.setNewTeacherEmail}
-                  teachers={mgmt.teachers}
-                  isClassOwner={mgmt.isClassOwner}
-                  isLoading={mgmt.isLoading}
-                  onAdd={() => void mgmt.handleAddTeacher()}
-                  onRemove={(rowId, label) => void mgmt.handleRemoveTeacher(rowId, label)}
-                />
-              )}
-
-              {activeTab === 'settings' && (
-                <EditClassSettingsTab
-                  isClassOwner={mgmt.isClassOwner}
-                  isResettingPoints={mgmt.isResettingPoints}
-                  onResetPointsClick={() => mgmt.setShowResetPointsPopup(true)}
-                />
-              )}
-            </>
-          )}
+          <EditClassForm
+            mgmt={mgmt}
+            onClose={onClose}
+            onAddStudent={() => setIsAddStudentModalOpen(true)}
+          />
         </div>
       </Modal>
 
