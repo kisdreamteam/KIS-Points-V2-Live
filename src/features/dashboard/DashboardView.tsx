@@ -5,10 +5,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 import ClassesStage from '@/features/classes/ClassesStage';
 import StudentsStage from '@/features/students/StudentsStage';
-import { DashboardStudentSync } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
-import { SeatingChartDataSync } from '@/features/dashboard/hooks/sync/useSeatingChartDataSync';
-import { DashboardProfileSync } from '@/features/dashboard/hooks/sync/useDashboardProfileSync';
-import { DashboardClassesFilterSync } from '@/features/dashboard/hooks/sync/useDashboardClassesFilterSync';
+import { DashboardStudentSync } from '@/features/dashboard/hooks/sync/DashboardStudentSync';
+import { SeatingChartDataSync } from '@/features/dashboard/hooks/sync/SeatingChartDataSync';
+import { DashboardProfileSync } from '@/features/dashboard/hooks/sync/DashboardProfileSync';
+import { DashboardClassesFilterSync } from '@/features/dashboard/hooks/sync/DashboardClassesFilterSync';
 import { AttendanceSync } from '@/features/dashboard/hooks/sync/useAttendanceSync';
 
 function getDashboardClassIdFromPath(pathname: string | null): string | null {

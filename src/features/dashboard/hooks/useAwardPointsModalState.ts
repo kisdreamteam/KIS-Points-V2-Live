@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PointCategory, Student } from '@/lib/types';
 import { fetchPointCategoriesByClassIds } from '@/features/dashboard/lib/api/points';
-import { useAwardPointsService } from '@/features/dashboard/hooks/useAwardPointsService';
+import { useSubmitPointAward } from '@/features/dashboard/hooks/useSubmitPointAward';
 
 const skillsByScopeCache = new Map<string, PointCategory[]>();
 
@@ -29,7 +29,7 @@ function normalizeCategoryIcons(data: PointCategory[]): PointCategory[] {
   }));
 }
 
-type UsePointAwardingParams = {
+type UseAwardPointsModalStateParams = {
   isOpen: boolean;
   onClose: () => void;
   student: Student | null;
@@ -50,7 +50,7 @@ type UsePointAwardingParams = {
   skipRefreshAfterAward?: boolean;
 };
 
-export function usePointAwarding({
+export function useAwardPointsModalState({
   isOpen,
   onClose,
   student,
@@ -63,7 +63,7 @@ export function usePointAwarding({
   selectedStudentIds,
   onAwardComplete,
   skipRefreshAfterAward = false,
-}: UsePointAwardingParams) {
+}: UseAwardPointsModalStateParams) {
   const [categories, setCategories] = useState<PointCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'positive' | 'negative' | 'custom'>('positive');
@@ -73,7 +73,7 @@ export function usePointAwarding({
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [imageCacheKey, setImageCacheKey] = useState<number>(Date.now());
 
-  const { awardSkill, awardCustom } = useAwardPointsService({
+  const { awardSkill, awardCustom } = useSubmitPointAward({
     context: {
       studentId: student?.id ?? null,
       classId,

@@ -10,7 +10,7 @@ import LoadingState from '@/components/ui/LoadingState';
 import ErrorState from '@/components/ui/ErrorState';
 import StudentsCardsGrid from './StudentsCardsGrid';
 import StudentsGridWorkspaceToolbar from './StudentsGridWorkspaceToolbar';
-import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
+import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/dashboardStudentRefresh';
 import {
   getStageDrawerInsets,
   useDashboardToolbarInset,

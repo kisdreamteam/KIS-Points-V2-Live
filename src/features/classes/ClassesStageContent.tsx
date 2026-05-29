@@ -5,7 +5,7 @@ import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import CreateClassModal from '@/features/classes/components/modals/CreateClassModal';
 import EditClassModal from '@/features/classes/components/modals/EditClassModal';
 import ClassesGridBranch from './ClassesGridBranch';
-import { refreshDashboardClassesForUserAction } from '@/features/dashboard/hooks/sync/useDashboardClassesSync';
+import { refreshDashboardClassesForUserAction } from '@/features/dashboard/hooks/sync/dashboardClassesRefresh';
 import { useClassesWorkspaceActions } from '@/features/classes/hooks/useClassesWorkspaceActions';
 import type { ClassRecord } from '@/features/classes/lib/api/classes';
 

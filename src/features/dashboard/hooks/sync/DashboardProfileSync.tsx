@@ -5,20 +5,11 @@ import { useRouter } from 'next/navigation';
 import {
   fetchTeacherProfileById,
   getSessionUserId,
-  type TeacherProfile,
   type ViewPreference,
 } from '@/lib/api/auth.service';
 import { useUserStore } from '@/stores/useUserStore';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
-
-let cachedTeacherProfile: TeacherProfile | null = null;
-let cachedViewPreference: ViewPreference | null = null;
-let teacherProfileFetchPromise: Promise<void> | null = null;
-
-/** Keeps module cache aligned when the user changes preferred view from the UI (see `StudentsViewMenu`). */
-export function syncProfileCacheViewPreference(pref: ViewPreference) {
-  cachedViewPreference = pref;
-}
+import { dashboardProfileCache } from '@/features/dashboard/hooks/sync/dashboardProfileCache';
 
 /** Fetches teacher profile once (deduped) and writes to `useUserStore` + `viewPreference` into `usePreferenceStore`. */
 export function DashboardProfileSync() {
@@ -28,24 +19,24 @@ export function DashboardProfileSync() {
     const { setTeacherProfile, setLoadingProfile } = useUserStore.getState();
     const { setViewPreference } = usePreferenceStore.getState();
 
-    if (cachedTeacherProfile) {
-      setTeacherProfile(cachedTeacherProfile);
-      if (cachedViewPreference) setViewPreference(cachedViewPreference);
+    if (dashboardProfileCache.teacherProfile) {
+      setTeacherProfile(dashboardProfileCache.teacherProfile);
+      if (dashboardProfileCache.viewPreference) setViewPreference(dashboardProfileCache.viewPreference);
       setLoadingProfile(false);
       return;
     }
 
-    if (teacherProfileFetchPromise) {
+    if (dashboardProfileCache.fetchPromise) {
       setLoadingProfile(true);
-      await teacherProfileFetchPromise;
-      setTeacherProfile(cachedTeacherProfile);
-      if (cachedViewPreference) setViewPreference(cachedViewPreference);
+      await dashboardProfileCache.fetchPromise;
+      setTeacherProfile(dashboardProfileCache.teacherProfile);
+      if (dashboardProfileCache.viewPreference) setViewPreference(dashboardProfileCache.viewPreference);
       setLoadingProfile(false);
       return;
     }
 
     setLoadingProfile(true);
-    teacherProfileFetchPromise = (async () => {
+    dashboardProfileCache.fetchPromise = (async () => {
       const userId = await getSessionUserId();
       if (!userId) {
         router.replace('/login');
@@ -62,16 +53,16 @@ export function DashboardProfileSync() {
         profile.preferred_view === 'seating' || profile.preferred_view === 'students'
           ? profile.preferred_view
           : 'students';
-      cachedViewPreference = preferredView;
-      cachedTeacherProfile = profile;
+      dashboardProfileCache.viewPreference = preferredView;
+      dashboardProfileCache.teacherProfile = profile;
     })();
 
     try {
-      await teacherProfileFetchPromise;
-      setTeacherProfile(cachedTeacherProfile);
-      if (cachedViewPreference) setViewPreference(cachedViewPreference);
+      await dashboardProfileCache.fetchPromise;
+      setTeacherProfile(dashboardProfileCache.teacherProfile);
+      if (dashboardProfileCache.viewPreference) setViewPreference(dashboardProfileCache.viewPreference);
     } finally {
-      teacherProfileFetchPromise = null;
+      dashboardProfileCache.fetchPromise = null;
       setLoadingProfile(false);
     }
   }, [router]);

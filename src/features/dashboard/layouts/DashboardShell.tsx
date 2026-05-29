@@ -2,10 +2,8 @@
 
 import { useCallback, useMemo, type ReactNode } from 'react';
 import { useDashboardRouteStateSync } from '@/features/dashboard/hooks/sync/useDashboardRouteStateSync';
-import {
-  DashboardClassesSync,
-  refreshDashboardClassesForUserAction,
-} from '@/features/dashboard/hooks/sync/useDashboardClassesSync';
+import { DashboardClassesSync } from '@/features/dashboard/hooks/sync/DashboardClassesSync';
+import { refreshDashboardClassesForUserAction } from '@/features/dashboard/hooks/sync/dashboardClassesRefresh';
 import { useViewPreferenceSync } from '@/features/dashboard/hooks/sync/useViewPreferenceSync';
 import { useDashboardSessionActions } from '@/features/dashboard/hooks/useDashboardSessionActions';
 import LeftNav from '@/features/dashboard/components/frame/navbars/LeftNav';

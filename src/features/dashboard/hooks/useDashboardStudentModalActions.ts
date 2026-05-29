@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
+import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/dashboardStudentRefresh';
 import type { ModalType } from '@/stores/useModalStore';
 import {
   getNextStartingStudentNumber,
@@ -12,19 +12,19 @@ import {
 import type { AddStudentsFormSubmitValues } from '@/features/students/components/forms/AddStudentsForm';
 import type { EditStudentModalSubmitValues } from '@/features/students/components/modals/EditStudentModal';
 
-type UseDashboardClassModalsActionsParams = {
+type UseDashboardStudentModalActionsParams = {
   currentClassId: string | null;
   isModalOpen: boolean;
   modalType: ModalType;
   closeModal: () => void;
 };
 
-export function useDashboardClassModalsActions({
+export function useDashboardStudentModalActions({
   currentClassId,
   isModalOpen,
   modalType,
   closeModal,
-}: UseDashboardClassModalsActionsParams) {
+}: UseDashboardStudentModalActionsParams) {
   const [isAddingStudents, setIsAddingStudents] = useState(false);
   const [addStudentsError, setAddStudentsError] = useState<string | null>(null);
   const [nextStudentNumber, setNextStudentNumber] = useState<number | null>(null);

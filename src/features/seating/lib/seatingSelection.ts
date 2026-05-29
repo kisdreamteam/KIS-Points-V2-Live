@@ -1,5 +1,5 @@
 import type { GroupAssignment, SeatingGroupRecord } from '@/features/seating/lib/api/seating';
-import { filterEligibleStudentIds } from '@/features/dashboard/lib/awardPointsService';
+import { filterEligibleStudentIds } from '@/features/dashboard/lib/awardPointsTargets';
 
 export function getStudentIdsForGroup(
   groupId: string,

@@ -6,9 +6,10 @@ import type {
   AwardPointsModalViewProps,
 } from '@/features/dashboard/components/modals/AwardPointsModal';
 import type { AddSkillFormSubmitValues } from '@/features/dashboard/components/forms/AddSkillForm';
-import { usePointAwarding } from '@/features/dashboard/hooks/usePointAwarding';
+import { useAwardPointsModalState } from '@/features/dashboard/hooks/useAwardPointsModalState';
 import { useSkillManagement } from '@/features/dashboard/hooks/useSkillManagement';
-import { useAvailablePositiveIcons, useAvailableNegativeIcons } from '@/features/dashboard/hooks/useAvailableIcons';
+import { useAvailablePositiveIcons } from '@/features/dashboard/hooks/useAvailablePositiveIcons';
+import { useAvailableNegativeIcons } from '@/features/dashboard/hooks/useAvailableNegativeIcons';
 
 export function useAwardPointsModalController(props: AwardPointsModalProps): AwardPointsModalViewProps {
   const {
@@ -51,7 +52,7 @@ export function useAwardPointsModalController(props: AwardPointsModalProps): Awa
     awardSkill,
     handleCustomAward,
     addCacheBuster,
-  } = usePointAwarding({
+  } = useAwardPointsModalState({
     isOpen,
     onClose,
     student,

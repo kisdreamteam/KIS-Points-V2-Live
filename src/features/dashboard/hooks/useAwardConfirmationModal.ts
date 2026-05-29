@@ -10,7 +10,7 @@ export interface AwardPointsInfo {
   categoryIcon?: string;
 }
 
-export function useAwardPointsFlow() {
+export function useAwardConfirmationModal() {
   const [awardInfo, setAwardInfo] = useState<AwardPointsInfo | null>(null);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
 

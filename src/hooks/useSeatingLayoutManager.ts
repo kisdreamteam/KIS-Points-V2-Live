@@ -14,7 +14,7 @@ import {
   refreshLayoutViewSettings,
   refreshSeatingGroupsForLayout,
   refreshSeatingLayoutsForClass,
-} from '@/features/dashboard/hooks/sync/useSeatingChartDataSync';
+} from '@/features/dashboard/hooks/sync/seatingChartRefresh';
 import { STUDENT_EVENTS, emitSeatingEditMode, emitSeatingLayoutSelected } from '@/lib/events/students';
 import {
   subscribeSeatingPointsDeltaForClass,

@@ -3,9 +3,9 @@
 import { useCallback, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
-import { useAwardPointsFlow, type AwardPointsInfo } from '@/features/dashboard/hooks/useAwardPointsFlow';
+import { useAwardConfirmationModal, type AwardPointsInfo } from '@/features/dashboard/hooks/useAwardConfirmationModal';
 import { useModalStore } from '@/stores/useModalStore';
-import { useDashboardClassModalsActions } from '@/features/dashboard/hooks/useDashboardClassModalsActions';
+import { useDashboardStudentModalActions } from '@/features/dashboard/hooks/useDashboardStudentModalActions';
 import {
   emitMultiStudentAwardComplete,
   emitSeatingStudentPointsDelta,
@@ -33,7 +33,7 @@ export default function DashboardClassModalsHost() {
     isConfirmationModalOpen,
     openAwardConfirmation,
     closeAwardConfirmation,
-  } = useAwardPointsFlow();
+  } = useAwardConfirmationModal();
   const {
     isAddingStudents,
     addStudentsError,
@@ -41,7 +41,7 @@ export default function DashboardClassModalsHost() {
     handleStudentAdded,
     handleAddStudentsSubmit,
     handleSubmitEditStudent,
-  } = useDashboardClassModalsActions({
+  } = useDashboardStudentModalActions({
     currentClassId,
     isModalOpen,
     modalType,

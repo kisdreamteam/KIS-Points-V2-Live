@@ -7,10 +7,10 @@ import AwardPointsModalHost from '@/features/dashboard/AwardPointsModalHost';
 import PointsAwardedConfirmationModal from '@/features/dashboard/components/modals/PointsAwardedConfirmationModal';
 import { normalizeAvatarPath } from '@/lib/iconUtils';
 import { emitSeatingStudentPointsDelta } from '@/lib/events/students';
-import { useAwardPointsFlow } from '@/features/dashboard/hooks/useAwardPointsFlow';
+import { useAwardConfirmationModal } from '@/features/dashboard/hooks/useAwardConfirmationModal';
 import { useRandomStudentFlow } from '@/features/dashboard/hooks/useRandomStudentFlow';
-import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
-import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/useSeatingChartDataSync';
+import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/dashboardStudentRefresh';
+import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/seatingChartRefresh';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import IconNoCircleX from '@/components/ui/icons/iconNoCircleX';
@@ -62,7 +62,7 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
     isConfirmationModalOpen,
     openAwardConfirmation,
     closeAwardConfirmation,
-  } = useAwardPointsFlow();
+  } = useAwardConfirmationModal();
   const lastCardIndexRef = useRef<number>(-1);
   const audioContextRef = useRef<AudioContext | null>(null);
   const totalStudents = students.length;

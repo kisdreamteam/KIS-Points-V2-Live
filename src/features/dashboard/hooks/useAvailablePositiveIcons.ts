@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import {
   detectAvailablePositiveIcons,
   generatePositiveIconPaths,
-  generateNegativeIconPaths,
 } from '@/lib/iconUtils';
 
 /**
@@ -27,7 +26,6 @@ export function useAvailablePositiveIcons() {
         }
       } catch (error) {
         console.error('Error detecting icons:', error);
-        // Fallback to a reasonable default (e.g., 60 icons)
         if (isMounted) {
           setAvailableIcons(generatePositiveIconPaths(60));
           setIsDetecting(false);
@@ -43,11 +41,4 @@ export function useAvailablePositiveIcons() {
   }, []);
 
   return { availableIcons, isDetecting };
-}
-
-/**
- * Hook to get negative icon paths (static, no detection needed)
- */
-export function useAvailableNegativeIcons() {
-  return generateNegativeIconPaths(7);
 }

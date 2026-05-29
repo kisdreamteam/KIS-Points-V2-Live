@@ -6,15 +6,15 @@ import {
   resolveAwardTargetStudentIds,
   type AwardTargetContext,
   type AwardMode,
-} from '@/features/dashboard/lib/awardPointsService';
+} from '@/features/dashboard/lib/awardPointsTargets';
 import { awardCustomPointsToStudents, awardPointsToStudents, getAuthenticatedUserId } from '@/features/dashboard/lib/api/points';
 import {
   broadcastStudentPointsFromStore,
   syncStudentsByClassCacheFromStore,
-} from '@/features/dashboard/hooks/sync/useDashboardStudentSync';
+} from '@/features/dashboard/hooks/sync/dashboardStudentRefresh';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
-interface UseAwardPointsServiceParams {
+interface UseSubmitPointAwardParams {
   context: AwardTargetContext;
   student: Student | null;
   className?: string;
@@ -33,7 +33,7 @@ interface UseAwardPointsServiceParams {
   skipRefreshAfterAward?: boolean;
 }
 
-export function useAwardPointsService({
+export function useSubmitPointAward({
   context,
   student,
   className,
@@ -43,7 +43,7 @@ export function useAwardPointsService({
   onAwardComplete,
   onClose,
   skipRefreshAfterAward = false,
-}: UseAwardPointsServiceParams) {
+}: UseSubmitPointAwardParams) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

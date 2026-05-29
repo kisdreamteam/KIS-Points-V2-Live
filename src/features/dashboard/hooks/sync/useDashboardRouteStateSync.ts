@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
-import { refreshDashboardClassesForUserAction } from './useDashboardClassesSync';
+import { refreshDashboardClassesForUserAction } from '@/features/dashboard/hooks/sync/dashboardClassesRefresh';
 import { usePreferenceStore } from '@/stores/usePreferenceStore';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 import type { ViewState } from '@/stores/useLayoutStore';

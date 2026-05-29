@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { getSessionUserId } from '@/lib/api/auth.service';
 import { fetchAccessibleClassesForUser } from '@/features/classes/lib/api/classes';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
@@ -46,23 +44,4 @@ export async function refreshDashboardClasses(options?: RefreshDashboardClassesO
 export async function refreshDashboardClassesForUserAction(): Promise<void> {
   const populated = useDashboardStore.getState().allAccessibleClasses.length > 0;
   await refreshDashboardClasses({ silent: populated });
-}
-
-/**
- * Mount once under `app/dashboard/layout.tsx` so class list loading is not tied to
- * page-level remounts when switching between `/dashboard` and class routes.
- */
-export function DashboardClassesSync() {
-  const router = useRouter();
-  const bootstrappedRef = useRef(false);
-
-  useEffect(() => {
-    if (bootstrappedRef.current) return;
-    bootstrappedRef.current = true;
-    void refreshDashboardClasses({
-      onUnauthenticated: () => router.replace('/login'),
-    });
-  }, [router]);
-
-  return null;
 }
