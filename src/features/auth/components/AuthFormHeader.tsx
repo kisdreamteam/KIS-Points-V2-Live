@@ -12,7 +12,7 @@ const AuthFormHeader: FC<AuthFormHeaderProps> = ({ title, subtitle, className = 
     <div className={`flex flex-row gap-1 px-2 md:px-0 ${className}`}>
       <div className="flex md:flex-row justify-start items-center w-150 md:w-full">
         <div>
-          <h1 className="text-3xl md:text-6xl font-extrabold text-brand-purple font-spartan">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-brand-purple font-spartan">
             {title}
           </h1>
           {subtitle ? (

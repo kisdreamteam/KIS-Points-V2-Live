@@ -98,7 +98,7 @@ export default function LeftNav() {
           </button>
 
           {/* LeftNav Classes List Starts Here - brrand cream container*/}
-          <div className="flex-1 overflow-y-auto space-y-2 min-h-0 bg-brand-cream rounded-xl mb-4">
+          <div className="flex-1 overflow-y-auto space-y-2 min-h-0 bg-brand-cream mb-4">
             {/* if loading classes, show loading spinner, otherwise show no classes found message, else show the classes list */}
             {isLoadingClasses ? (
               <div className="flex items-center justify-center py-4">
