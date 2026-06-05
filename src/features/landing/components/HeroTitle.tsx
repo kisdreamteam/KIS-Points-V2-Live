@@ -6,13 +6,11 @@ type HeroTitleProps = {
 
 const HeroTitle: FC<HeroTitleProps> = ({ children }) => {
   return (
-    <h1 className="
-          md:text-9xl text-4xl  
-          md:leading-27.25 leading-10 
-          md:mb-20 mb-0 
-          font-spartan font-semibold text-brand-purple">
-      {children}
-    </h1>
+    <div className="flex w-full h-auto justify-center md:justify-start items-start">
+      <h1 className="text-brand-purple font-spartan font-bold text-[clamp(3.5rem,10vw,10rem)] leading-[0.9]">
+        {children}
+      </h1>
+    </div>
   );
 };
 

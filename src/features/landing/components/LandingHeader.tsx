@@ -1,17 +1,22 @@
 import type { ReactNode } from "react";
 import LandingLogo from "@/features/landing/components/LandingLogo";
+import LandingNavLink from '@/features/landing/components/LandingNavLink'
 
-type LandingHeaderProps = {
-  children: ReactNode;
-};
-
-export default function LandingHeader({ children }: LandingHeaderProps) {
+export default function LandingHeader() {
   return (
-    <header className="relative w-full h-20 md:h-38 bg-brand-purple">
-      <div className="absolute flex items-center bottom-3 right-2 gap-4 md:gap-9 md:mr-90 mr-45">
-        {children}
+    <header className="flex flex-row w-full justify-end items-end
+                       pr-10 sm:pr-15 md:pr-20 lg:pr-25    
+                       gap-10 sm:gap-15 md:gap-20 lg:gap-25">
+      <div className="flex flex-row 
+                      text-[clamp(1rem,3.0vw,2.75rem)]
+                      gap-4 sm:gap-6 md:gap-8 lg:gap-10
+                      text-lg text-white font-spartan font-bold">
+        <LandingNavLink href="/login">Login</LandingNavLink>
+        <LandingNavLink href="/signup">Signup</LandingNavLink>
       </div>
       <LandingLogo />
     </header>
   );
 }
+
+

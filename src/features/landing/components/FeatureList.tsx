@@ -6,16 +6,16 @@ interface FeatureListProps {
 
 const FeatureList: FC<FeatureListProps> = ({ items }) => {
   return (
-    <ul className="
-          md:text-4xl text-2xl  
-          md:leading-15.25 leading-5 
-          md:mt-0 mt-5
-          font-futura space-y-4 text-brand-pink">
-      {items.map((item) => (
-        <li key={item}>{item}</li>
-      ))}
-    </ul>
+    <div className="flex flex-col 
+    w-full h-auto justify-center md:justify-start items-center md:items-start text-brand-pink">
+      <ul className="text-[clamp(1.25rem,3vw,2.25rem)] font-bold leading-tight font-futura text-brand-pink">
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </div>
   );
 };
+
 
 export default FeatureList;

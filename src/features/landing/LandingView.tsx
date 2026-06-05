@@ -2,36 +2,33 @@ import FeatureList from '@/features/landing/components/FeatureList'
 import HeroTitle from '@/features/landing/components/HeroTitle'
 import LandingHeader from '@/features/landing/components/LandingHeader'
 import LandingMascot from '@/features/landing/components/LandingMascot'
-import LandingNavLink from '@/features/landing/components/LandingNavLink'
+
 
 export default function LandingView() {
   return (
-    <div className="flex flex-col">
-      <LandingHeader>
-        <LandingNavLink href="/login">Login</LandingNavLink>
-        <LandingNavLink href="/signup">Signup</LandingNavLink>
-      </LandingHeader>
+    <div className="flex flex-col gap-[clamp(2.5rem,4.7vw,5rem)] bg-white">
+      <header className="relative flex h-[clamp(5rem,10vw,8.75rem)] min-w-[200px] overflow-visible bg-brand-purple">
+        <LandingHeader />
+      </header>
 
-      <main>
-        <div className="
-          grid grid-cols-1 md:grid-cols-2 
-          md:pt-20 pt-20 
-          md:gap-40 gap-10">
+      <main className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-10 md:gap-[clamp(1.25rem,4vw,5rem)]">
+        <div className="flex justify-center md:justify-end items-center lg:items-start">
           <LandingMascot />
-          <div className="flex flex-col md:items-start items-center">
-            <HeroTitle>
-              Let&apos;s get
-              <br />
-              started.
-            </HeroTitle>
-            <FeatureList
-              items={[
-                'Classroom Management',
-                'AI Teacher Assistance',
-                'Teacher Resources',
-              ]}
-            />
-          </div>
+        </div>
+
+        <div className="flex flex-col gap-5 sm:gap-5 md:gap-[clamp(0.5rem,1vw,5rem)]">
+          <HeroTitle>
+            Let&apos;s get
+            <br />
+            started.
+          </HeroTitle>
+          <FeatureList
+            items={[
+              'Classroom Management',
+              'AI Teacher Assistance',
+              'Teacher Resources',
+            ]}
+          />
         </div>
       </main>
     </div>
