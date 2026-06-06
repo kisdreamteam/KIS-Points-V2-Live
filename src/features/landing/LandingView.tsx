@@ -11,7 +11,7 @@ export default function LandingView() {
         <LandingHeader />
       </header>
 
-      <main className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-10 md:gap-[clamp(1.25rem,4vw,5rem)]">
+      <main className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-10 md:gap-[clamp(1.25rem,4vw,5rem)] h-[80dvh] items-center sm:items-start">
         <div className="flex justify-center md:justify-end items-center lg:items-start">
           <LandingMascot />
         </div>

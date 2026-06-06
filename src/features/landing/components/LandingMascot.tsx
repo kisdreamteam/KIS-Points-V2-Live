@@ -4,7 +4,7 @@ export default function LandingMascot() {
   return (
     <div className="flex
                         w-[clamp(3.5rem,70dvw,40rem)]
-                        sm:w-[clamp(3.5rem,35dvw,40rem)]
+                        sm:w-[clamp(3.5rem,30dvw,40rem)]
                         md:w-[clamp(3.5rem,30dvw,40rem)] h-auto
                         bg-brand-cream rounded-4xl drop-shadow-lg">
       <Image
