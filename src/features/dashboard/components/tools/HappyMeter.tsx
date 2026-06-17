@@ -181,8 +181,8 @@ function HappyMeterGauge({
 
   const segments = useMemo(() => {
     return Array.from({ length: SEGMENT_COUNT }, (_, index) => {
-      const startAngle = 180 - index * SEGMENT_SPAN;
-      const endAngle = 180 - (index + 1) * SEGMENT_SPAN;
+      const startAngle = index * SEGMENT_SPAN;
+      const endAngle = (index + 1) * SEGMENT_SPAN;
       const midAngle = (startAngle + endAngle) / 2;
       const facePos = polarToCartesian(CX, CY, RADIUS * 0.62, midAngle);
       return {
@@ -261,41 +261,37 @@ export default function HappyMeter({ size = 'small' }: HappyMeterProps) {
           <h2 className="text-2xl font-bold text-brand-purple md:text-3xl">
             Teacher Happy Meter
           </h2>
-          <p className="mt-1 text-base text-brand-purple/70 md:text-lg">
+          {/* <p className="mt-1 text-base text-brand-purple/70 md:text-lg">
             How are you feeling today?
-          </p>
+          </p> */}
         </div>
       )}
 
       <div
-        className={`aspect-[200/118] w-full ${
-          isSmall ? 'mb-2 w-[70%] max-w-[260px]' : 'mb-6 w-[80%] min-w-[320px] max-w-[560px]'
-        }`}
+        className={`aspect-[200/118] w-full ${isSmall ? 'mb-2 w-[60%] max-w-[260px]' : 'mb-6 w-[80%] min-w-[320px] max-w-[560px]'
+          }`}
       >
         <HappyMeterGauge size={size} step={step} />
       </div>
 
       <div
-        className={`mb-3 rounded-xl border-2 border-white bg-white/90 text-center shadow-md ${
-          isSmall ? 'px-3 py-2' : 'px-6 py-3'
-        }`}
+        className={`mb-1 rounded-xl border-2 border-white bg-white/90 text-center shadow-md ${isSmall ? 'px-3 py-0' : 'px-6 py-3'
+          }`}
       >
         <p
-          className={`font-bold uppercase tracking-wide text-brand-purple ${
-            isSmall ? 'text-sm' : 'text-xl md:text-2xl'
-          }`}
+          className={`font-bold uppercase tracking-wide text-brand-purple ${isSmall ? 'text-sm' : 'text-xl md:text-2xl'
+            }`}
         >
-          {activeLevel.label}
+          {/* {activeLevel.label} */}
         </p>
         {!isSmall && (
-          <p className="mt-1 text-sm text-brand-purple/70 md:text-base">{activeLevel.hint}</p>
+          <p className="text-xl md:text-2xl font-bold text-brand-purple">{activeLevel.hint}</p>
         )}
       </div>
 
       <div
-        className={`flex w-full items-start justify-center ${
-          isSmall ? 'max-w-[260px] gap-3' : 'max-w-[560px] gap-6'
-        }`}
+        className={`flex w-full items-start justify-center ${isSmall ? 'max-w-[260px] gap-3' : 'max-w-[560px] gap-6'
+          }`}
       >
         <div className="flex flex-col items-center gap-1">
           <button
@@ -303,31 +299,29 @@ export default function HappyMeter({ size = 'small' }: HappyMeterProps) {
             onClick={handleDecrease}
             disabled={atMin}
             aria-label="Less happy"
-            className={`flex items-center justify-center rounded-2xl border-4 border-white bg-red-400 font-bold text-white shadow-lg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 ${
-              isSmall ? 'h-12 w-12 text-2xl' : 'h-16 w-16 text-3xl md:h-20 md:w-20 md:text-4xl'
-            }`}
+            className={`flex items-center justify-center rounded-2xl border-4 border-white bg-red-400 font-bold text-white shadow-lg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 ${isSmall ? 'h-12 w-12 text-2xl' : 'h-16 w-16 text-3xl md:h-20 md:w-20 md:text-4xl'
+              }`}
           >
             −
           </button>
           {!isSmall && (
-            <span className="text-xs font-medium text-red-500 md:text-sm">Less Happy</span>
+            <span className="text-xs font-medium text-red-500 md:text-sm">- -</span>
           )}
         </div>
 
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-0">
           <button
             type="button"
             onClick={handleIncrease}
             disabled={atMax}
             aria-label="More happy"
-            className={`flex items-center justify-center rounded-2xl border-4 border-white bg-green-500 font-bold text-white shadow-lg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 ${
-              isSmall ? 'h-12 w-12 text-2xl' : 'h-16 w-16 text-3xl md:h-20 md:w-20 md:text-4xl'
-            }`}
+            className={`flex items-center justify-center rounded-2xl border-4 border-white bg-green-500 font-bold text-white shadow-lg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 ${isSmall ? 'h-12 w-12 text-2xl' : 'h-16 w-16 text-3xl md:h-20 md:w-20 md:text-4xl'
+              }`}
           >
             +
           </button>
           {!isSmall && (
-            <span className="text-xs font-medium text-green-600 md:text-sm">More Happy</span>
+            <span className="text-xs font-medium text-green-600 md:text-sm">+ +</span>
           )}
         </div>
       </div>
