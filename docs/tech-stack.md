@@ -1,5 +1,7 @@
 # KIS-Points Prototype 1 - Tech Stack
 
+**Start here:** [`source-of-truth.md`](source-of-truth.md)
+
 ## Core Technologies
 * **Framework:** Next.js v16.0.7
 * **Language:** TypeScript (Strict typing enforced via `/src/lib/types.ts`)

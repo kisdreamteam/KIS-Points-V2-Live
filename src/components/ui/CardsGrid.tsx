@@ -21,7 +21,7 @@ export default function CardsGrid({
   return (
     <div
       {...rest}
-      className={['grid w-full min-w-0 gap-6', className]
+      className={['grid w-full min-w-0 gap-6 pr-4', className]
         .filter(Boolean)
         .join(' ')}
       style={{ ...defaultGridStyle, ...style }}

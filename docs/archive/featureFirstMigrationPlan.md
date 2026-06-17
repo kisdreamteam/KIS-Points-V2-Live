@@ -1,3 +1,5 @@
+> **Archived** — completed migration log. For current architecture, see [source-of-truth.md](../source-of-truth.md).
+
 # Feature-first folder migration plan
 
 **Status:** Complete (phases 0–8, May 2026)  

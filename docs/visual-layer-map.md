@@ -1,8 +1,10 @@
 # Visual layer map (Prototype 1)
 
+**Start here:** [`source-of-truth.md`](source-of-truth.md)
+
 Canonical file tree for the **visual layer** only. For data flow, sync workers, URL rules, and modal patterns, see [`architecture-plan.md`](architecture-plan.md).
 
-**Excluded (data layer):** `src/hooks/`, `src/lib/`, `src/stores/`
+**Excluded (data layer):** `src/hooks/`, `src/features/*/hooks/`, `src/lib/`, `src/stores/`
 
 ---
 

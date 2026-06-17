@@ -39,6 +39,7 @@ export default function ClassCardsGrid({
 }: ClassCardsGridProps) {
   return (
     <ScaledGridFrame
+      responsiveScale={{ base: 0.67, md: 1 }}
       remeasureKey={`${classes.length}-${showAddCard ? 1 : 0}-${showDelete ? 1 : 0}`}
     >
       <CardsGrid className="ml-2">

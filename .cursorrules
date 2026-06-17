@@ -1,6 +1,6 @@
 # KIS-Points Prototype 1 - Cursor Rules (Dual Shell & Zustand)
 
-**Canonical reference:** `docs/architecture-plan.md` (folder map, exceptions, sync mounting). Feature-first component layout: `docs/featureFirstMigrationPlan.md` (complete May 2026).
+**Canonical reference:** `docs/source-of-truth.md` (start here). Deep detail: `docs/architecture-plan.md`. Feature-first layout: `docs/archive/featureFirstMigrationPlan.md` (complete May 2026).
 
 ## 0. `src/app/` — frozen thin routes
 
@@ -107,9 +107,9 @@ The Dashboard is a fixed coordinate system. Do not use these rules for Auth/Land
 * **Dashboard modal subgraphs:** Use dedicated **`use*ModalController`** hooks with matching **`features/dashboard/*ModalHost.tsx`** instead of attaching orchestration hooks to Tier 3 modals/forms (see award points / edit skills).
 * **Optimistic UI:** Always update the store immediately for point awards or roster changes. Roll back on Layer 3 failure.
 
-### Layer 1b: Route & store sync (`@/hooks/sync/`)
+### Layer 1b: Route & store sync (`@/features/dashboard/hooks/sync/`)
 
-* **Responsibility:** Renderless workers aligning URL ↔ stores (e.g., `useDashboardRouteStateSync`, `useDashboardStudentSync`, `DashboardClassesSync`).
+* **Responsibility:** Renderless workers aligning URL ↔ stores (e.g., `useDashboardRouteStateSync`, `dashboardStudentRefresh`, `DashboardStudentSync`, `DashboardClassesSync`).
 * **Rule:** Do not mirror shareable state with ad hoc `useEffect` in Tier 1/2 components when a sync hook exists.
 
 ### Layer 2: The Desk (`@/stores/`)

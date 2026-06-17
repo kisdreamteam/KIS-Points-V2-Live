@@ -1,11 +1,14 @@
 # KIS-Points Refactoring & Polish To-Do List
 
+**Scope:** [`project-scope.md`](project-scope.md)  
+**Current truth:** [`source-of-truth.md`](source-of-truth.md)
+
 This document outlines the sequenced execution plan for migrating, expanding, and polishing the KIS-Points prototype. It is ordered to ensure foundational stability before applying visual updates.
 
 ## Phase 1: The Foundation (Structure & Typing)
 *Our goal is to solidify the floor plan and swap the underlying engine without breaking the app.*
 
-- [x] **1. Review Architecture & Structure:** Directory layout matches [`architecture-plan.md`](architecture-plan.md): dashboard Tier 1 under `components/dashboard/frame/`, dashboard Tier 2 under `src/features/{dashboard,classes,students,seating}/`, dashboard Tier 3 under `components/dashboard/` + `components/ui/`; auth routes under `src/app/(auth)/` (route group; URLs unchanged) with shell in `src/app/(auth)/layout.tsx`; `features/auth` = `*View` only; landing in `features/landing` with UI in `components/ui`. Layer 1 `hooks/` (sync under `hooks/sync/`), Layer 2 `stores/`, Layer 3 `lib/api/`. Domain helpers under `lib/` (e.g. `awardPointsService`, `seatingLogic`). Keep `.cursorrules` aligned as the Vite migration proceeds.
+- [x] **1. Review Architecture & Structure:** Directory layout matches [`architecture-plan.md`](architecture-plan.md): dashboard Tier 1 under `src/features/dashboard/components/frame/`, dashboard Tier 2 under `src/features/{dashboard,classes,students,seating}/`, dashboard Tier 3 under `src/features/*/components/` + `src/components/ui/`; auth routes under `src/app/(auth)/` (route group; URLs unchanged) with shell in `src/app/(auth)/layout.tsx`; `features/auth` = `*View` only; landing in `features/landing`. Layer 1 hooks in `src/hooks/`, `src/features/*/hooks/`, sync in `src/features/dashboard/hooks/sync/`; Layer 2 `stores/`; Layer 3 `lib/api/`. Domain helpers under `lib/` (e.g. `awardPointsTargets`, `seatingLogic`). Keep `.cursorrules` aligned as the Vite migration proceeds.
 - [ ] **2. Migrate to Vite:** Execute the "lift and shift" from Next.js to Vite. Strip out SSR logic, implement standard React Router, and ensure the client-side app runs smoothly.
 - [ ] **3. Add Database Types:** Generate and integrate `database.types.ts` from Supabase to lock in strict TypeScript safety across our data layers.
 

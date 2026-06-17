@@ -1,3 +1,5 @@
+> **Archived** — completed migration log. For current architecture, see [source-of-truth.md](../source-of-truth.md).
+
 # KIS-Points Refactor Checklist
 
 **Goal:** Migrate the codebase to the 3-Tier/3-Layer blueprint defined in [`architecture-plan.md`](architecture-plan.md) (see **§3 Directory Structure Map** for the canonical folder layout) without changing existing behavior.

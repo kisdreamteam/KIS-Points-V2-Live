@@ -97,7 +97,7 @@ export default function StudentsGridWorkspace({
     }
 
     return (
-      <div className="h-full min-h-0 w-full min-w-0 max-w-10xl mx-auto text-white-500 pr-2 md:pr-1">
+      <div className="h-full min-h-0 w-full min-w-0 max-w-10xl mx-auto text-white-500">
         <PointsLogDrawer
           isOpen={isPointLogOpen}
           position="fixed"

@@ -1,3 +1,5 @@
+> **Archived** — completed migration log. For current architecture, see [source-of-truth.md](../source-of-truth.md).
+
 # 3-Tier / 3-Layer Refactor Plan
 
 This plan implements the architecture rules from `.cursorrules` and `docs/architecture-plan.md` using an incremental, low-risk sequence.

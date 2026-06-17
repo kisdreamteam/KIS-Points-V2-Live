@@ -1,3 +1,5 @@
+> **Archived** — completed migration log. For current architecture, see [source-of-truth.md](../source-of-truth.md).
+
 # KIS-Points Zustand Migration Plan
 
 **Goal:** Systematically migrate global state from React Context to Zustand to eradicate massive rendering bottlenecks (view switching, modal rendering, class switching, and student card updates) via selector-based rendering.

@@ -8,13 +8,13 @@ Prototype 1 uses a **dual-shell** layout model and a **dual-boundary** data mode
 **Status (May 2026):**
 
 - Zustand migration is effectively complete; dashboard global state does not use React Context.
-- **Feature-first layout (complete May 2026):** Dashboard **Tier 1 frame** lives only in `src/features/dashboard/components/frame/` + `layouts/DashboardShell.tsx`. **Tier 2** orchestration at `src/features/{dashboard,classes,students,seating}/` (feature roots). **Tier 3** UI in `src/features/{dashboard,classes,students,seating}/components/` (other features’ `components/` are Tier 3 only, not frame). Auth/landing Tier 3 under `src/features/{auth,landing}/components/`. Shared primitives only in `src/components/ui/`. **Modal flows** that need Layer 1 wiring above a presentational modal use a **Tier 2 host in `features/dashboard/` + controller hook in `src/hooks/`** (see §1.3 / §1.4).
+- **Feature-first layout (complete May 2026):** Dashboard **Tier 1 frame** lives only in `src/features/dashboard/components/frame/` + `layouts/DashboardShell.tsx`. **Tier 2** orchestration at `src/features/{dashboard,classes,students,seating}/` (feature roots). **Tier 3** UI in `src/features/{dashboard,classes,students,seating}/components/` (other features’ `components/` are Tier 3 only, not frame). Auth/landing Tier 3 under `src/features/{auth,landing}/components/`. Shared primitives only in `src/components/ui/`. **Modal flows** that need Layer 1 wiring above a presentational modal use a **Tier 2 host in `features/dashboard/` + controller hook in `features/dashboard/hooks/`** (see §1.3 / §1.4).
 - **Auth routes:** grouped under `src/app/(auth)/` (route group; URLs unchanged). Auth flex shell in `src/features/auth/layouts/AuthShell.tsx`; `src/app/(auth)/layout.tsx` thin-wires the shell (mirrors dashboard + `DashboardShell`).
 - **Auth/landing (Tier 2):** views in `src/features/auth` and `src/features/landing` (not subject to the dashboard `components/` vs `features/` tier split).
 - **Student attendance:** daily `attendance_events` append-only log, `absentStudentIds` in the dashboard store, bottom-nav attendance sheet, and macro point exclusions for absent students (see §2.1).
 - **Dashboard stage entry (May 2026):** `src/features/dashboard/DashboardView.tsx` — single route-level view (sync workers + `activeView` routing). Replaces the former `frame/DashboardView.tsx` + `DashboardViewSwitch.tsx` split; matches auth/landing `page → *View` import symmetry.
 
-Related docs: `docs/visual-layer-map.md` (canonical visual file tree), `docs/tech-stack.md`, `docs/zustand-migration-plan.md`, `docs/3-tier-3-layer-refactor-plan.md`, `docs/db-schema.md`, `docs/featureFirstMigrationPlan.md` (completed move from `components/dashboard` and `components/ui/{auth,landing}` → `features/*/components/`).
+Related docs: [`source-of-truth.md`](source-of-truth.md) (start here), [`project-scope.md`](project-scope.md), [`product-spec.md`](product-spec.md), [`visual-layer-map.md`](visual-layer-map.md), [`tech-stack.md`](tech-stack.md), [`db-schema.md`](db-schema.md), [`archive/`](archive/) (completed migration logs).
 
 ---
 
@@ -31,7 +31,7 @@ Auth and landing are **not** subject to the dashboard `components/` vs `features
 | Tier 2 views | `src/features/auth/LoginView.tsx`, `SignUpView.tsx`, `ForgotPasswordView.tsx`, `ResetPasswordView.tsx` (forms only; no layout wrapper) |
 | Tier 2 landing | `src/features/landing/LandingView.tsx` |
 | Tier 3 UI | `src/features/auth/components/`, `src/features/landing/components/` |
-| Layer 1 | `src/hooks/useAuthFlow.ts` |
+| Layer 1 | `src/features/auth/hooks/useAuthFlow.ts` |
 | Layer 3 | `src/lib/api/auth.service.ts` |
 | Routes | Thin `src/app/(auth)/login|signup|.../page.tsx` → `@/features/auth/*`; `src/app/(landing)/page.tsx` → `@/features/landing/LandingView` (URL `/` unchanged) |
 
@@ -42,7 +42,7 @@ Auth and landing are **not** subject to the dashboard `components/` vs `features
 | Tier 1 | `src/features/dashboard/components/frame/` + `src/features/dashboard/layouts/DashboardShell.tsx` |
 | Tier 2 | `src/features/dashboard/`, `classes/`, `students/`, `seating/` |
 | Tier 3 | `src/features/{dashboard,classes,students,seating}/components/` + `src/components/ui/` (shared) |
-| Layer 1 / 1b | `src/hooks/`, `src/hooks/sync/` |
+| Layer 1 / 1b | `src/hooks/`, `src/features/*/hooks/`, `src/features/dashboard/hooks/sync/` |
 | Layer 2 | `src/stores/` |
 | Layer 3 | `src/lib/api/` |
 | Routes | Thin `src/app/dashboard/*/page.tsx` → `<DashboardView />` (sync + stage routing) |
@@ -134,7 +134,7 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 **Rules**
 
 - Prefer `h-full` / `min-h-0` inside the dashboard; avoid `h-screen` in nested workspace content.
-- URL-reflected UI (`activeView`, edit mode, active class) is mirrored from the route via `src/hooks/sync/*`, not ad hoc `useEffect` in Tier 1.
+- URL-reflected UI (`activeView`, edit mode, active class) is mirrored from the route via `src/features/dashboard/hooks/sync/*`, not ad hoc `useEffect` in Tier 1.
 - **Dashboard tools:** `DashboardToolsHost` portaled — Timer (`MovableToolPanel` + `components/tools/Timer.tsx`), Random (`LargeToolModal` + `tools/Random.tsx`, 90% viewport). Canvas always shows `{children}`.
 
 ### 1.3 Tier 2 — Stage (`features/`)
@@ -171,7 +171,7 @@ flowchart LR
 **Award / edit-skills modal pattern (reuse for similar features):**
 
 - **Tier 2 host** (`features/dashboard/*Host.tsx`): thin component; calls `use*ModalController(...)`, renders Tier 3 modal with `{...viewProps}`.
-- **Layer 1 controller** (`hooks/use*ModalController.ts`): composes existing hooks (`usePointAwarding`, `useSkillManagement`, `useAvailable*Icons`, etc.); returns a single **view-props object** typed next to the modal (e.g. `AwardPointsModalViewProps`).
+- **Layer 1 controller** (`features/dashboard/hooks/use*ModalController.ts`): composes existing hooks (`useAwardPointsModalState`, `useSkillManagement`, `useAvailablePositiveIcons` / `useAvailableNegativeIcons`, etc.); returns a single **view-props object** typed next to the modal (e.g. `AwardPointsModalViewProps`).
 - **Tier 3 modal** (`features/dashboard/components/modals/*`): no `@/hooks` for orchestration (except documented exceptions elsewhere); props in, callbacks out.
 - **Nested composition:** a Tier 3 modal may render another **Tier 2 host** when a subtree has its own controller (e.g. `AwardPointsModal` renders `EditSkillsModalHost`; avoid duplicating that logic in `useAwardPointsModalController`).
 
@@ -180,7 +180,7 @@ flowchart LR
 - Tier 2 may import Layer 1 hooks and stores; it must not call Supabase clients directly for runtime mutations.
 - Type-only imports from `@/lib/api/*` are acceptable.
 - Prefer `dashboardStudentSelectors.ts` for roster ordering/aggregates.
-- For new dashboard modal flows similar to award points / edit skills: add a **host** under `features/dashboard/` + **controller hook** under `hooks/`, keep modal + child forms Tier 3 (no `@/stores`, no `@/hooks` inside presentational forms).
+- For new dashboard modal flows similar to award points / edit skills: add a **host** under `features/dashboard/` + **controller hook** under `features/dashboard/hooks/`, keep modal + child forms Tier 3 (no `@/stores`, no `@/hooks` inside presentational forms).
 
 ### 1.4 Tier 3 — Actors (`features/*/components/` + `components/ui/`)
 
@@ -202,8 +202,8 @@ components/ui/                     # shared atoms, icons, WorkspaceToolbar, gene
 - **`forms/AddSkillForm.tsx`**, **`forms/EditSkillForm.tsx`**: strict Tier 3 — **no `@/hooks`**. Icon paths and detection flags (`useAvailablePositiveIcons` / static negative list) plus submit handlers (`addSkill`, `updateSkill` + refresh) are wired in **`useAwardPointsModalController`** and **`useEditSkillsModalController`**, then passed through modal shells (`AddSkillModal`, `EditSkillModal`, nested hosts as needed).
 - **Documented exceptions (under `features/*/components/`, not generic `components/ui`):**
   - `features/students/components/cards/StudentCard.tsx` — `useShallow` store slice for grid performance.
-  - `features/dashboard/components/modals/EditSkillsModal.tsx` — presentational; orchestration in `hooks/useEditSkillsModalController.ts` + Tier 2 `features/dashboard/EditSkillsModalHost.tsx`.
-  - `features/dashboard/components/modals/AwardPointsModal.tsx` — presentational; orchestration in `hooks/useAwardPointsModalController.ts` + Tier 2 `features/dashboard/AwardPointsModalHost.tsx`.
+  - `features/dashboard/components/modals/EditSkillsModal.tsx` — presentational; orchestration in `features/dashboard/hooks/useEditSkillsModalController.ts` + Tier 2 `features/dashboard/EditSkillsModalHost.tsx`.
+  - `features/dashboard/components/modals/AwardPointsModal.tsx` — presentational; orchestration in `features/dashboard/hooks/useAwardPointsModalController.ts` + Tier 2 `features/dashboard/AwardPointsModalHost.tsx`.
   - `features/classes/components/cards/ClassCard.tsx` — reads `viewPreference` only.
   - `features/classes/components/modals/EditClassModal.tsx` — thin façade re-exporting `features/classes/EditClassModalRoot.tsx`.
 
@@ -235,42 +235,45 @@ components/ui/                     # shared atoms, icons, WorkspaceToolbar, gene
 
 | Concern | Hook(s) |
 |---------|---------|
-| Point awards | `useAwardPointsService.ts`, `useAwardPointsFlow.ts`, `usePointAwarding.ts` |
+| Point awards | `useSubmitPointAward.ts`, `useAwardConfirmationModal.ts`, `useAwardPointsModalState.ts` |
 | Class CRUD / archive | `useClassActions.ts`, `useClassManagement.ts`, `useClassesWorkspaceActions.ts` |
-| Student modals / selection | `useStudentsModalsState.ts`, `useStudentsSelection.ts`, `useDashboardClassModalsActions.ts` |
+| Student modals / selection | `useStudentsModalsState.ts`, `useStudentsSelection.ts`, `useDashboardStudentModalActions.ts` |
 | Random student tool | `useRandomStudentFlow.ts` |
 | Seating editor canvas | `useSeatingChart.ts`, `useSeatingLayoutManager.ts`, `useSeatingEditorToolbarActions.ts` |
 | Session / logout | `useDashboardSessionActions.ts` |
 | Auth forms | `useAuthFlow.ts` |
-| Workspace toolbar presets | `hooks/dashboard/useWorkspaceToolbarActions.ts` (preset actions via window events) |
+| Workspace toolbar presets | `features/dashboard/hooks/useWorkspaceToolbarActions.ts` (preset actions via window events) |
 | Seating editor toolbar state/actions | `useSeatingEditorToolbarActions.ts` (view settings, groups, auto-assign/randomize; consumed by `SeatingEditorWorkspaceToolbar`) |
-| Award points modal (controller) | `useAwardPointsModalController.ts` (composes `usePointAwarding`, `useSkillManagement`, `useAvailable*` for add-skill UX) |
+| Award points modal (controller) | `useAwardPointsModalController.ts` (composes `useAwardPointsModalState`, `useSkillManagement`, `useAvailablePositiveIcons` / `useAvailableNegativeIcons` for add-skill UX) |
 | Edit skills modal (controller) | `useEditSkillsModalController.ts` (list/delete/edit orchestration + icon picker data for `EditSkillForm`) |
 | Daily attendance toggle | `useAttendanceActions.ts` |
 | Attendance hydration | `useAttendanceSync.ts` (`AttendanceSync`) |
 | Batch points open (seating group) | `useBatchPointsAward.ts` → `openMultiStudentPointsAward` |
-| UI utilities | `useAnchoredDropdownPortal.ts` (portaled dropdown positioning), `useSortedStudents.ts`, `useClassPointLog.ts`, `useStudentsUrlState.ts`, `useStudentsToolbarEvents.ts`, `useDashboardToolbarInset.ts`, `useSkillManagement.ts`, `useAvailableIcons.ts` |
+| UI utilities | `useAnchoredDropdownPortal.ts` (portaled dropdown positioning), `useSortedStudents.ts`, `useClassPointLog.ts`, `useStudentsUrlState.ts`, `useStudentsToolbarEvents.ts`, `useDashboardToolbarInset.ts`, `useSkillManagement.ts` |
 
-Pure helpers (no React): `src/features/dashboard/lib/awardPointsService.ts` (includes `filterEligibleStudentIds` for bulk awards vs `absentStudentIds`), `src/features/seating/lib/seatingLogic.ts`, `src/lib/iconUtils.ts`.
+Pure helpers (no React): `src/features/dashboard/lib/awardPointsTargets.ts` (includes `filterEligibleStudentIds` for bulk awards vs `absentStudentIds`), `src/features/seating/lib/seatingLogic.ts`, `src/lib/iconUtils.ts`.
 
-### Layer 1b — Route & store sync (`src/hooks/sync/`)
+### Layer 1b — Route & store sync (`src/features/dashboard/hooks/sync/`)
 
 | Worker | Role |
 |--------|------|
 | `useDashboardRouteStateSync.ts` | Path + query → `useLayoutStore.activeView` / `isEditMode` |
-| `useDashboardStudentSync.ts` | URL class segment → `activeClassId`, roster fetch/cache |
-| `useDashboardClassesSync.tsx` | Bootstrap + silent refresh of `allAccessibleClasses` |
-| `useDashboardClassesFilterSync.tsx` | `viewMode` + full class list → filtered `classes` |
-| `useDashboardProfileSync.tsx` | Teacher profile → `useUserStore` |
-| `useSeatingChartDataSync.tsx` | Class/layout changes → `useSeatingStore` |
+| `dashboardStudentRefresh.ts` | Imperative roster fetch/cache (`refreshDashboardStudents`, etc.) |
+| `DashboardStudentSync.tsx` | URL class segment → `activeClassId`, roster load effect |
+| `dashboardClassesRefresh.ts` | `refreshDashboardClasses`, `refreshDashboardClassesForUserAction` |
+| `DashboardClassesSync.tsx` | Bootstrap class list on shell mount |
+| `DashboardClassesFilterSync.tsx` | `viewMode` + full class list → filtered `classes` |
+| `dashboardProfileCache.ts` | Profile fetch cache + `syncProfileCacheViewPreference` |
+| `DashboardProfileSync.tsx` | Teacher profile → `useUserStore` |
+| `seatingChartRefresh.ts` | `refreshSeatingLayoutsForClass`, `refreshSeatingGroupsForLayout`, etc. |
+| `SeatingChartDataSync.tsx` | Class/layout changes → `useSeatingStore` |
 | `useViewPreferenceSync.ts` | Persist preferred grid vs seating view |
 | `useAttendanceSync.ts` / `AttendanceSync` | Class change → clear + fetch today’s `absentStudentIds` |
 
 **Mounting**
 
 - `DashboardClassesSync` — `src/features/dashboard/layouts/DashboardShell.tsx`
-- `DashboardStudentSync`, `SeatingChartDataSync`, `DashboardProfileSync`, `DashboardClassesFilterSync` — `src/features/dashboard/DashboardView.tsx`
-- `AttendanceSync` — **recommended** in `src/features/dashboard/DashboardView.tsx` next to `DashboardStudentSync` (hydrates absences on class load; toggles work in-session without it)
+- `DashboardStudentSync`, `SeatingChartDataSync`, `DashboardProfileSync`, `DashboardClassesFilterSync`, `AttendanceSync` — `src/features/dashboard/DashboardView.tsx`
 - `useDashboardRouteStateSync`, `useViewPreferenceSync` — `src/features/dashboard/layouts/DashboardShell.tsx`
 
 ### Layer 2 — Desk (global + feature stores)
@@ -297,7 +300,7 @@ Pure helpers (no React): `src/features/dashboard/lib/awardPointsService.ts` (inc
 | `classRoster.ts` | `src/features/students/lib/` | Roster clipboard formatting |
 | `points.ts` | `src/features/dashboard/lib/api/` | Awards, logs |
 | `skills.ts` | `src/features/dashboard/lib/api/` | Skill definitions |
-| `awardPointsService.ts` | `src/features/dashboard/lib/` | Award target resolution |
+| `awardPointsTargets.ts` | `src/features/dashboard/lib/` | Award target resolution |
 | `seating.ts` | `src/features/seating/lib/api/` | Layouts, groups, assignments |
 | `seatingLogic.ts` | `src/features/seating/lib/` | Seat-index grid math |
 
@@ -338,7 +341,7 @@ Macro flows **exclude** students in `absentStudentIds`. Manual single-student an
 
 | Flow | Excludes absent? |
 |------|------------------|
-| Whole class (`wholeClass`) | Yes — `resolveAwardTargetStudentIds` + `useAwardPointsService` |
+| Whole class (`wholeClass`) | Yes — `resolveAwardTargetStudentIds` + `awardPointsTargets.ts` / `useSubmitPointAward` |
 | Multi-class (`multiClass`) | Yes |
 | Seating group header click | Yes — `openMultiStudentPointsAward(..., { excludeAbsent: true })` |
 | Multi-select footer → Award (`multiStudent`, explicit IDs) | **No** |
@@ -372,7 +375,7 @@ Early return when no eligible students remain (`eligibleStudentIds.length === 0`
 
 - Global open state: `useModalStore`
 - Mounted once: `DashboardClassModalsHost` in `DashboardShell` (`src/features/dashboard/`)
-- Writers: selection hooks, seating view, `useDashboardClassModalsActions`
+- Writers: selection hooks, seating view, `useDashboardStudentModalActions`
 
 ### Seating editor chrome (`?view=seating` + `?mode=edit`)
 
@@ -492,9 +495,10 @@ src/
 | done | Skill forms Tier 3: `AddSkillForm` / `EditSkillForm` have no `@/hooks`; controllers pass icons + handlers |
 | done | **Do not** move `features/auth/*` or `features/landing/*` for tier-folder policy |
 | done | Attendance: schema/types, `attendanceService`, store slice, sync, actions, `AttendanceMenuBody`, `BottomNav` portal |
-| done | Absent macro exclusions: `awardPointsService`, `useAwardPointsService`, `useStudentsSelection`, `useBatchPointsAward` |
+| done | Absent macro exclusions: `awardPointsTargets.ts`, `useSubmitPointAward`, `useStudentsSelection`, `useBatchPointsAward` |
 | done | Thin `app/` + consolidated `DashboardView` (sync + stage routing); do not regress (§0.1) |
-| todo | Mount `<AttendanceSync />` in `DashboardView.tsx` (recommended for class-load hydration) |
+| done | Dashboard hooks rename + sync split (`*Refresh.ts` / `*Sync.tsx`); see `features/dashboard/hooks/README.md` |
+| done | `<AttendanceSync />` mounted in `DashboardView.tsx` |
 
 ---
 
@@ -510,7 +514,7 @@ Landing T3     →  features/landing/components/
 Dashboard T1   →  features/dashboard/components/frame/ + layouts/DashboardShell
 Dashboard T2   →  features/dashboard/DashboardView.tsx (stage entry) + features/{classes,students,seating}/*View + *Host.tsx
 Dashboard T3   →  features/{dashboard,classes,students,seating}/components/ + components/ui/
-Data layers    →  hooks/ · stores/ · lib/api/
+Data layers    →  hooks/ · features/*/hooks/ · features/dashboard/hooks/sync/ · stores/ · lib/api/
 Attendance     →  attendanceService · absentStudentIds · features/students/.../AttendanceMenuBody · features/dashboard/.../BottomNav
 Seating edit   →  SeatingEditorWorkspaceToolbar + portaled menus; BottomNav disabled
 ```
