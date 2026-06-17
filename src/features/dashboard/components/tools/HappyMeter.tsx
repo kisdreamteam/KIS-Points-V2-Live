@@ -6,7 +6,9 @@ export type HappyMeterPanelSize = 'large' | 'small';
 
 export const HAPPY_METER_SIZE_STORAGE_KEY = 'dashboard.happyMeter.size';
 export const HAPPY_METER_PANEL_WIDTH = 420;
-export const HAPPY_METER_PANEL_HEIGHT = 300;
+export const HAPPY_METER_PANEL_HEIGHT = 280;
+export const HAPPY_METER_PANEL_LARGE_WIDTH = 640;
+export const HAPPY_METER_PANEL_LARGE_HEIGHT = 660;
 
 const SEGMENT_COUNT = 7;
 const SEGMENT_SPAN = 180 / SEGMENT_COUNT;
@@ -46,12 +48,9 @@ export function getHappyMeterPanelDimensions(size: HappyMeterPanelSize): {
   if (size === 'small') {
     return { width: HAPPY_METER_PANEL_WIDTH, height: HAPPY_METER_PANEL_HEIGHT };
   }
-  if (typeof window === 'undefined') {
-    return { width: 672, height: 480 };
-  }
   return {
-    width: Math.max(672, Math.floor(window.innerWidth * 0.9)),
-    height: Math.max(480, Math.floor(window.innerHeight * 0.9)),
+    width: HAPPY_METER_PANEL_LARGE_WIDTH,
+    height: HAPPY_METER_PANEL_LARGE_HEIGHT,
   };
 }
 
@@ -255,7 +254,9 @@ export default function HappyMeter({ size = 'small' }: HappyMeterProps) {
   const atMax = step >= MAX_STEP;
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center">
+    <div
+      className={`flex h-full flex-col items-center justify-center ${isSmall ? 'w-full' : 'mx-auto w-fit'}`}
+    >
       {!isSmall && (
         <div className="mb-4 text-center">
           <h2 className="text-2xl font-bold text-brand-purple md:text-3xl">
@@ -268,8 +269,7 @@ export default function HappyMeter({ size = 'small' }: HappyMeterProps) {
       )}
 
       <div
-        className={`aspect-[200/118] w-full ${isSmall ? 'mb-2 w-[60%] max-w-[260px]' : 'mb-6 w-[80%] min-w-[320px] max-w-[560px]'
-          }`}
+        className={`aspect-[200/118] ${isSmall ? 'mb-2 w-[60%] max-w-[260px]' : 'mb-6 w-[560px]'}`}
       >
         <HappyMeterGauge size={size} step={step} />
       </div>
@@ -290,8 +290,7 @@ export default function HappyMeter({ size = 'small' }: HappyMeterProps) {
       </div>
 
       <div
-        className={`flex w-full items-start justify-center ${isSmall ? 'max-w-[260px] gap-3' : 'max-w-[560px] gap-6'
-          }`}
+        className={`flex items-start justify-center ${isSmall ? 'w-full max-w-[260px] gap-3' : 'w-[560px] gap-6'}`}
       >
         <div className="flex flex-col items-center gap-1">
           <button

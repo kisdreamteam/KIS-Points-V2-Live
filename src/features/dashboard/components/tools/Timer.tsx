@@ -1,30 +1,27 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  BELLS_PANEL_HEIGHT,
-  BELLS_PANEL_WIDTH,
-} from '@/features/dashboard/components/tools/Bells';
 
 const COUNTDOWN_END_SOUND = '/sounds/timer-end-1.mp3';
 
 export type TimerPanelSize = 'large' | 'small';
 
 export const TIMER_SIZE_STORAGE_KEY = 'dashboard.timerPanel.size';
+export const TIMER_PANEL_SMALL_WIDTH = 403;
+export const TIMER_PANEL_SMALL_HEIGHT = 280;
+export const TIMER_PANEL_LARGE_WIDTH = 540;
+export const TIMER_PANEL_LARGE_HEIGHT = 600;
 
 export function getTimerPanelDimensions(size: TimerPanelSize): {
   width: number;
   height: number;
 } {
   if (size === 'small') {
-    return { width: BELLS_PANEL_WIDTH, height: BELLS_PANEL_HEIGHT };
-  }
-  if (typeof window === 'undefined') {
-    return { width: 672, height: 400 };
+    return { width: TIMER_PANEL_SMALL_WIDTH, height: TIMER_PANEL_SMALL_HEIGHT };
   }
   return {
-    width: Math.max(672, Math.floor(window.innerWidth * 0.9)),
-    height: Math.max(400, Math.floor(window.innerHeight * 0.9)),
+    width: TIMER_PANEL_LARGE_WIDTH,
+    height: TIMER_PANEL_LARGE_HEIGHT,
   };
 }
 
@@ -248,7 +245,7 @@ export default function Timer({ size = 'small' }: TimerProps) {
   }
 
   return (
-    <div className="w-full">
+    <div className="mx-auto w-fit">
       <div className="flex gap-8 mb-6">
         <button
           type="button"
