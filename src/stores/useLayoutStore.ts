@@ -10,6 +10,7 @@ interface LayoutStore {
   isTimerOpen: boolean;
   isRandomOpen: boolean;
   isBellsOpen: boolean;
+  isHappyMeterOpen: boolean;
   isEditClassModalOpen: boolean;
   setActiveView: (view: ViewState) => void;
   setEditMode: (v: boolean) => void;
@@ -20,6 +21,7 @@ interface LayoutStore {
   setTimerOpen: (v: boolean) => void;
   setRandomOpen: (v: boolean) => void;
   setBellsOpen: (v: boolean) => void;
+  setHappyMeterOpen: (v: boolean) => void;
   setEditClassModalOpen: (v: boolean) => void;
 }
 
@@ -31,6 +33,7 @@ export const useLayoutStore = create<LayoutStore>((set) => ({
   isTimerOpen: false,
   isRandomOpen: false,
   isBellsOpen: false,
+  isHappyMeterOpen: false,
   isEditClassModalOpen: false,
   setActiveView: (view) => set({ activeView: view }),
   setEditMode: (isEditMode) => set({ isEditMode }),
@@ -42,9 +45,15 @@ export const useLayoutStore = create<LayoutStore>((set) => ({
   setRandomOpen: (isRandomOpen) =>
     set(
       isRandomOpen
-        ? { isRandomOpen: true, isTimerOpen: false, isBellsOpen: false }
+        ? {
+            isRandomOpen: true,
+            isTimerOpen: false,
+            isBellsOpen: false,
+            isHappyMeterOpen: false,
+          }
         : { isRandomOpen: false }
     ),
   setBellsOpen: (isBellsOpen) => set({ isBellsOpen }),
+  setHappyMeterOpen: (isHappyMeterOpen) => set({ isHappyMeterOpen }),
   setEditClassModalOpen: (isEditClassModalOpen) => set({ isEditClassModalOpen }),
 }));

@@ -18,6 +18,7 @@ import IconAttendanceCheck from '@/components/ui/icons/iconAttendanceCheck';
 import IconRandomArrows from '@/components/ui/icons/iconRandomArrows';
 import IconTimerClock from '@/components/ui/icons/iconTimerClock';
 import IconBell from '@/components/ui/icons/iconBell';
+import IconHappyMeter from '@/components/ui/icons/iconHappyMeter';
 import IconSettingsWheel from '@/components/ui/icons/iconSettingsWheel';
 import BotNavGrayButton from '@/components/ui/BotNavGrayButton';
 import BaseBottomNav from '@/components/ui/BaseBottomNav';
@@ -67,6 +68,7 @@ export default function BottomNav({
   const setTimerOpen = useLayoutStore((s) => s.setTimerOpen);
   const setRandomOpen = useLayoutStore((s) => s.setRandomOpen);
   const setBellsOpen = useLayoutStore((s) => s.setBellsOpen);
+  const setHappyMeterOpen = useLayoutStore((s) => s.setHappyMeterOpen);
 
   const navEnabled = !buttonsDisabled;
   const classContextEnabled = !!classId;
@@ -227,6 +229,15 @@ export default function BottomNav({
           onClick={() => {
             if (!classRosterToolsEnabled) return;
             setBellsOpen(true);
+          }}
+          enabled={classRosterToolsEnabled}
+        />
+        <BotNavGrayButton
+          icon={<IconHappyMeter />}
+          label="Happy Meter"
+          onClick={() => {
+            if (!classRosterToolsEnabled) return;
+            setHappyMeterOpen(true);
           }}
           enabled={classRosterToolsEnabled}
         />
