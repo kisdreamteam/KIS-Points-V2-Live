@@ -28,7 +28,7 @@ KIS-Points helps teachers manage classes, track student points, arrange seating,
 2. View students in grid or switch to seating via **View** menu (bottom nav)
 3. Award points via student card menu, multi-select footer, whole-class macros, seating group header, or random picker
 4. Mark absences via **Attendance** bottom-nav sheet
-5. Optionally open **Timer**, **Bells**, or **Random** from bottom nav
+5. Optionally open **Timer**, **Bells**, **Happy Meter**, or **Random** from bottom nav
 
 ### 2.3 Class setup
 
@@ -96,9 +96,12 @@ KIS-Points helps teachers manage classes, track student points, arrange seating,
 
 | Tool | Entry | Behavior |
 |------|-------|----------|
-| Timer | Bottom nav | Movable panel; countdown; end sound (`/sounds/timer-end-1.mp3`) |
+| Timer | Bottom nav | Movable panel; countdown/stopwatch; S/L size toggle (expands up-left, bottom-right anchored); end sound (`/sounds/timer-end-1.mp3`) |
 | Bells | Bottom nav | Movable panel; bell sounds |
+| Happy Meter | Bottom nav | Movable panel; teacher mood gauge (+/−); S/L size toggle (same anchored resize as Timer) |
 | Random | Bottom nav | Large modal; slot animation; picks unpicked students; reset picked list; award after spin |
+
+**Movable panel sizes (px):** Timer and Happy Meter share **large height 660**; small panels use **height 280** (Timer/Bells width 403, Happy Meter width 420). Timer large width 540; Happy Meter large width 640.
 
 ### 3.7 Edit class modal
 
@@ -124,7 +127,7 @@ Tabs:
 |--------|------|
 | **Left nav** | Class list, websites menu, sidebar collapse; seating editor replaces with layout list |
 | **Top nav** | Class title, logo |
-| **Bottom nav** | View, Sort, Multi-select, Attendance, Random, Timer, Bells, Settings |
+| **Bottom nav** | View, Sort, Multi-select, Attendance, Random, Timer, Bells, Happy Meter, Settings |
 | **Right rail** | Workspace toolbar (context-specific: classes grid, students grid, seating view, seating editor) |
 
 Main stage uses `StageTwoColumnSplit`: content + fixed-width toolbar column. Workspace toolbar stays visible on narrow browser width; stage content shrinks.
@@ -180,4 +183,4 @@ Manual QA before release:
 - [ ] Edit skills: add, edit, delete category
 - [ ] Archive student; verify seating behavior
 - [ ] Archive class; switch active/archived view mode
-- [ ] Timer and bells open and close from bottom nav
+- [ ] Timer, bells, and happy meter open and close from bottom nav

@@ -135,7 +135,7 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 
 - Prefer `h-full` / `min-h-0` inside the dashboard; avoid `h-screen` in nested workspace content.
 - URL-reflected UI (`activeView`, edit mode, active class) is mirrored from the route via `src/features/dashboard/hooks/sync/*`, not ad hoc `useEffect` in Tier 1.
-- **Dashboard tools:** `DashboardToolsHost` portaled — Timer (`MovableToolPanel` + `components/tools/Timer.tsx`), Random (`LargeToolModal` + `tools/Random.tsx`, 90% viewport). Canvas always shows `{children}`.
+- **Dashboard tools:** `DashboardToolsHost` portaled — **Timer**, **Bells**, **Happy Meter** (`MovableToolPanel` + `components/tools/*`; Timer and Happy Meter support **S/L** size toggle via header button), **Random** (`LargeToolModal` + `tools/Random.tsx`, 90% viewport). Canvas always shows `{children}`. **MovableToolPanel:** fixed-size panels that change dimensions (S/L) keep the **bottom-right corner anchored** (growth expands up-left), then **clamp** position inside the viewport above the bottom nav.
 
 ### 1.3 Tier 2 — Stage (`features/`)
 
@@ -393,7 +393,7 @@ When `useLayoutStore.isEditMode` is true on the seating chart view, shell and vi
 
 `/dashboard` (`ClassesGridWorkspace`): toolbar rail always visible; `ClassesGridWorkspaceToolbar` with all actions **disabled**.
 
-**There is no `SeatingEditorBottomNav`.** Editor actions live on the right-rail canvas toolbar. Footer stays visible always. **Timer** = draggable `MovableToolPanel`; **Random** = `LargeToolModal` (90vw × 90dvh); both via `DashboardToolsHost`; workspace always visible. On `/dashboard` (no class), footer renders with class-gated controls hidden inside `BottomNav`. `setTimerOpen` / `setRandomOpen` are mutually exclusive.
+**There is no `SeatingEditorBottomNav`.** Editor actions live on the right-rail canvas toolbar. Footer stays visible always. **Timer**, **Bells**, and **Happy Meter** = draggable `MovableToolPanel` (Timer and Happy Meter toggle S/L in the panel header; resize anchors bottom-right with viewport clamp); **Random** = `LargeToolModal` (90vw × 90dvh); all via `DashboardToolsHost`; workspace always visible. On `/dashboard` (no class), footer renders with class-gated controls hidden inside `BottomNav`. Tool overlay open flags are mutually exclusive where noted in product spec.
 
 #### `SeatingEditorWorkspaceToolbar` (Tier 2 — `features/seating/`)
 

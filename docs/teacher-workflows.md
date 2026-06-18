@@ -1088,7 +1088,7 @@ WF-63, WF-60
 2. Movable panel opens (drag to reposition).
 3. Set duration; start countdown.
 4. On completion, end sound plays (`/sounds/timer-end-1.mp3`).
-5. Close panel via X; optionally toggle panel size.
+5. Close panel via X; optionally toggle **L** / **S** in the header — large mode grows **up-left** (bottom-right corner stays anchored above the bottom nav).
 
 #### Outcome
 
@@ -1123,7 +1123,30 @@ WF-72
 
 #### Related
 
-WF-70
+WF-71
+
+---
+
+### WF-73: Happy Meter
+
+**Goal:** Log how the teacher is feeling during the day (local UI only).  
+**Preconditions:** Inside class route.  
+**Entry points:** Bottom nav **Happy Meter**.
+
+#### Steps
+
+1. Tap **Happy Meter** — movable panel opens above the bottom nav.
+2. Use **−** / **+** to set mood on the gauge (needle moves across segments).
+3. Optional: toggle **L** / **S** in the header for a larger or compact layout (panel grows up-left; bottom-right stays anchored).
+4. Close via X when done.
+
+#### Outcome
+
+- Local UI only; no database persistence.
+
+#### Related
+
+WF-70, WF-71
 
 ---
 
@@ -1305,6 +1328,7 @@ WF-10, WF-63, WF-80
 | WF-66 | Exit seating editor |
 | WF-70 | Timer |
 | WF-71 | Bells |
+| WF-73 | Happy Meter |
 | WF-72 | Random student picker |
 | WF-80 | Multi-select mode |
 | WF-90 | Switch class (left nav) |

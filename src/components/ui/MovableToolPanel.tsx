@@ -120,6 +120,53 @@ function getDefaultPosition(
   return getCenteredPosition(width, height);
 }
 
+const PANEL_VIEWPORT_MARGIN = 16;
+const PANEL_GAP_ABOVE_NAV = 12;
+
+function adjustPositionForBottomRightAnchor(
+  position: Position,
+  prevSize: PanelSize,
+  nextSize: PanelSize
+): Position {
+  return {
+    x: position.x - (nextSize.width - prevSize.width),
+    y: position.y - (nextSize.height - prevSize.height),
+  };
+}
+
+function getPanelMaxBottomY(): number {
+  if (typeof window === 'undefined') {
+    return DEFAULT_PANEL_HEIGHT;
+  }
+
+  const nav = document.querySelector('[data-bottom-nav]');
+  const navHeight = nav?.getBoundingClientRect().height ?? 80;
+  const main = document.querySelector('main');
+
+  if (main) {
+    const rect = main.getBoundingClientRect();
+    return rect.bottom - navHeight - PANEL_GAP_ABOVE_NAV;
+  }
+
+  return window.innerHeight - navHeight - PANEL_GAP_ABOVE_NAV;
+}
+
+function clampPanelPositionToViewport(position: Position, size: PanelSize): Position {
+  if (typeof window === 'undefined') {
+    return position;
+  }
+
+  const margin = PANEL_VIEWPORT_MARGIN;
+  const maxBottomY = getPanelMaxBottomY();
+  const maxX = window.innerWidth - margin - size.width;
+  const maxY = maxBottomY - size.height;
+
+  return {
+    x: Math.min(Math.max(margin, position.x), Math.max(margin, maxX)),
+    y: Math.min(Math.max(margin, position.y), Math.max(margin, maxY)),
+  };
+}
+
 function getResizeBounds(
   minScale: number,
   maxScale: number,
@@ -594,10 +641,22 @@ export default function MovableToolPanel({
 
   useEffect(() => {
     if (!isOpen || !isFixedSize) return;
+
+    const prev = sizeRef.current;
     const next = { width: fixedWidth, height: fixedHeight };
+    const sizeChanged = prev.width !== next.width || prev.height !== next.height;
+
+    if (sizeChanged && wasOpenRef.current) {
+      const anchored = adjustPositionForBottomRightAnchor(positionRef.current, prev, next);
+      const clamped = clampPanelPositionToViewport(anchored, next);
+      setPosition(clamped);
+      positionRef.current = clamped;
+      persistPanelState(next, clamped);
+    }
+
     setSize(next);
     sizeRef.current = next;
-  }, [fixedWidth, fixedHeight, isFixedSize, isOpen]);
+  }, [fixedWidth, fixedHeight, isFixedSize, isOpen, persistPanelState]);
 
   const handleResizePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {

@@ -3,9 +3,9 @@
 import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 
-/** Fixed movable panel size (matches prior 0.6 scale of default panel). */
+/** Fixed movable panel size (height aligned with Timer / Happy Meter small panels). */
 export const BELLS_PANEL_WIDTH = 403;
-export const BELLS_PANEL_HEIGHT = 240;
+export const BELLS_PANEL_HEIGHT = 280;
 
 const BELLS = [
   {

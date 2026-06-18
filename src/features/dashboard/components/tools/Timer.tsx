@@ -10,7 +10,7 @@ export const TIMER_SIZE_STORAGE_KEY = 'dashboard.timerPanel.size';
 export const TIMER_PANEL_SMALL_WIDTH = 403;
 export const TIMER_PANEL_SMALL_HEIGHT = 280;
 export const TIMER_PANEL_LARGE_WIDTH = 540;
-export const TIMER_PANEL_LARGE_HEIGHT = 600;
+export const TIMER_PANEL_LARGE_HEIGHT = 660;
 
 export function getTimerPanelDimensions(size: TimerPanelSize): {
   width: number;

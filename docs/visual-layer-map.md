@@ -218,6 +218,8 @@ src/
     │       │       ├── BottomNav.tsx
     │       │       └── MultiSelectBottomNav.tsx
     │       ├── tools/
+    │       │   ├── Bells.tsx                     [T3] Bells panel body (opened by T2 host)
+    │       │   ├── HappyMeter.tsx                [T3] Happy Meter panel body (PNG gauge + SVG needle)
     │       │   └── Timer.tsx                     [T3] Timer panel body (opened by T2 host)
     │       ├── PointsLogDrawer.tsx               [T3]
     │       ├── cards/                            [T3]
@@ -321,6 +323,8 @@ src/
 | `features/dashboard/components/modals/AwardPointsModal.tsx` | May render `EditSkillsModalHost` (T3 → T2 nested flow) |
 | `features/classes/components/modals/EditClassModal.tsx` | Thin façade → `EditClassModalRoot` (T2) |
 | `features/dashboard/components/tools/Timer.tsx` | T3 body; opened by `DashboardToolsHost` (T2) |
+| `components/ui/MovableToolPanel.tsx` | T3 draggable tool shell; fixed-size S/L changes anchor bottom-right and clamp to viewport |
+| `features/dashboard/components/tools/HappyMeter.tsx` | T3 body; PNG gauge (`happy-meter-guage.png`) + SVG needle overlay; opened by `DashboardToolsHost` (T2) |
 | `features/dashboard/tools/Random.tsx` | T2 tool; uses `LargeToolModal` (T3) |
 
 Layer 1 hooks (e.g. `useWorkspaceToolbarActions`, `useSeatingEditorToolbarActions`) feed Tier 2 toolbars but live under `src/hooks/` — not listed here.
