@@ -6,10 +6,10 @@ import { useCallback, useState } from 'react';
 export type HappyMeterPanelSize = 'large' | 'small';
 
 export const HAPPY_METER_SIZE_STORAGE_KEY = 'dashboard.happyMeter.size';
-export const HAPPY_METER_PANEL_WIDTH = 420;
-export const HAPPY_METER_PANEL_HEIGHT = 280;
+export const HAPPY_METER_PANEL_WIDTH = 403;
+export const HAPPY_METER_PANEL_HEIGHT = 340;
 export const HAPPY_METER_PANEL_LARGE_WIDTH = 640;
-export const HAPPY_METER_PANEL_LARGE_HEIGHT = 660;
+export const HAPPY_METER_PANEL_LARGE_HEIGHT = 700;
 
 const HAPPY_METER_GAUGE_IMAGE = '/images/dashboard/tools/happy-meter-guage.png';
 const GAUGE_WIDTH = 500;

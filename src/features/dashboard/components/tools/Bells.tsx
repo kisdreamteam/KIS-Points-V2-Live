@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 /** Fixed movable panel size (height aligned with Timer / Happy Meter small panels). */
 export const BELLS_PANEL_WIDTH = 403;
-export const BELLS_PANEL_HEIGHT = 280;
+export const BELLS_PANEL_HEIGHT = 340;
 
 const BELLS = [
   {

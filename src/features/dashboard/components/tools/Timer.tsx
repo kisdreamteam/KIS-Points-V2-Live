@@ -4,13 +4,43 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 const COUNTDOWN_END_SOUND = '/sounds/timer-end-1.mp3';
 
+const DEFAULT_COUNTDOWN_SECONDS = 0;
+const MAX_COUNTDOWN_SECONDS = 99 * 60 + 59;
+
+const COUNTDOWN_PRESETS = [
+  { label: '+15 sec', seconds: 15 },
+  { label: '+1 min', seconds: 60 },
+  { label: '+2 min', seconds: 120 },
+  { label: '+5 min', seconds: 300 },
+] as const;
+
+const PRESET_BUTTON_CLASSES = [
+  'bg-sky-300',
+  'bg-blue-400',
+  'bg-blue-600',
+  'bg-indigo-600',
+] as const;
+
+function clampCountdownSeconds(total: number): number {
+  return Math.max(0, Math.min(MAX_COUNTDOWN_SECONDS, total));
+}
+
+function splitCountdown(total: number) {
+  const clamped = clampCountdownSeconds(total);
+  return {
+    total: clamped,
+    minutes: Math.floor(clamped / 60),
+    seconds: clamped % 60,
+  };
+}
+
 export type TimerPanelSize = 'large' | 'small';
 
 export const TIMER_SIZE_STORAGE_KEY = 'dashboard.timerPanel.size';
 export const TIMER_PANEL_SMALL_WIDTH = 403;
-export const TIMER_PANEL_SMALL_HEIGHT = 280;
+export const TIMER_PANEL_SMALL_HEIGHT = 340;
 export const TIMER_PANEL_LARGE_WIDTH = 540;
-export const TIMER_PANEL_LARGE_HEIGHT = 660;
+export const TIMER_PANEL_LARGE_HEIGHT = 700;
 
 export function getTimerPanelDimensions(size: TimerPanelSize): {
   width: number;
@@ -25,6 +55,79 @@ export function getTimerPanelDimensions(size: TimerPanelSize): {
   };
 }
 
+type TimerPresetRowProps = {
+  size: TimerPanelSize;
+  onAddTime: (seconds: number) => void;
+};
+
+function TimerPresetRow({ size, onAddTime }: TimerPresetRowProps) {
+  const isSmall = size === 'small';
+
+  return (
+    <div className={`flex w-full gap-2 ${isSmall ? 'mb-2' : 'mb-6'}`}>
+      {COUNTDOWN_PRESETS.map((preset, index) => (
+        <button
+          key={preset.label}
+          type="button"
+          onClick={() => onAddTime(preset.seconds)}
+          className={[
+            'flex-1 rounded-xl font-semibold text-white shadow transition-opacity hover:opacity-90',
+            PRESET_BUTTON_CLASSES[index],
+            isSmall ? 'px-1 py-1.5 text-[10px] leading-tight' : 'px-2 py-2.5 text-sm',
+          ].join(' ')}
+        >
+          {preset.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+type TimerControlRowProps = {
+  size: TimerPanelSize;
+  isRunning: boolean;
+  isStartDisabled: boolean;
+  onReset: () => void;
+  onStart: () => void;
+  onPause: () => void;
+};
+
+function TimerControlRow({
+  size,
+  isRunning,
+  isStartDisabled,
+  onReset,
+  onStart,
+  onPause,
+}: TimerControlRowProps) {
+  const isSmall = size === 'small';
+  const buttonClass = isSmall
+    ? 'flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold text-white shadow transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'
+    : 'flex-1 rounded-xl px-8 py-3 text-lg font-semibold text-white shadow-lg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50';
+
+  return (
+    <div className={`flex w-full ${isSmall ? 'gap-2' : 'gap-4'}`}>
+      <button type="button" onClick={onReset} className={`${buttonClass} bg-red-500 hover:bg-red-600`}>
+        Reset
+      </button>
+      {isRunning ? (
+        <button type="button" onClick={onPause} className={`${buttonClass} bg-brand-purple`}>
+          Pause
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onStart}
+          disabled={isStartDisabled}
+          className={`${buttonClass} bg-lime-500 hover:bg-lime-600`}
+        >
+          Start
+        </button>
+      )}
+    </div>
+  );
+}
+
 type TimerProps = {
   size?: TimerPanelSize;
 };
@@ -33,14 +136,21 @@ export default function Timer({ size = 'small' }: TimerProps) {
   const isSmall = size === 'small';
   const [activeTab, setActiveTab] = useState<'stopwatch' | 'countdown'>('countdown');
   const [isRunning, setIsRunning] = useState(false);
-  const [time, setTime] = useState(600);
+  const [time, setTime] = useState(DEFAULT_COUNTDOWN_SECONDS);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const countdownEndAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const [stopwatchTime, setStopwatchTime] = useState(0);
 
-  const [countdownMinutes, setCountdownMinutes] = useState(10);
+  const [countdownMinutes, setCountdownMinutes] = useState(0);
   const [countdownSeconds, setCountdownSeconds] = useState(0);
+
+  const applyCountdownTotal = useCallback((total: number) => {
+    const { total: clamped, minutes, seconds } = splitCountdown(total);
+    setTime(clamped);
+    setCountdownMinutes(minutes);
+    setCountdownSeconds(seconds);
+  }, []);
 
   useEffect(() => {
     const audio = new Audio(COUNTDOWN_END_SOUND);
@@ -98,12 +208,24 @@ export default function Timer({ size = 'small' }: TimerProps) {
     };
   }, [isRunning, activeTab, playCountdownEndSound]);
 
+  const handleAddTime = useCallback(
+    (deltaSeconds: number) => {
+      if (activeTab !== 'countdown' || isRunning) return;
+      applyCountdownTotal(time + deltaSeconds);
+    },
+    [activeTab, isRunning, time, applyCountdownTotal]
+  );
+
   const handleStart = () => {
+    if (activeTab === 'countdown' && time <= 0) return;
     setIsRunning(true);
   };
 
   const handlePause = () => {
     setIsRunning(false);
+    if (activeTab === 'countdown') {
+      applyCountdownTotal(time);
+    }
   };
 
   const handleReset = () => {
@@ -111,7 +233,7 @@ export default function Timer({ size = 'small' }: TimerProps) {
     if (activeTab === 'stopwatch') {
       setStopwatchTime(0);
     } else {
-      setTime(countdownMinutes * 60 + countdownSeconds);
+      applyCountdownTotal(DEFAULT_COUNTDOWN_SECONDS);
     }
   };
 
@@ -130,29 +252,16 @@ export default function Timer({ size = 'small' }: TimerProps) {
     }
     setActiveTab(tab);
     if (tab === 'countdown') {
-      setTime(countdownMinutes * 60 + countdownSeconds);
-    }
-  };
-
-  const handleMinutesChange = (value: number) => {
-    const newMinutes = Math.max(0, Math.min(99, value));
-    setCountdownMinutes(newMinutes);
-    if (!isRunning) {
-      setTime(newMinutes * 60 + countdownSeconds);
-    }
-  };
-
-  const handleSecondsChange = (value: number) => {
-    const newSeconds = Math.max(0, Math.min(59, value));
-    setCountdownSeconds(newSeconds);
-    if (!isRunning) {
-      setTime(countdownMinutes * 60 + newSeconds);
+      applyCountdownTotal(countdownMinutes * 60 + countdownSeconds);
     }
   };
 
   const displayTime = activeTab === 'stopwatch'
     ? formatTime(stopwatchTime)
     : formatTime(time);
+
+  const isStartDisabled = activeTab === 'countdown' && time <= 0;
+  const showPresets = activeTab === 'countdown' && !isRunning;
 
   if (isSmall) {
     return (
@@ -188,58 +297,16 @@ export default function Timer({ size = 'small' }: TimerProps) {
           </div>
         </div>
 
-        {activeTab === 'countdown' && !isRunning && (
-          <div className="mb-2 flex items-center justify-center gap-2">
-            <input
-              type="number"
-              min="0"
-              max="99"
-              value={countdownMinutes}
-              onChange={(e) => handleMinutesChange(parseInt(e.target.value, 10) || 0)}
-              aria-label="Minutes"
-              className="w-12 rounded-md border border-brand-purple/30 bg-brand-purple/10 px-1 py-0.5 text-center text-sm font-bold text-brand-purple focus:border-brand-purple focus:outline-none"
-            />
-            <span className="text-sm text-brand-purple">:</span>
-            <input
-              type="number"
-              min="0"
-              max="59"
-              value={countdownSeconds}
-              onChange={(e) => handleSecondsChange(parseInt(e.target.value, 10) || 0)}
-              aria-label="Seconds"
-              className="w-12 rounded-md border border-brand-purple/30 bg-brand-purple/10 px-1 py-0.5 text-center text-sm font-bold text-brand-purple focus:border-brand-purple focus:outline-none"
-            />
-          </div>
-        )}
+        {showPresets ? <TimerPresetRow size="small" onAddTime={handleAddTime} /> : null}
 
-        <div className="flex items-center justify-center gap-2">
-          {!isRunning ? (
-            <button
-              type="button"
-              onClick={handleStart}
-              className="rounded-lg border-2 border-white bg-brand-pink px-3 py-1.5 text-xs font-semibold text-white shadow transition-opacity hover:opacity-90"
-            >
-              Start
-            </button>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={handlePause}
-                className="rounded-lg bg-brand-purple px-3 py-1.5 text-xs font-semibold text-white shadow transition-opacity hover:opacity-90"
-              >
-                Pause
-              </button>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="rounded-lg bg-gray-200 px-3 py-1.5 text-xs font-semibold text-brand-purple shadow transition-colors hover:bg-gray-300"
-              >
-                Reset
-              </button>
-            </>
-          )}
-        </div>
+        <TimerControlRow
+          size="small"
+          isRunning={isRunning}
+          isStartDisabled={isStartDisabled}
+          onReset={handleReset}
+          onStart={handleStart}
+          onPause={handlePause}
+        />
       </div>
     );
   }
@@ -289,68 +356,16 @@ export default function Timer({ size = 'small' }: TimerProps) {
         </div>
       </div>
 
-      {activeTab === 'countdown' && !isRunning && (
-        <div className="flex items-center justify-center gap-4 mb-6 flex-wrap">
-          <div className="flex items-center gap-2">
-            <label className="text-brand-purple text-lg font-medium">Minutes:</label>
-            <input
-              type="number"
-              min="0"
-              max="99"
-              value={countdownMinutes}
-              onChange={(e) => handleMinutesChange(parseInt(e.target.value, 10) || 0)}
-              className="w-20 px-3 py-2 rounded-lg bg-brand-purple/10 text-brand-purple text-center text-xl font-bold border-2 border-brand-purple/30 focus:border-brand-purple focus:outline-none"
-            />
-          </div>
-          <div className="text-brand-purple text-xl">:</div>
-          <div className="flex items-center gap-2">
-            <label className="text-brand-purple text-lg font-medium">Seconds:</label>
-            <input
-              type="number"
-              min="0"
-              max="59"
-              value={countdownSeconds}
-              onChange={(e) => handleSecondsChange(parseInt(e.target.value, 10) || 0)}
-              className="w-20 px-3 py-2 rounded-lg bg-brand-purple/10 text-brand-purple text-center text-xl font-bold border-2 border-brand-purple/30 focus:border-brand-purple focus:outline-none"
-            />
-          </div>
-        </div>
-      )}
+      {showPresets ? <TimerPresetRow size="large" onAddTime={handleAddTime} /> : null}
 
-      <div className="flex items-center justify-center gap-4 flex-wrap">
-        {!isRunning ? (
-          <button
-            type="button"
-            onClick={handleStart}
-            className="bg-brand-pink border-white border-4 hover:opacity-90 text-white px-8 py-3 rounded-xl font-semibold text-lg flex items-center gap-3 transition-colors shadow-lg"
-          >
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-            Start
-          </button>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={handlePause}
-              className="bg-brand-purple hover:opacity-90 text-white px-8 py-3 rounded-xl font-semibold text-lg flex items-center gap-3 transition-colors shadow-lg"
-            >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-              </svg>
-              Pause
-            </button>
-            <button
-              type="button"
-              onClick={handleReset}
-              className="bg-gray-200 hover:bg-gray-300 text-brand-purple px-8 py-3 rounded-xl font-semibold text-lg transition-colors shadow-lg"
-            >
-              Reset
-            </button>
-          </>
-        )}
-      </div>
+      <TimerControlRow
+        size="large"
+        isRunning={isRunning}
+        isStartDisabled={isStartDisabled}
+        onReset={handleReset}
+        onStart={handleStart}
+        onPause={handlePause}
+      />
     </div>
   );
 }
