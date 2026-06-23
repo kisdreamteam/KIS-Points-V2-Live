@@ -115,10 +115,10 @@ export function useSubmitPointAward({
   );
 
   const awardSkill = useCallback(
-    async (category: PointCategory) => {
+    async (category: PointCategory, pointsOverride: number) => {
       setIsSubmitting(true);
       setError(null);
-      const points = category.points ?? category.default_points ?? 0;
+      const points = pointsOverride;
       try {
         const studentIds = await resolveAwardTargetStudentIds(context);
         const eligibleStudentIds =

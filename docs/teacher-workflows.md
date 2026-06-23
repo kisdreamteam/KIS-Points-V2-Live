@@ -593,6 +593,8 @@ WF-60, WF-63
 
 ## E. Point awards
 
+> **UI upgrade (June 2026):** Select-then-confirm workflow, weight + category defaults, collapsed custom mode. See [`AwardPointsModal-UI-upgrade.md`](AwardPointsModal-UI-upgrade.md).
+
 ### Point award overview
 
 ```mermaid
@@ -612,10 +614,11 @@ flowchart TD
   group --> modal
   random --> modal
 
-  modal --> skill[WF-45 Skill tab]
-  modal --> custom[WF-46 Custom tab]
-  skill --> confirm[WF-47 Confirmation]
-  custom --> confirm
+  modal --> configure[WF-45 Configure award]
+  configure --> confirmBtn[Confirm]
+  configure --> custom[WF-46 Custom mode]
+  custom --> confirmBtn
+  confirmBtn --> confirm[WF-47 Confirmation]
 ```
 
 | Entry | Modal mode | Absent excluded? |
@@ -760,26 +763,26 @@ WF-50, WF-42
 
 ---
 
-### WF-45: Award using a skill
+### WF-45: Configure and confirm skill award
 
-**Goal:** Apply a predefined positive or negative category.  
+**Goal:** Apply a predefined category with a chosen weight (+1…+5 or -1…-5).  
 **Preconditions:** Award Points modal open.  
-**Entry points:** **Positive** or **Negative** tab → skill card.
+**Entry points:** Positive / Negative tab, weight row, category grid, **Confirm**.
 
 #### Steps
 
-1. In modal, select **Positive** or **Negative** tab.
-2. Tap a skill card (icon + name + point value).
-3. Award submits immediately on skill tap.
-4. Modal may close; confirmation follows (WF-47).
+1. Modal opens with defaults: **Positive** tab, **+1** weight, **General** category.
+2. Optionally switch tab, weight, or category (skill card selects only; no instant submit).
+3. Tap **Confirm**.
+4. Confirmation follows (WF-47).
 
 #### Outcome
 
-- `point_events` row per target student; cached `points` updated.
+- `point_events` row per target student; `points` column = weight; `category_id` = selected skill.
 
 #### Related
 
-WF-48
+WF-48, [`AwardPointsModal-UI-upgrade.md`](AwardPointsModal-UI-upgrade.md)
 
 ---
 
@@ -787,14 +790,13 @@ WF-48
 
 **Goal:** Ad-hoc points with optional memo.  
 **Preconditions:** Award Points modal open.  
-**Entry points:** **Custom** tab.
+**Entry points:** **Award custom points** (expands modal; disables category grid).
 
 #### Steps
 
-1. Select **Custom** tab.
-2. Enter point value (positive or negative).
-3. Optionally enter memo.
-4. Submit custom award.
+1. Tap **Award custom points**.
+2. Enter point value and optional memo (sign follows active tab).
+3. Tap **Confirm** (or **Back to skills** to cancel custom mode).
 
 #### Outcome
 
@@ -802,7 +804,7 @@ WF-48
 
 #### Related
 
-WF-47
+WF-47, [`AwardPointsModal-UI-upgrade.md`](AwardPointsModal-UI-upgrade.md)
 
 ---
 

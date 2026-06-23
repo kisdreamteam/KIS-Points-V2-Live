@@ -21,7 +21,13 @@ export default function Modal({ isOpen, onClose, children, className = '', fixed
       />
       
       {/* Modal content */}
-      <div className={`relative bg-white rounded-lg shadow-xl w-full mx-4 ${fixedTop ? 'max-h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-6rem)] md:max-h-[calc(100vh-8rem)]' : 'max-h-[90vh]'} overflow-y-auto ${className || 'max-w-md'}`}>
+      <div
+        className={`relative bg-white rounded-lg shadow-xl w-full mx-4 ${
+          fixedTop
+            ? 'max-h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-6rem)] md:max-h-[calc(100vh-8rem)] overflow-hidden flex flex-col'
+            : 'max-h-[90vh] overflow-y-auto'
+        } ${className || 'max-w-md'}`}
+      >
         {/* Close button */}
         <button
           onClick={onClose}
@@ -43,7 +49,7 @@ export default function Modal({ isOpen, onClose, children, className = '', fixed
         </button>
         
         {/* Modal content */}
-        <div className="p-6">
+        <div className={fixedTop ? 'flex flex-col flex-1 min-h-0 overflow-hidden p-6' : 'p-6'}>
           {children}
         </div>
       </div>

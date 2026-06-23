@@ -18,7 +18,9 @@ export async function listPointCategoriesByClassIds(classIds: string[]): Promise
     .from('point_categories')
     .select('*')
     .in('class_id', classIds)
-    .eq('is_archived', false);
+    .eq('is_archived', false)
+    .order('sort_order', { ascending: true })
+    .order('id', { ascending: true });
 
   if (error) throwApiError(error, 'listPointCategoriesByClassIds');
 

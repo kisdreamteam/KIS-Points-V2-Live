@@ -23,6 +23,7 @@ Start here before reading other docs or making architectural changes.
 | In/out of scope, phases | [`project-scope.md`](project-scope.md) |
 | User behavior & acceptance | [`product-spec.md`](product-spec.md) |
 | Step-by-step teacher flows | [`teacher-workflows.md`](teacher-workflows.md) |
+| Award Points modal UI upgrade | [`AwardPointsModal-UI-upgrade.md`](AwardPointsModal-UI-upgrade.md) |
 | Visual tiers & data layers (deep) | [`architecture-plan.md`](architecture-plan.md) |
 | File tree by visual tier | [`visual-layer-map.md`](visual-layer-map.md) |
 | Database tables | [`db-schema.md`](db-schema.md) |

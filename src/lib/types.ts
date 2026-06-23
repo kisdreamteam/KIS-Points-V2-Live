@@ -8,6 +8,7 @@ export interface PointCategory {
   teacher_id?: string; // Optional, may not always be needed
   icon?: string; // Icon path from database
   is_archived?: boolean; // Soft-delete flag
+  sort_order?: number; // Display order within class+type (0 = default slot, General)
 }
 
 export interface Student {

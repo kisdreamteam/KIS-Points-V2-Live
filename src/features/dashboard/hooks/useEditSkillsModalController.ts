@@ -7,6 +7,7 @@ import type {
 } from '@/features/dashboard/components/modals/EditSkillsModal';
 import type { PointCategory } from '@/lib/types';
 import type { EditSkillFormSubmitPayload } from '@/features/dashboard/components/forms/EditSkillForm';
+import { isDefaultCategorySlot, sortPointCategoriesForDisplay } from '@/features/dashboard/lib/sortPointCategories';
 import { useSkillManagement } from '@/features/dashboard/hooks/useSkillManagement';
 import { useAvailablePositiveIcons } from '@/features/dashboard/hooks/useAvailablePositiveIcons';
 import { useAvailableNegativeIcons } from '@/features/dashboard/hooks/useAvailableNegativeIcons';
@@ -25,20 +26,25 @@ export function useEditSkillsModalController(props: EditSkillsModalProps): EditS
   const [hoveredSkillId, setHoveredSkillId] = useState<string | null>(null);
   const [skillToDelete, setSkillToDelete] = useState<PointCategory | null>(null);
 
+  const sortedCategories = useMemo(
+    () => sortPointCategoriesForDisplay(categories),
+    [categories]
+  );
+
   const positiveSkills = useMemo(
     () =>
-      categories.filter(
+      sortedCategories.filter(
         (category) => category.is_archived !== true && (category.points ?? category.default_points ?? 0) > 0
       ),
-    [categories]
+    [sortedCategories]
   );
 
   const negativeSkills = useMemo(
     () =>
-      categories.filter(
+      sortedCategories.filter(
         (category) => category.is_archived !== true && (category.points ?? category.default_points ?? 0) < 0
       ),
-    [categories]
+    [sortedCategories]
   );
 
   const filteredSkills = useMemo(() => {
@@ -49,6 +55,11 @@ export function useEditSkillsModalController(props: EditSkillsModalProps): EditS
 
   const handleConfirmDelete = useCallback(async () => {
     if (!skillToDelete) return;
+    if (isDefaultCategorySlot(skillToDelete)) {
+      alert('The default category cannot be deleted. You can rename it or change its icon.');
+      setSkillToDelete(null);
+      return;
+    }
     try {
       await archiveSkill(skillToDelete.id, classId);
       refreshCategories();
@@ -60,11 +71,21 @@ export function useEditSkillsModalController(props: EditSkillsModalProps): EditS
         if (error.message === 'AUTH_REQUIRED') errorMessage = 'You must be logged in to delete skills.';
         else if (error.message === 'SKILL_CLASS_MISMATCH')
           errorMessage = 'This skill does not belong to the current class.';
+        else if (error.message === 'DEFAULT_CATEGORY_PROTECTED' || error.message === 'GENERAL_CATEGORY_PROTECTED')
+          errorMessage = 'The default category cannot be deleted.';
       }
       alert(errorMessage);
       setSkillToDelete(null);
     }
   }, [skillToDelete, archiveSkill, classId, refreshCategories]);
+
+  const handleRequestDelete = useCallback((category: PointCategory) => {
+    if (isDefaultCategorySlot(category)) {
+      alert('The default category cannot be deleted. You can rename it or change its icon.');
+      return;
+    }
+    setSkillToDelete(category);
+  }, []);
 
   const handleEditSkillSubmit = useCallback(
     async (values: EditSkillFormSubmitPayload) => {
@@ -83,7 +104,7 @@ export function useEditSkillsModalController(props: EditSkillsModalProps): EditS
     isOpen,
     onClose,
     classId,
-    categories,
+    categories: sortedCategories,
     isLoading,
     refreshCategories,
     skillType,
@@ -96,6 +117,7 @@ export function useEditSkillsModalController(props: EditSkillsModalProps): EditS
     setSkillToDelete,
     deletingSkillId,
     handleConfirmDelete,
+    handleRequestDelete,
     editSkillPositiveIcons,
     editSkillNegativeIcons,
     editSkillPositiveIconsDetecting,

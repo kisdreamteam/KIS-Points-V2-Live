@@ -5,6 +5,7 @@ import EditSkillModal from '@/features/dashboard/components/modals/EditSkillModa
 import EditSkillCard from '@/features/dashboard/components/cards/EditSkillCard';
 import type { PointCategory } from '@/lib/types';
 import type { EditSkillFormSubmitPayload } from '@/features/dashboard/components/forms/EditSkillForm';
+import { isDefaultCategorySlot } from '@/features/dashboard/lib/sortPointCategories';
 
 export interface EditSkillsModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export interface EditSkillsModalViewProps extends EditSkillsModalProps {
   setSkillToDelete: (skill: PointCategory | null) => void;
   deletingSkillId: string | null;
   handleConfirmDelete: () => Promise<void>;
+  handleRequestDelete: (category: PointCategory) => void;
   editSkillPositiveIcons: string[];
   editSkillNegativeIcons: string[];
   editSkillPositiveIconsDetecting: boolean;
@@ -47,6 +49,7 @@ export default function EditSkillsModal(props: EditSkillsModalViewProps) {
     setSkillToDelete,
     deletingSkillId,
     handleConfirmDelete,
+    handleRequestDelete,
     editSkillPositiveIcons,
     editSkillNegativeIcons,
     editSkillPositiveIconsDetecting,
@@ -87,7 +90,8 @@ export default function EditSkillsModal(props: EditSkillsModalViewProps) {
                     onEdit={() => setEditingSkill(category)}
                     onHoverStart={() => setHoveredSkillId(category.id)}
                     onHoverEnd={() => setHoveredSkillId(null)}
-                    onDelete={() => setSkillToDelete(category)}
+                    onDelete={() => handleRequestDelete(category)}
+                    canDelete={!isDefaultCategorySlot(category)}
                   />
                 ))}
               </div>

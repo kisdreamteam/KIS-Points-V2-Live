@@ -62,6 +62,7 @@ The predefined criteria for earning/losing points.
 * `class_id` (uuid, FK to classes)
 * `icon` (text, nullable)
 * `is_archived` (boolean, nullable)
+* `sort_order` (int4) - *Display order within class+type; `0` = default slot (General)*
 
 **Table: `point_events`**
 Ledger for points awarded using predefined categories.
