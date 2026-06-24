@@ -5,26 +5,22 @@ type SkillCardSize = 'default' | 'compact';
 interface SkillCardProps {
   id: string;
   name: string;
-  points: number;
   icon?: string;
   imageCacheKey: number;
   onClick: () => void;
   addCacheBuster: (iconPath: string, cacheKey?: string | number) => string;
   isSelected?: boolean;
-  showPointsBadge?: boolean;
   size?: SkillCardSize;
 }
 
 export default function SkillCard({
   id,
   name,
-  points,
   icon,
   imageCacheKey,
   onClick,
   addCacheBuster,
   isSelected = false,
-  showPointsBadge = true,
   size = 'default',
 }: SkillCardProps) {
   const isCompact = size === 'compact';
@@ -34,7 +30,7 @@ export default function SkillCard({
     <div
       onClick={onClick}
       className={[
-        'bg-gray-50 font-spartan overflow-hidden transition-shadow duration-200 relative group cursor-pointer aspect-square flex flex-col hover:bg-blue-100',
+        'bg-gray-50 font-spartan overflow-hidden transition-shadow duration-200 relative group cursor-pointer aspect-square flex flex-col hover:bg-blue-100 items-center justify-center',
         isCompact
           ? 'rounded-xl shadow-sm p-2 hover:shadow-md'
           : 'rounded-3xl shadow-md p-6 hover:rounded-3xl hover:shadow-lg',
@@ -88,18 +84,6 @@ export default function SkillCard({
           {name}
         </h3>
       </div>
-      {showPointsBadge ? (
-        <div className="text-center pointer-events-none mt-auto">
-          <div
-            className={[
-              'inline-flex items-center px-1 py-0 rounded-full bg-brand-cream text-red-400 font-bold',
-              isCompact ? 'text-xs' : 'text-sm md:text-xl font-large',
-            ].join(' ')}
-          >
-            {points > 0 ? `+${points}` : points}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

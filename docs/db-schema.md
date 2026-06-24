@@ -57,7 +57,7 @@ Note: Students are mapped directly to classes (1:N).
 The predefined criteria for earning/losing points.
 * `id` (uuid, PK)
 * `name` (text)
-* `points` (int4) - *Value of the category (+ or -)*
+* `points` (int4) - *Sign marker (±1) for positive/negative bucketing; not the award amount*
 * `type` (text) - *e.g., positive, negative*
 * `class_id` (uuid, FK to classes)
 * `icon` (text, nullable)
@@ -68,7 +68,7 @@ The predefined criteria for earning/losing points.
 Ledger for points awarded using predefined categories.
 * `id` (uuid, PK)
 * `teacher_id` (uuid, FK to profiles)
-* `points` (int4)
+* `points` (int4) - *Awarded amount (weight selected in modal)*
 * `memo` (text, nullable)
 * `category_id` (uuid, FK to point_categories)
 * `created_at` (timestamptz)

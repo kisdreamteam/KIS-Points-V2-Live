@@ -12,7 +12,7 @@ export function isGeneralCategory(category: Pick<PointCategory, 'name'>): boolea
   return category.name.trim().toLowerCase() === GENERAL_CATEGORY_NAME.toLowerCase();
 }
 
-function resolveCategoryType(category: Pick<PointCategory, 'type' | 'points' | 'default_points'>): 'positive' | 'negative' {
+export function resolveCategoryType(category: Pick<PointCategory, 'type' | 'points' | 'default_points'>): 'positive' | 'negative' {
   if (category.type === 'positive' || category.type === 'negative') {
     return category.type;
   }
@@ -196,7 +196,6 @@ export async function ensureDefaultGeneralCategories(
 export async function createSkill(params: {
   classId: string;
   name: string;
-  points: number;
   type: 'positive' | 'negative';
   icon: string;
 }): Promise<void> {
@@ -210,10 +209,11 @@ export async function createSkill(params: {
   }
 
   const sortOrder = await getNextSortOrder(params.classId, params.type);
+  const points = params.type === 'positive' ? 1 : -1;
 
   const { error } = await supabase.from('point_categories').insert({
     name: params.name,
-    points: params.points,
+    points,
     type: params.type,
     class_id: params.classId,
     icon: params.icon,
@@ -225,7 +225,6 @@ export async function createSkill(params: {
 export async function updateSkill(params: {
   skillId: string;
   name: string;
-  points: number;
   icon: string;
 }): Promise<void> {
   const supabase = createClient();
@@ -241,7 +240,6 @@ export async function updateSkill(params: {
     .from('point_categories')
     .update({
       name: params.name,
-      points: params.points,
       icon: params.icon,
     })
     .eq('id', params.skillId);

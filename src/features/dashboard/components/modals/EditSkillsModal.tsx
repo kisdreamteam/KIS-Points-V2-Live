@@ -83,7 +83,6 @@ export default function EditSkillsModal(props: EditSkillsModalViewProps) {
                   <EditSkillCard
                     key={category.id}
                     category={category}
-                    pointsValue={category.points ?? category.default_points ?? 0}
                     isHovered={hoveredSkillId === category.id}
                     isDeleting={deletingSkillId === category.id}
                     isLoading={isLoadingCategories}

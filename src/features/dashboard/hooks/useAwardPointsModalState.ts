@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PointCategory, Student } from '@/lib/types';
 import { fetchPointCategoriesByClassIds } from '@/features/dashboard/lib/api/points';
-import { ensureDefaultGeneralCategories } from '@/features/dashboard/lib/api/skills';
+import { ensureDefaultGeneralCategories, resolveCategoryType } from '@/features/dashboard/lib/api/skills';
 import {
   getDefaultCategoryForType,
   sortPointCategoriesForDisplay,
@@ -11,7 +11,7 @@ import {
 import { useSubmitPointAward } from '@/features/dashboard/hooks/useSubmitPointAward';
 
 export type AwardPointsTab = 'positive' | 'negative';
-export type AwardPointWeight = 1 | 2 | 3 | 4 | 5;
+export type AwardPointWeight = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 const skillsByScopeCache = new Map<string, PointCategory[]>();
 
@@ -210,11 +210,10 @@ export function useAwardPointsModalState({
   const positiveSkills = useMemo(
     () =>
       activeCategories
-        .filter((category) => (category.points ?? category.default_points ?? 0) > 0)
+        .filter((category) => resolveCategoryType(category) === 'positive')
         .map((category) => ({
           id: category.id,
           name: category.name,
-          points: category.points ?? category.default_points ?? 0,
           icon: category.icon,
         })),
     [activeCategories]
@@ -223,11 +222,10 @@ export function useAwardPointsModalState({
   const negativeSkills = useMemo(
     () =>
       activeCategories
-        .filter((category) => (category.points ?? category.default_points ?? 0) < 0)
+        .filter((category) => resolveCategoryType(category) === 'negative')
         .map((category) => ({
           id: category.id,
           name: category.name,
-          points: category.points ?? category.default_points ?? 0,
           icon: category.icon,
         })),
     [activeCategories]

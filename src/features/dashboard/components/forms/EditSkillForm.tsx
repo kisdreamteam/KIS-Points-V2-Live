@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { PointCategory } from '@/lib/types';
+import { resolveCategoryType } from '@/features/dashboard/lib/api/skills';
 
 export type EditSkillFormSubmitPayload = {
   skillId: string;
   name: string;
-  points: number;
   icon: string;
 };
 
@@ -30,23 +30,25 @@ export default function EditSkillForm({
   isPositiveIconsDetecting,
   onSubmit,
 }: EditSkillFormProps) {
-  const [activeTab, setActiveTab] = useState<'positive' | 'negative'>('positive');
   const [skillName, setSkillName] = useState<string>('');
-  const [points, setPoints] = useState<number>(1);
+  const [skillType, setSkillType] = useState<'positive' | 'negative'>('positive');
   const [selectedIcon, setSelectedIcon] = useState<string>('/images/dashboard/award-points-icons/icons-positive/icon-pos-1.png');
   const [isIconDropdownOpen, setIsIconDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  const availableIcons = activeTab === 'positive' ? positiveIcons : negativeIcons;
+  const availableIcons = skillType === 'positive' ? positiveIcons : negativeIcons;
 
   useEffect(() => {
     if (isOpen && skill) {
-      const pointsValue = skill.points ?? skill.default_points ?? 0;
+      const type = resolveCategoryType(skill);
       setSkillName(skill.name);
-      setPoints(pointsValue);
-      setActiveTab(pointsValue > 0 ? 'positive' : 'negative');
-      setSelectedIcon(skill.icon || '/images/dashboard/award-points-icons/icons-positive/icon-pos-1.png');
+      setSkillType(type);
+      setSelectedIcon(
+        skill.icon ||
+          (type === 'positive'
+            ? '/images/dashboard/award-points-icons/icons-positive/icon-pos-1.png'
+            : '/images/dashboard/award-points-icons/icons-negative/icon-neg-1.png')
+      );
     }
   }, [isOpen, skill]);
 
@@ -69,7 +71,7 @@ export default function EditSkillForm({
             </button>
             {isIconDropdownOpen && (
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-20 w-96 max-h-[500px] overflow-y-auto">
-                {activeTab === 'positive' && isPositiveIconsDetecting ? (
+                {skillType === 'positive' && isPositiveIconsDetecting ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
                   </div>
@@ -101,14 +103,6 @@ export default function EditSkillForm({
           className="w-full px-4 py-3 border border-gray-300 rounded-lg"
           disabled={isLoading}
         />
-        <input
-          type="number"
-          value={points}
-          ref={inputRef}
-          onChange={(e) => setPoints(Number(e.target.value) || 0)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-          disabled={isLoading}
-        />
         <div className="flex justify-end gap-3 pt-2">
           <button type="button" onClick={onClose} disabled={isLoading} className="px-4 py-2 border border-gray-300 rounded-lg">
             Cancel
@@ -117,12 +111,12 @@ export default function EditSkillForm({
             type="button"
             onClick={() =>
               void (async (): Promise<void> => {
+                if (!skillName.trim()) return;
                 setIsLoading(true);
                 try {
                   await onSubmit({
                     skillId: skill.id,
                     name: skillName.trim(),
-                    points: activeTab === 'positive' ? Math.abs(points) : -Math.abs(points),
                     icon: selectedIcon,
                   });
                   onClose();

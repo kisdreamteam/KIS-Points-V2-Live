@@ -183,6 +183,7 @@ Resolved via `awardPointsTargets.ts` (`filterEligibleStudentIds`, `resolveAwardT
 | May 2026 | Feature-first component migration complete |
 | May 2026 | Dashboard hooks rename + sync split (`*Refresh.ts` / `*Sync.tsx`) |
 | May 2026 | North-star docs added (`source-of-truth`, `project-scope`, `product-spec`) |
+| June 2026 | Skill add/edit forms no longer collect points; award weight chosen in Award Points modal |
 
 ---
 

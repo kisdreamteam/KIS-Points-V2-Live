@@ -72,7 +72,7 @@ KIS-Points helps teachers manage classes, track student points, arrange seating,
 
 **After award:** confirmation modal with summary; points update optimistically on cards and seating view.
 
-**Edit skills:** manage point categories (add, edit, delete, icons) via modal from award flow or dedicated entry.
+**Edit skills:** manage point categories (add, edit, delete, icons) via modal from award flow. Forms collect name + icon; award weight is chosen separately at confirm time.
 
 ### 3.4 Attendance
 

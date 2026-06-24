@@ -5,7 +5,6 @@ import { PointCategory } from '@/lib/types';
 
 interface EditSkillCardProps {
   category: PointCategory;
-  pointsValue: number;
   isHovered: boolean;
   isDeleting: boolean;
   isLoading: boolean;
@@ -18,7 +17,6 @@ interface EditSkillCardProps {
 
 export default function EditSkillCard({
   category,
-  pointsValue,
   isHovered,
   isDeleting,
   isLoading,
@@ -28,8 +26,6 @@ export default function EditSkillCard({
   onDelete,
   canDelete = true,
 }: EditSkillCardProps) {
-  const isPositive = pointsValue > 0;
-
   return (
     <div
       onClick={onEdit}
@@ -67,14 +63,6 @@ export default function EditSkillCard({
           </div>
           <div className="text-center mb-0 pointer-events-none flex-shrink-0">
             <h3 className="text-lg font-semibold text-gray-900">{category.name}</h3>
-          </div>
-          <div className="text-center pointer-events-none mt-auto">
-            <div
-              className={`inline-flex items-center px-3 py-0 rounded-full bg-[#FDF2F0] ${isPositive ? 'text-red-400' : 'text-red-600'} text-xl font-large font-bold`}
-            >
-              {isPositive ? '+' : ''}
-              {pointsValue}
-            </div>
           </div>
         </>
       )}

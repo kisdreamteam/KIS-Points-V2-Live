@@ -35,7 +35,6 @@ export interface AwardPointsModalProps {
 export type AwardPointsSkillRow = {
   id: string;
   name: string;
-  points: number;
   icon?: string | null;
 };
 
@@ -192,11 +191,9 @@ export default function AwardPointsModal({
                       key={skill.id}
                       id={skill.id}
                       name={skill.name}
-                      points={skill.points}
                       icon={skill.icon ?? undefined}
                       imageCacheKey={imageCacheKey}
                       isSelected={selectedCategoryId === skill.id}
-                      showPointsBadge={false}
                       size="compact"
                       onClick={() => setSelectedCategoryId(skill.id)}
                       addCacheBuster={addCacheBuster}

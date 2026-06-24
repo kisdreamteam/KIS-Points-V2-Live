@@ -1,4 +1,5 @@
 import type { PointCategory } from '@/lib/types';
+import { resolveCategoryType } from '@/features/dashboard/lib/api/skills';
 
 export function getCategorySortOrder(category: PointCategory): number {
   return category.sort_order ?? 0;
@@ -20,13 +21,10 @@ export function getDefaultCategoryForType(
   categories: PointCategory[],
   type: 'positive' | 'negative'
 ): PointCategory | undefined {
-  const sign = type === 'positive' ? 1 : -1;
   const active = categories.filter((category) => category.is_archived !== true);
   const slotZero = active.find(
-    (category) =>
-      isDefaultCategorySlot(category) &&
-      (category.points ?? category.default_points ?? 0) * sign > 0
+    (category) => isDefaultCategorySlot(category) && resolveCategoryType(category) === type
   );
   if (slotZero) return slotZero;
-  return active.find((category) => (category.points ?? category.default_points ?? 0) * sign > 0);
+  return active.find((category) => resolveCategoryType(category) === type);
 }

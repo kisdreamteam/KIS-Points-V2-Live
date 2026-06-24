@@ -7,7 +7,6 @@ import type { AddSkillFormSubmitValues } from '@/features/dashboard/components/f
 type UpdateSkillValues = {
   skillId: string;
   name: string;
-  points: number;
   icon: string;
 };
 
@@ -21,7 +20,6 @@ export function useSkillManagement() {
       await createSkillApi({
         classId: values.classId,
         name: values.name,
-        points: values.points,
         type: values.type,
         icon: values.icon,
       });

@@ -8,6 +8,7 @@ import type {
 import type { PointCategory } from '@/lib/types';
 import type { EditSkillFormSubmitPayload } from '@/features/dashboard/components/forms/EditSkillForm';
 import { isDefaultCategorySlot, sortPointCategoriesForDisplay } from '@/features/dashboard/lib/sortPointCategories';
+import { resolveCategoryType } from '@/features/dashboard/lib/api/skills';
 import { useSkillManagement } from '@/features/dashboard/hooks/useSkillManagement';
 import { useAvailablePositiveIcons } from '@/features/dashboard/hooks/useAvailablePositiveIcons';
 import { useAvailableNegativeIcons } from '@/features/dashboard/hooks/useAvailableNegativeIcons';
@@ -34,7 +35,7 @@ export function useEditSkillsModalController(props: EditSkillsModalProps): EditS
   const positiveSkills = useMemo(
     () =>
       sortedCategories.filter(
-        (category) => category.is_archived !== true && (category.points ?? category.default_points ?? 0) > 0
+        (category) => category.is_archived !== true && resolveCategoryType(category) === 'positive'
       ),
     [sortedCategories]
   );
@@ -42,7 +43,7 @@ export function useEditSkillsModalController(props: EditSkillsModalProps): EditS
   const negativeSkills = useMemo(
     () =>
       sortedCategories.filter(
-        (category) => category.is_archived !== true && (category.points ?? category.default_points ?? 0) < 0
+        (category) => category.is_archived !== true && resolveCategoryType(category) === 'negative'
       ),
     [sortedCategories]
   );
@@ -92,7 +93,6 @@ export function useEditSkillsModalController(props: EditSkillsModalProps): EditS
       await updateSkill({
         skillId: values.skillId,
         name: values.name,
-        points: values.points,
         icon: values.icon,
       });
       refreshCategories();

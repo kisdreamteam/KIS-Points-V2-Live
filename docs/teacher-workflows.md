@@ -765,7 +765,7 @@ WF-50, WF-42
 
 ### WF-45: Configure and confirm skill award
 
-**Goal:** Apply a predefined category with a chosen weight (+1…+5 or -1…-5).  
+**Goal:** Apply a predefined category with a chosen weight (+1…+10 or -1…-10).  
 **Preconditions:** Award Points modal open.  
 **Entry points:** Positive / Negative tab, weight row, category grid, **Confirm**.
 
@@ -839,8 +839,8 @@ WF-40–46, WF-72
 
 1. Open manage skills from award modal.
 2. **Edit Skills** modal lists categories.
-3. Add skill (WF-48a): name, points, type, icon.
-4. Edit skill (WF-48b): change fields; save.
+3. Add skill (WF-48a): name, type (from active tab), icon.
+4. Edit skill (WF-48b): change name and icon; save.
 5. Delete skill: remove category (soft archive).
 6. Close; skill grid in award modal refreshes.
 

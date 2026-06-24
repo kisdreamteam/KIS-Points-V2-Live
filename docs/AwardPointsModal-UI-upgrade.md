@@ -28,7 +28,7 @@ Layout sections (top to bottom):
 |---------|-------------|
 | Header | Student avatar + name (or whole-class / multi-student / multi-class label) |
 | Tab bar | Two pills: **Positive Points** (heart) \| **Negative Points** (warning) |
-| Award point weight value | Buttons `+1`…`+5` or `-1`…`-5` (yellow highlight on selection) |
+| Award point weight value | Two rows: `+1`…`+5` and `+6`…`+10` (or `-1`…`-10`; yellow highlight on selection) |
 | Choose achievement category | Selectable skill cards + Add skills / Edit Skills action cards |
 | Custom block | Hidden until custom mode; memo + Custom Pts |
 | Footer | Cancel (left) \| Confirm with checkmark (right) |
@@ -62,7 +62,7 @@ Edit Skills modal ([`EditSkillCard`](../src/features/dashboard/components/cards/
 | `0` | Default slot (General) — always top-left; cannot be deleted (rename/icon OK) |
 | `1+` | RPC default skills (backfill) and teacher-added skills in stable order |
 
-- **Edits** change name/icon/points only — `sort_order` is never updated.
+- **Edits** change name/icon only — `sort_order` is never updated.
 - **New skills** append at `max(sort_order) + 1`.
 - Award modal and Edit Skills modal use the same `sortPointCategoriesForDisplay` ordering.
 
@@ -74,7 +74,7 @@ Edit Skills modal ([`EditSkillCard`](../src/features/dashboard/components/cards/
 |------|-----------|---------|--------|
 | Open modal | — | — | Triggered by student card, whole class, multi-select, seating, Random |
 | Tab | Yes | Positive Points | Switch to Negative Points |
-| Weight | Yes | +1 (or -1 on negative tab) | Tap +2…+5 / -2…-5 |
+| Weight | Yes | +1 (or -1 on negative tab) | Tap +2…+10 / -2…-10 |
 | Category | Yes | General (per tab) | Tap another skill card |
 | Confirm | **Required** | — | Submits award |
 | Custom mode | Yes | Off | Tap **Award custom points** → fill memo/points → Confirm |
@@ -110,7 +110,7 @@ stateDiagram-v2
 
 | Field | Value |
 |-------|-------|
-| `point_events.points` | Selected weight (+1…+5 or -1…-5) |
+| `point_events.points` | Selected weight (+1…+10 or -1…-10) |
 | `point_events.category_id` | Selected category (reason/label) |
 | Category `points` column | **Not used** at award time; kept for DB compatibility |
 
@@ -153,7 +153,7 @@ On first modal open per class, `ensureDefaultGeneralCategories(classId)`:
 | Layer 1 | `hooks/useAwardPointsModalController.ts` | Pass new view props |
 | Layer 1 | `hooks/useEditSkillsModalController.ts` | Block General delete |
 | Tier 3 | `components/modals/AwardPointsModal.tsx` | New layout |
-| Tier 3 | `components/cards/SkillCard.tsx` | `isSelected`, `showPointsBadge` |
+| Tier 3 | `components/cards/SkillCard.tsx` | `isSelected`, compact size (no points badge) |
 | Tier 3 | `components/award-points/AwardPointsTabBar.tsx` | Tab pills |
 | Tier 3 | `components/award-points/AwardPointsWeightRow.tsx` | Weight buttons |
 
@@ -164,22 +164,37 @@ On first modal open per class, `ensureDefaultGeneralCategories(classId)`:
 ## 9. Manual test plan
 
 - [ ] Grid: click student → Confirm with defaults → points +1, General category in log
-- [ ] Grid: change weight to +3, pick category → Confirm → +3 applied
+- [ ] Grid: change weight to +10, pick category → Confirm → +10 applied
 - [ ] Whole class card → Confirm → all present students updated
 - [ ] Multi-select → Award Points → Confirm
 - [ ] Seating seat click → Confirm
 - [ ] Seating group header → Confirm (absent excluded)
 - [ ] Random: single student + list award
-- [ ] Negative tab: -2 weight, category, Confirm
+- [ ] Negative tab: -7 weight, category, Confirm
 - [ ] Custom mode: expand, memo, Confirm; Back to skills collapses
 - [ ] Edit Skills: cannot delete General; can rename/icon
-- [ ] Add skill still works from modal
+- [ ] Add skill still works from modal (name + icon only; ±1 sign derived in API)
+- [ ] Edit skill: rename + icon change only; no points field in forms
 
 ---
 
-## 10. Out of scope / follow-ups
+## 10. Skill forms (no per-skill points)
 
-- Hide `points` field in Add/Edit skill forms (new skills default to ±1 in DB).
+Add/Edit skill forms collect **name + icon** only. The active award tab sets `type` (positive/negative) at creation time.
+
+| Layer | Behavior |
+|-------|----------|
+| Tier 3 forms | No points input |
+| Layer 1 `useSkillManagement` | Passes `type` on create |
+| Layer 3 `createSkill` | Writes `points: ±1` and `type` to DB |
+| Layer 3 `updateSkill` | Updates `name` and `icon` only |
+
+Award amount is always chosen via the weight row at confirm time.
+
+---
+
+## 11. Out of scope / follow-ups
+
 - Multi-class `selectedClassIds` award mode (UI exists but no caller).
 - Seating single-student header showing "1 Selected Student" vs student name.
 

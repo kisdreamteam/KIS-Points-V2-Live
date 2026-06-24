@@ -7,7 +7,6 @@ import Modal from '@/components/ui/modals/Modal';
 export type AddSkillFormSubmitValues = {
   classId: string;
   name: string;
-  points: number;
   type: 'positive' | 'negative';
   icon: string;
 };
@@ -34,11 +33,8 @@ export default function AddSkillForm({
   isPositiveIconsDetecting,
 }: AddSkillFormProps) {
   const [skillName, setSkillName] = useState<string>('');
-  const [points, setPoints] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const previousValueRef = useRef<number>(1);
   const [selectedIcon, setSelectedIcon] = useState<string>('/images/dashboard/award-points-icons/icons-positive/icon-pos-6.png');
   const [isIconDropdownOpen, setIsIconDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -58,10 +54,7 @@ export default function AddSkillForm({
   }, [isIconDropdownOpen]);
 
   useEffect(() => {
-    const newValue = skillType === 'positive' ? 1 : -1;
     setSkillName('');
-    setPoints(newValue);
-    previousValueRef.current = newValue;
     setSelectedIcon(
       skillType === 'positive'
         ? '/images/dashboard/award-points-icons/icons-positive/icon-pos-6.png'
@@ -71,14 +64,11 @@ export default function AddSkillForm({
 
   const handleAddSkill = async () => {
     if (!skillName.trim()) return;
-    const pointsValue = skillType === 'positive' ? Math.abs(points) : -Math.abs(points);
-    if (pointsValue === 0) return;
     setIsLoading(true);
     try {
       await onSubmit({
         classId,
         name: skillName.trim(),
-        points: pointsValue,
         type: skillType,
         icon: selectedIcon,
       });
@@ -90,9 +80,6 @@ export default function AddSkillForm({
 
   const resetForm = () => {
     setSkillName('');
-    const newValue = skillType === 'positive' ? 1 : -1;
-    setPoints(newValue);
-    previousValueRef.current = newValue;
   };
 
   return (
@@ -125,7 +112,6 @@ export default function AddSkillForm({
             </div>
           </div>
           <input type="text" value={skillName} onChange={(e) => setSkillName(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="e.g., Helping others" disabled={isLoading} />
-          <input type="number" min={skillType === 'positive' ? 1 : undefined} step="1" value={points} ref={inputRef} onChange={(e) => { const num = Number(e.target.value); setPoints(Number.isNaN(num) ? (skillType === 'positive' ? 1 : -1) : num); }} className="w-full px-4 py-3 border border-gray-300 rounded-lg" disabled={isLoading} />
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => { resetForm(); onClose(); }} disabled={isLoading} className="px-4 py-2 border border-gray-300 rounded-lg">Cancel</button>
             <button type="button" onClick={() => void handleAddSkill()} disabled={isLoading} className="px-4 py-2 bg-purple-500 text-white rounded-lg">{isLoading ? 'Saving...' : 'Save Skill'}</button>

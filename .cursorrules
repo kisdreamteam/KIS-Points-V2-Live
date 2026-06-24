@@ -75,7 +75,7 @@ You must identify the active shell before applying layout or state rules. They a
 * **Locations:** `@/components/ui/` (shared primitives, icons, `WorkspaceToolbar.tsx`, `StageTwoColumnSplit.tsx`). Feature UI: `@/features/dashboard/components/`, `@/features/classes/components/`, `@/features/students/components/`, `@/features/seating/components/`, `@/features/auth/components/`, `@/features/landing/components/`.
 * **Responsibility:** Presentational UI. Props in via props, behaviors out via callbacks. Local UI state (`useState`, refs, narrow `useEffect` for UX) allowed.
 * **Rules:** No **stores**, no **`@/hooks`** for **orchestration** (data fetch, mutations, cross-store flows), no API clients unless type-only imports. Thin modal wrappers that only compose children are OK.
-* **`forms/AddSkillForm.tsx`** and **`forms/EditSkillForm.tsx`** — **strict Tier 3:** no `@/hooks`; parent controllers (`useAwardPointsModalController`, `useEditSkillsModalController`) supply icon arrays / detecting flags / submit handlers passed through **`AddSkillModal`** / **`EditSkillModal`**.
+* **`forms/AddSkillForm.tsx`** and **`forms/EditSkillForm.tsx`** — **strict Tier 3:** no `@/hooks`; parent controllers (`useAwardPointsModalController`, `useEditSkillsModalController`) supply icon arrays / detecting flags / submit handlers passed through **`AddSkillModal`** / **`EditSkillModal`**. Forms collect name + icon only; ±1 sign derived in Layer 1/API on create.
 * **Cross-tier import:** Tier 3 modals under `features/dashboard/components/modals/` may import **`@/features/dashboard/*Host`** only for nested gated flows—not for workspaces.
 * **Documented exceptions** (see `docs/architecture-plan.md`):
   * `StudentCard.tsx` — `useShallow` store slice for grid performance.

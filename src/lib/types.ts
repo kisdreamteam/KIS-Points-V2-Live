@@ -1,9 +1,10 @@
 export interface PointCategory {
   id: string;
   name: string;
-  points?: number; // Optional, database may use default_points
-  default_points?: number; // Database field name
-  type?: 'positive' | 'negative'; // Optional, can be derived from points
+  /** Sign marker (±1) for DB compatibility; not the award amount. Use `type` for bucketing. */
+  points?: number;
+  default_points?: number; // Legacy database field name
+  type?: 'positive' | 'negative';
   class_id: string;
   teacher_id?: string; // Optional, may not always be needed
   icon?: string; // Icon path from database
