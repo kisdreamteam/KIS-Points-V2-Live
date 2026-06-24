@@ -1,11 +1,13 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import type { Student } from '@/lib/types';
-import type { PickCount } from '@/features/dashboard/lib/randomPickerPool';
 import RandomFlipStudentCard from '@/features/dashboard/components/random/RandomFlipStudentCard';
 
+const GRID_COLS = 5;
+
 type RandomFlipCardsGridProps = {
-  slotCount: PickCount;
+  slotCount: number;
   displayedStudents: (Student | null)[];
   isFlipping: boolean;
   isBouncing: boolean;
@@ -13,6 +15,14 @@ type RandomFlipCardsGridProps = {
   isLoading?: boolean;
   hasStudents?: boolean;
 };
+
+function GridShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="grid h-full min-h-0 w-full grid-cols-5 content-start gap-2 overflow-auto p-2">
+      {children}
+    </div>
+  );
+}
 
 export default function RandomFlipCardsGrid({
   slotCount,
@@ -25,39 +35,46 @@ export default function RandomFlipCardsGrid({
 }: RandomFlipCardsGridProps) {
   if (isLoading) {
     return (
-      <div className="flex h-full min-h-0 w-full flex-col items-center justify-start overflow-y-auto py-2">
-        <RandomFlipStudentCard
-          student={null}
-          isFlipping={false}
-          isBouncing={false}
-          flipStepKey={0}
-          isLoading
-          hasStudents={hasStudents}
-          compact={false}
-        />
-      </div>
+      <GridShell>
+        <div className="col-span-5 flex justify-center py-4">
+          <RandomFlipStudentCard
+            student={null}
+            isFlipping={false}
+            isBouncing={false}
+            flipStepKey={0}
+            isLoading
+            hasStudents={hasStudents}
+            size="grid"
+          />
+        </div>
+      </GridShell>
     );
   }
 
   if (!hasStudents) {
     return (
-      <div className="flex h-full min-h-0 w-full flex-col items-center justify-start overflow-y-auto py-2">
-        <RandomFlipStudentCard
-          student={null}
-          isFlipping={false}
-          isBouncing={false}
-          flipStepKey={0}
-          hasStudents={false}
-          compact={false}
-        />
-      </div>
+      <GridShell>
+        <div className="col-span-5 flex justify-center py-4">
+          <RandomFlipStudentCard
+            student={null}
+            isFlipping={false}
+            isBouncing={false}
+            flipStepKey={0}
+            hasStudents={false}
+            size="grid"
+          />
+        </div>
+      </GridShell>
     );
   }
 
   const slots = Array.from({ length: slotCount }, (_, index) => displayedStudents[index] ?? null);
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col items-center justify-start gap-4 overflow-y-auto py-2">
+    <div
+      className="grid h-full min-h-0 w-full content-start gap-2 overflow-auto p-2"
+      style={{ gridTemplateColumns: `repeat(${GRID_COLS}, minmax(0, 1fr))` }}
+    >
       {slots.map((student, index) => (
         <RandomFlipStudentCard
           key={index}
@@ -66,7 +83,7 @@ export default function RandomFlipCardsGrid({
           isBouncing={isBouncing}
           flipStepKey={flipStepKey}
           hasStudents={hasStudents}
-          compact={false}
+          size="grid"
         />
       ))}
     </div>

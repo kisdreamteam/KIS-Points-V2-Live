@@ -16,6 +16,11 @@ const compactCardWidth = scalePx(180);
 const compactCardMinHeight = scalePx(220);
 const compactAvatarSize = scalePx(80);
 
+const gridAvatarSize = scalePx(56);
+const gridMinHeight = scalePx(120);
+
+type CardSize = 'default' | 'compact' | 'grid';
+
 type RandomFlipStudentCardProps = {
   student: Student | null;
   isFlipping: boolean;
@@ -23,7 +28,7 @@ type RandomFlipStudentCardProps = {
   flipStepKey: number;
   isLoading?: boolean;
   hasStudents?: boolean;
-  compact?: boolean;
+  size?: CardSize;
   showPlaceholder?: boolean;
 };
 
@@ -34,19 +39,29 @@ export default function RandomFlipStudentCard({
   flipStepKey,
   isLoading = false,
   hasStudents = true,
-  compact = false,
+  size = 'default',
   showPlaceholder = true,
 }: RandomFlipStudentCardProps) {
-  const width = compact ? compactCardWidth : cardWidth;
-  const minHeight = compact ? compactCardMinHeight : cardMinHeight;
-  const imageSize = compact ? compactAvatarSize : avatarSize;
-  const paddingClass = compact ? 'p-4' : 'p-6';
-  const nameClass = compact ? 'text-base' : 'text-xl';
-  const gapClass = compact ? 'gap-3' : 'gap-5';
+  const isGrid = size === 'grid';
+  const isCompact = size === 'compact';
+  const width = isGrid ? undefined : isCompact ? compactCardWidth : cardWidth;
+  const minHeight = isGrid ? gridMinHeight : isCompact ? compactCardMinHeight : cardMinHeight;
+  const imageSize = isGrid ? gridAvatarSize : isCompact ? compactAvatarSize : avatarSize;
+  const paddingClass = isGrid ? 'p-2' : isCompact ? 'p-4' : 'p-6';
+  const nameClass = isGrid ? 'text-xs' : isCompact ? 'text-base' : 'text-xl';
+  const gapClass = isGrid ? 'gap-1.5' : isCompact ? 'gap-3' : 'gap-5';
+  const placeholderPy = isGrid ? 'py-2' : isCompact ? 'py-4' : 'py-8';
+  const questionMarkClass = isGrid ? 'text-xl' : isCompact ? 'text-2xl' : 'text-4xl';
+  const readyTextClass = isGrid ? 'text-xs' : isCompact ? 'text-sm' : 'text-lg';
+  const borderClass = isGrid ? 'border-2' : 'border-4';
+
+  const outerClassName = isGrid
+    ? 'flex w-full items-center justify-center'
+    : 'flex items-center justify-center';
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center" style={{ width, minHeight }}>
+      <div className={outerClassName} style={{ width, minHeight }}>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white" />
       </div>
     );
@@ -55,17 +70,22 @@ export default function RandomFlipStudentCard({
   if (!hasStudents) {
     return (
       <div
-        className="flex items-center justify-center rounded-2xl border border-white/30 bg-white/10 backdrop-blur-sm"
+        className={[
+          'flex items-center justify-center rounded-2xl border border-white/30 bg-white/10 backdrop-blur-sm',
+          isGrid ? 'w-full' : '',
+        ].join(' ')}
         style={{ width, minHeight }}
       >
-        <p className="text-white/70 text-lg font-semibold px-6 text-center">No students available</p>
+        <p className={`text-white/70 font-semibold px-4 text-center ${isGrid ? 'text-sm' : 'text-lg'}`}>
+          No students available
+        </p>
       </div>
     );
   }
 
   return (
     <div
-      className="flex items-center justify-center"
+      className={outerClassName}
       style={{ width, minHeight, perspective: '1000px' }}
     >
       <div
@@ -93,27 +113,25 @@ export default function RandomFlipStudentCard({
                 alt={`${student.first_name} ${student.last_name}`}
                 width={imageSize}
                 height={imageSize}
-                className="rounded-full border-4 border-white bg-[#FDF2F0] shadow-lg"
+                className={`rounded-full ${borderClass} border-white bg-[#FDF2F0] shadow-lg`}
                 style={{ backfaceVisibility: 'hidden' }}
               />
               <h3
-                className={`text-center font-bold text-white px-2 ${nameClass}`}
+                className={`text-center font-bold text-white px-1 leading-tight ${nameClass}`}
                 style={{ backfaceVisibility: 'hidden' }}
               >
                 {student.first_name} {student.last_name}
               </h3>
             </div>
           ) : showPlaceholder ? (
-            <div className={`flex flex-col items-center justify-center ${gapClass} ${compact ? 'py-4' : 'py-8'}`}>
+            <div className={`flex flex-col items-center justify-center ${gapClass} ${placeholderPy}`}>
               <div
-                className="flex items-center justify-center rounded-full border-4 border-dashed border-white/50 bg-white/10"
+                className={`flex items-center justify-center rounded-full ${borderClass} border-dashed border-white/50 bg-white/10`}
                 style={{ width: imageSize, height: imageSize }}
               >
-                <span className={`font-bold text-white/50 ${compact ? 'text-2xl' : 'text-4xl'}`}>?</span>
+                <span className={`font-bold text-white/50 ${questionMarkClass}`}>?</span>
               </div>
-              <p className={`text-center font-semibold text-white/70 ${compact ? 'text-sm' : 'text-lg'}`}>
-                Ready to pick
-              </p>
+              <p className={`text-center font-semibold text-white/70 ${readyTextClass}`}>Ready to pick</p>
             </div>
           ) : null}
         </div>

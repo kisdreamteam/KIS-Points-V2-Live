@@ -1,9 +1,9 @@
 import type { Student } from '@/lib/types';
 
 export type PickerPool = 'all' | 'boys' | 'girls';
-export type PickCount = 1 | 2 | 3 | 4 | 5;
+export type PickCount = number;
 
-const PICK_COUNTS: PickCount[] = [1, 2, 3, 4, 5];
+export const MAX_PICK_COUNT = 20;
 
 function isPresent(student: Student, absentIds: string[]): boolean {
   return !absentIds.includes(student.id);
@@ -87,10 +87,10 @@ export function getPoolPickedLabel(pool: PickerPool): 'students' | 'boys' | 'gir
 
 export function getMaxPickCount(poolSize: number): PickCount {
   if (poolSize <= 0) return 1;
-  const capped = Math.min(5, poolSize);
-  return PICK_COUNTS[capped - 1] ?? 1;
+  return Math.min(MAX_PICK_COUNT, poolSize);
 }
 
 export function clampPickCount(pickCount: PickCount, poolSize: number): PickCount {
-  return pickCount <= getMaxPickCount(poolSize) ? pickCount : getMaxPickCount(poolSize);
+  const max = getMaxPickCount(poolSize);
+  return Math.min(Math.max(1, pickCount), max);
 }

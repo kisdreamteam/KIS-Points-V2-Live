@@ -84,3 +84,34 @@ body {
 .random-flip-card-bounce {
   animation: random-card-bounce 450ms ease-out;
 }
+
+.random-pick-count-slider {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.random-pick-count-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #db2777;
+  border: 2px solid white;
+  cursor: pointer;
+}
+
+.random-pick-count-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #db2777;
+  border: 2px solid white;
+  cursor: pointer;
+}
+
+.random-pick-count-slider:disabled::-webkit-slider-thumb {
+  cursor: not-allowed;
+}
+
+.random-pick-count-slider:disabled::-moz-range-thumb {
+  cursor: not-allowed;
+}
