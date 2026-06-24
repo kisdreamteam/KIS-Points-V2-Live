@@ -2,8 +2,7 @@
 
 import type { AwardPointWeight, AwardPointsTab } from '@/features/dashboard/hooks/useAwardPointsModalState';
 
-const WEIGHTS_ROW_ONE: AwardPointWeight[] = [1, 2, 3, 4, 5];
-const WEIGHTS_ROW_TWO: AwardPointWeight[] = [6, 7, 8, 9, 10];
+const AWARD_WEIGHTS: AwardPointWeight[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 type AwardPointsWeightRowProps = {
   activeTab: AwardPointsTab;
@@ -29,7 +28,7 @@ function WeightButton({ weight, prefix, isSelected, disabled, onWeightChange }: 
       className={[
         'flex-1 rounded-xl border-2 py-3 text-lg font-bold transition-colors',
         isSelected
-          ? 'border-amber-500 bg-amber-100 text-gray-900'
+          ? 'border-blue-500 bg-blue-100 text-gray-900'
           : 'border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100',
         disabled ? 'opacity-50 cursor-not-allowed' : '',
       ].join(' ')}
@@ -82,22 +81,13 @@ export default function AwardPointsWeightRow({
       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">
         Award point weight value
       </p>
-      <div className="flex flex-col gap-2">
-        <WeightRow
-          weights={WEIGHTS_ROW_ONE}
-          prefix={prefix}
-          selectedWeight={selectedWeight}
-          disabled={disabled}
-          onWeightChange={onWeightChange}
-        />
-        <WeightRow
-          weights={WEIGHTS_ROW_TWO}
-          prefix={prefix}
-          selectedWeight={selectedWeight}
-          disabled={disabled}
-          onWeightChange={onWeightChange}
-        />
-      </div>
+      <WeightRow
+        weights={AWARD_WEIGHTS}
+        prefix={prefix}
+        selectedWeight={selectedWeight}
+        disabled={disabled}
+        onWeightChange={onWeightChange}
+      />
     </div>
   );
 }

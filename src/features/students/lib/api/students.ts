@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/client';
 import type { Student } from '@/lib/types';
 import { throwApiError } from '@/lib/api/errors';
+import type { PickerPool } from '@/features/dashboard/lib/randomPickerPool';
 
 export async function listStudentsByClassId(classId: string): Promise<Student[]> {
   const supabase = createClient();
@@ -51,12 +52,24 @@ export async function updateStudentPickedState(studentId: string, picked: boolea
   if (error) throwApiError(error, 'updateStudentPickedState');
 }
 
-export async function resetPickedStudentsByClassId(classId: string): Promise<void> {
+export async function resetPickedStudentsByClassId(
+  classId: string,
+  pool: PickerPool = 'all'
+): Promise<void> {
   const supabase = createClient();
-  const { error } = await supabase
+  let query = supabase
     .from('students')
     .update({ has_been_picked: false })
-    .eq('class_id', classId);
+    .eq('class_id', classId)
+    .eq('is_archived', false);
+
+  if (pool === 'boys') {
+    query = query.eq('gender', 'Boy');
+  } else if (pool === 'girls') {
+    query = query.eq('gender', 'Girl');
+  }
+
+  const { error } = await query;
 
   if (error) throwApiError(error, 'resetPickedStudentsByClassId');
 }

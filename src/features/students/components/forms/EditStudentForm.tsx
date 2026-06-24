@@ -92,11 +92,10 @@ export default function EditStudentForm({
                         onAvatarChange(avatar);
                         setIsAvatarDropdownOpen(false);
                       }}
-                      className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all hover:scale-110 overflow-hidden ${
-                        selectedAvatar === avatar
-                          ? 'border-brand-purple bg-brand-purple/10'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                      className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all hover:scale-110 overflow-hidden ${selectedAvatar === avatar
+                        ? 'border-brand-purple bg-brand-purple/10'
+                        : 'border-gray-200 hover:border-gray-300'
+                        }`}
                     >
                       <Image
                         src={avatar}

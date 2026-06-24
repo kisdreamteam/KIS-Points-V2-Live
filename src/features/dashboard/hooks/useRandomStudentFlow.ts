@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import type { Student } from '@/lib/types';
+import type { PickerPool } from '@/features/dashboard/lib/randomPickerPool';
 import {
   fetchStudentsForRandomByClassId,
   markStudentAsPicked,
@@ -40,11 +41,11 @@ export function useRandomStudentFlow() {
   }, []);
 
   const handleResetPickedStudents = useCallback(
-    async (classId: string, onAfterReset?: () => void) => {
+    async (classId: string, pool: PickerPool, onAfterReset?: () => void) => {
       if (!classId || isResetting) return;
       try {
         setIsResetting(true);
-        await resetPickedStudentsByClassId(classId);
+        await resetPickedStudentsByClassId(classId, pool);
         onAfterReset?.();
         await fetchStudents(classId);
       } catch (error) {

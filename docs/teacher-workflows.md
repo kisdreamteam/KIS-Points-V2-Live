@@ -1154,28 +1154,33 @@ WF-70, WF-71
 
 ### WF-72: Random student picker
 
-**Goal:** Randomly select a student for participation or awards.  
+**Goal:** Randomly select one or more students for participation or awards.  
 **Preconditions:** Inside class route; roster loaded.  
 **Entry points:** Bottom nav **Random**.
 
 #### Steps
 
 1. Tap **Random** — large modal opens.
-2. Tap spin control; slot animation selects unpicked student.
-3. Optional: **Award points** for selected student → award modal → WF-47.
-4. Optional: award from points list sub-view in Random.
-5. **Reset picked** clears `has_been_picked` for class roster.
-6. Close modal.
+2. Optionally set **Student pool** (All / Boys / Girls) and **Pick count** (1–5).
+3. Tap spin control; reel animates sequentially for each pick (winner chosen before each spin lands).
+4. Review **Picked this round** list when multi-pick completes.
+5. Optional: **Award points** for selected student → award modal → WF-47.
+6. Optional: award from points list sub-view in Random.
+7. **Reset picked** clears `has_been_picked` for class roster.
+8. Close modal (blocked while a pick round is in progress).
 
 #### Outcome
 
-- `has_been_picked` updated on selected students.
+- `has_been_picked` updated on all students picked in the round (after round completes).
 - Points awards follow WF-40 path when used from Random.
 
 #### Edge cases
 
-- Absent students may be excluded from spin pool per random flow logic.
-- Closing modal may require confirmation if spin in progress.
+- Absent students excluded from all pools.
+- Students without gender appear in All only, not Boys/Girls.
+- Empty pool segments and pick counts above pool size are disabled.
+- Same student cannot be picked twice in one round.
+- Closing modal blocked while `isPicking` is true.
 
 #### Related
 

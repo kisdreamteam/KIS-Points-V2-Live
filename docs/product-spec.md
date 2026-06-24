@@ -99,7 +99,7 @@ KIS-Points helps teachers manage classes, track student points, arrange seating,
 | Timer | Bottom nav | Movable panel; countdown/stopwatch; S/L size toggle (expands up-left, bottom-right anchored); end sound (`/sounds/timer-end-1.mp3`) |
 | Bells | Bottom nav | Movable panel; bell sounds |
 | Happy Meter | Bottom nav | Movable panel; teacher mood gauge (+/−); S/L size toggle (same anchored resize as Timer) |
-| Random | Bottom nav | Large modal; slot animation; picks unpicked students; reset picked list; award after spin |
+| Random | Bottom nav | Large modal; reel animation; pool filters (All/Boys/Girls); pick 1–5 sequentially; reset picked list; award after spin |
 
 **Movable panel sizes (px):** Timer and Happy Meter share **large height 660**; small panels use **height 280** (Timer/Bells width 403, Happy Meter width 420). Timer large width 540; Happy Meter large width 640.
 
@@ -179,7 +179,7 @@ Manual QA before release:
 - [ ] Switch grid ↔ seating view via bottom nav
 - [ ] Enter seating edit mode; create layout, add group, assign student
 - [ ] Exit seating edit mode via toolbar close
-- [ ] Random picker: spin, award, reset picked
+- [ ] Random picker: pool filters, multi-pick (1–5), spin, award, reset picked
 - [ ] Edit skills: add, edit, delete category
 - [ ] Archive student; verify seating behavior
 - [ ] Archive class; switch active/archived view mode
