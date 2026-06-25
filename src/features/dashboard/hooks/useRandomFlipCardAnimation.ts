@@ -92,9 +92,12 @@ export function useRandomFlipCardAnimation() {
 
   useEffect(() => clearRun, [clearRun]);
 
-  const syncSlots = useCallback((slotCount: number) => {
+  const syncSlots = useCallback((slotCount: number, winners?: Student[]) => {
     setDisplayedStudents((prev) => {
-      const next = Array.from({ length: slotCount }, (_, i) => prev[i] ?? null);
+      const next = Array.from({ length: slotCount }, (_, i) => {
+        if (winners?.[i]) return winners[i]!;
+        return prev[i] ?? null;
+      });
       displayedStudentsRef.current = next;
       return next;
     });

@@ -76,11 +76,16 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
     markSelectedStudentAsPicked,
   });
 
-  useEffect(() => {
-    syncSlots(pickCount);
-  }, [pickCount, syncSlots]);
+  const flipSlotCount = pickedThisRound.length > 0 ? pickedThisRound.length : pickCount;
 
-  const [isAwardPointsModalOpen, setIsAwardPointsModalOpen] = useState(false);
+  useEffect(() => {
+    if (pickedThisRound.length > 0) {
+      syncSlots(pickedThisRound.length, pickedThisRound);
+    } else {
+      syncSlots(pickCount);
+    }
+  }, [pickCount, pickedThisRound, syncSlots]);
+
   const [isListAwardPointsModalOpen, setIsListAwardPointsModalOpen] = useState(false);
   const [pointsListStudents, setPointsListStudents] = useState<Student[]>([]);
   const {
@@ -94,8 +99,6 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
   const totalStudents = students.length;
   const allPresentAbsent = totalStudents > 0 && presentStudents.length === 0;
   const pointsListStudentIds = pointsListStudents.map((student) => student.id);
-  const pickedRoundStudentIds = pickedThisRound.map((student) => student.id);
-  const hasRoundWinners = pickedThisRound.length > 0;
   const isAnimating = isFlipping;
   const controlsDisabled = isPicking || isLoading || isFlipping;
 
@@ -125,7 +128,7 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
     }
   }, [classId, fetchStudents]);
 
-  const handleAddRoundToPointsList = useCallback(() => {
+  useEffect(() => {
     if (pickedThisRound.length === 0) return;
     setPointsListStudents((prev) => {
       const existingIds = new Set(prev.map((student) => student.id));
@@ -210,22 +213,12 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
       ? 'Choose Random Student'
       : `Choose ${pickCount} Students`;
 
-  const awardRoundButtonLabel =
-    pickedThisRound.length === 1
-      ? 'Award points to student'
-      : `Award points to ${pickedThisRound.length} students`;
-
-  const addRoundToListButtonLabel =
-    pickedThisRound.length === 1
-      ? 'Add student to the points list'
-      : `Add ${pickedThisRound.length} students to the points list`;
-
   return (
     <div className="h-full w-full flex flex-col min-h-0 ">
       <div className="flex-1 min-h-0 flex flex-row items-stretch gap-4 px-6 overflow-hidden">
         <div className="flex-shrink-0 w-full max-w-lg min-h-0 overflow-y-auto py-4">
           <div className="text-center w-full">
-            <h1 className="text-5xl font-bold text-white mb-5">Random Picker</h1>
+            <h1 className="text-5xl font-bold text-white mb-5 font-spartan">Random Picker</h1>
             {/* <p className="text-white/80 text-lg mb-5">{helperText}</p> */}
 
 
@@ -274,32 +267,13 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
               </button>
             )}
 
-            <div className="mt-8 p-7 bg-white/20 rounded-2xl backdrop-blur-sm">
-              <button
-                onClick={() => {
-                  setLastAwardedStudentIds(pickedRoundStudentIds);
-                  setIsAwardPointsModalOpen(true);
-                }}
-                disabled={!hasRoundWinners || isPicking}
-                className="w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl font-bold text-lg transition-colors shadow-lg"
-              >
-                {awardRoundButtonLabel}
-              </button>
-              <button
-                onClick={handleAddRoundToPointsList}
-                disabled={!hasRoundWinners || isPicking}
-                className="w-full mt-3 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl font-bold text-lg transition-colors shadow-lg"
-              >
-                {addRoundToListButtonLabel}
-              </button>
-            </div>
           </div>
         </div>
 
-        <div className="flex flex-1 min-h-0 min-w-0 flex-row gap-3 py-4 bg-brand-cream">
+        <div className="flex flex-1 min-h-0 min-w-0 flex-row gap-3 bg-brand-cream">
           <div className="flex-1 min-h-0 min-w-0">
             <RandomFlipCardsGrid
-              slotCount={pickCount}
+              slotCount={flipSlotCount}
               displayedStudents={displayedStudents}
               isFlipping={isFlipping}
               isBouncing={isBouncing}
@@ -310,7 +284,7 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
           </div>
 
           {!isLoading && pointsListStudents.length > 0 ? (
-            <div className="flex w-full max-w-xs shrink-0 min-h-0 flex-col overflow-hidden border-l border-white/20 pl-3">
+            <div className="flex w-full max-w-xs shrink-0 min-h-0 flex-col overflow-hidden pl-3 ">
               <RandomPointsList
                 students={pointsListStudents}
                 avatarSize={listAvatarSize}
@@ -324,16 +298,6 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
           ) : null}
         </div>
       </div>
-
-      <AwardPointsModalHost
-        isOpen={isAwardPointsModalOpen}
-        onClose={() => setIsAwardPointsModalOpen(false)}
-        student={null}
-        classId={classId}
-        selectedStudentIds={pickedRoundStudentIds}
-        onRefresh={() => void refreshRandomAndDashboardStudents()}
-        onPointsAwarded={handlePointsAwarded}
-      />
 
       <AwardPointsModalHost
         isOpen={isListAwardPointsModalOpen}

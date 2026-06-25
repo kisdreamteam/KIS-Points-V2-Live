@@ -73,7 +73,7 @@ export default function RandomFlipStudentCard({
         ].join(' ')}
         style={{ width, minHeight }}
       >
-        <p className={`text-white/70 font-semibold px-4 text-center ${isGrid ? 'text-sm' : 'text-lg'}`}>
+        <p className={`text-gray-500 font-semibold px-4 text-center ${isGrid ? 'text-sm' : 'text-lg'}`}>
           No students available
         </p>
       </div>
@@ -87,7 +87,7 @@ export default function RandomFlipStudentCard({
     <div className={outerClassName} style={{ width, minHeight, perspective: '1000px' }}>
       <div
         className={[
-          'w-full rounded-2xl border border-gray-200 bg-white shadow-sm',
+          'w-full rounded-2xl border border-gray-300 bg-white shadow-sm',
           paddingClass,
           isGrid ? 'h-full min-h-0 flex flex-col items-center justify-center' : '',
           isBouncing ? 'random-flip-card-bounce' : '',
@@ -150,10 +150,10 @@ export default function RandomFlipStudentCard({
                   className={`flex items-center justify-center rounded-full ${borderClass} border-dashed border-white/50 bg-white/10`}
                   style={{ width: imageSize, height: imageSize }}
                 >
-                  <span className={`font-bold text-white/50 ${questionMarkClass}`}>?</span>
+                  <span className={`font-bold text-gray-300 ${questionMarkClass}`}>?</span>
                 </div>
               )}
-              <p className={`text-center font-semibold text-white/70 ${readyTextClass}`}>Ready to pick</p>
+              <p className={`text-center font-semibold text-gray-300 ${readyTextClass}`}>Ready to pick</p>
             </div>
           ) : null}
         </div>

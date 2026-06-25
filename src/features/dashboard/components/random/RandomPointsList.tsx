@@ -21,32 +21,32 @@ export default function RandomPointsList({
   disabled = false,
 }: RandomPointsListProps) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-white/20 p-3 backdrop-blur-sm">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden  bg-white p-3 backdrop-blur-sm">
       <div className="mb-2 shrink-0">
-        <h3 className="text-white text-lg font-bold">Points List</h3>
-        <p className="text-white/80 text-sm">{students.length} students selected</p>
+        <h3 className="text-black text-xl font-bold">Points List</h3>
+        <p className="text-black text-sm">{students.length} students selected</p>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto pr-1 space-y-2">
         {students.map((student, index) => (
           <div
             key={`${student.id}-${index}`}
-            className="bg-white/20 rounded-xl p-2 flex items-center gap-3"
+            className="bg-red-100 rounded-xl p-2 flex items-center gap-3"
           >
             <Image
               src={normalizeAvatarPath(student.avatar)}
               alt={`${student.first_name} ${student.last_name}`}
               width={avatarSize}
               height={avatarSize}
-              className="rounded-xl border-2 border-white shrink-0"
+              className="rounded-xl border-2 border-brand-purple shrink-0 bg-white"
             />
-            <p className="text-white font-semibold text-sm flex-1 min-w-0 truncate">
+            <p className="text-brand-purple font-semibold text-sm flex-1 min-w-0 truncate">
               {student.first_name} {student.last_name}
             </p>
             <button
               type="button"
               onClick={() => onRemove(index)}
-              className="shrink-0 p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+              className="shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/20 transition-colors"
               aria-label={`Remove ${student.first_name} ${student.last_name} from list`}
               title="Remove from list"
             >
@@ -60,9 +60,9 @@ export default function RandomPointsList({
         type="button"
         onClick={onAward}
         disabled={disabled}
-        className="mt-2 shrink-0 w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors shadow-lg"
+        className="mt-2 shrink-0 w-full bg-brand-pink hover:bg-pink-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors shadow-lg"
       >
-        Award points to students on the list
+        Award Points
       </button>
     </div>
   );
