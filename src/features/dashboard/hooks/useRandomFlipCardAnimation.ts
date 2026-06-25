@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Student } from '@/lib/types';
 
-const TOTAL_DURATION_MS = 1750;
+const TOTAL_DURATION_MS = 875;
 const BASE_FLIPS = 12;
 const MAX_EXTRA_FLIPS = 6;
-const FLIP_DURATION_MS = 60;
-const FLIP_MIDPOINT_MS = 30;
-const BOUNCE_DURATION_MS = 225;
+const FLIP_DURATION_MS = 30;
+const FLIP_MIDPOINT_MS = 15;
+const BOUNCE_DURATION_MS = 113;
 
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
@@ -49,8 +49,8 @@ function buildFlipDelays(stepCount: number): number[] {
   for (let i = 0; i < stepCount; i += 1) {
     const t = i / (stepCount - 1);
     const eased = easeOutCubic(t);
-    const minDelay = 50;
-    const maxDelay = 400;
+    const minDelay = 25;
+    const maxDelay = 200;
     rawDelays.push(minDelay + eased * (maxDelay - minDelay));
   }
 

@@ -6,7 +6,7 @@ import { normalizeAvatarPath } from '@/lib/iconUtils';
 
 const UI_SCALE = 0.9;
 const scalePx = (n: number) => Math.round(n * UI_SCALE);
-const FLIP_DURATION_MS = 60;
+const FLIP_DURATION_MS = 30;
 
 const cardWidth = scalePx(280);
 const cardMinHeight = scalePx(320);
