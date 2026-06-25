@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Student } from '@/lib/types';
 
-const TOTAL_DURATION_MS = 3500;
+const TOTAL_DURATION_MS = 1750;
 const BASE_FLIPS = 12;
 const MAX_EXTRA_FLIPS = 6;
-const FLIP_DURATION_MS = 120;
-const FLIP_MIDPOINT_MS = 60;
-const BOUNCE_DURATION_MS = 450;
+const FLIP_DURATION_MS = 60;
+const FLIP_MIDPOINT_MS = 30;
+const BOUNCE_DURATION_MS = 225;
 
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 

@@ -21,7 +21,7 @@ export default function RandomPickCountSlider({
   return (
     <div className="mb-4 w-full max-w-md mx-auto">
       <p className="text-white/70 text-xs font-semibold uppercase tracking-wide mb-2 text-center">
-        Pick count: <span className="text-white">{value}</span>
+        How many students: <span className="text-white">{value}</span>
       </p>
       <input
         type="range"

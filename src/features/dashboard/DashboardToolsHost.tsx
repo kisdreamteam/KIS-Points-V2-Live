@@ -179,7 +179,7 @@ export default function DashboardToolsHost() {
       <LargeToolModal
         isOpen={isRandomOpen}
         onClose={handleCloseRandom}
-        title="Random Student"
+        title=" "
       >
         {isRandomOpen && classId ? (
           <Random

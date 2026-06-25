@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { Student } from '@/lib/types';
 import RandomFlipStudentCard from '@/features/dashboard/components/random/RandomFlipStudentCard';
 
@@ -16,9 +16,23 @@ type RandomFlipCardsGridProps = {
   hasStudents?: boolean;
 };
 
-function GridShell({ children }: { children: ReactNode }) {
+function getRowCount(slotCount: number): number {
+  return Math.max(1, Math.ceil(slotCount / GRID_COLS));
+}
+
+function getGridStyle(rowCount: number): CSSProperties {
+  return {
+    gridTemplateColumns: `repeat(${GRID_COLS}, minmax(0, 1fr))`,
+    gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
+  };
+}
+
+function GridShell({ rowCount, children }: { rowCount: number; children: ReactNode }) {
   return (
-    <div className="grid h-full min-h-0 w-full grid-cols-5 content-start gap-2 overflow-auto p-2">
+    <div
+      className="grid h-full min-h-0 w-full gap-2 overflow-hidden p-2"
+      style={getGridStyle(rowCount)}
+    >
       {children}
     </div>
   );
@@ -33,10 +47,12 @@ export default function RandomFlipCardsGrid({
   isLoading = false,
   hasStudents = true,
 }: RandomFlipCardsGridProps) {
+  const rowCount = getRowCount(slotCount);
+
   if (isLoading) {
     return (
-      <GridShell>
-        <div className="col-span-5 flex justify-center py-4">
+      <GridShell rowCount={1}>
+        <div className="col-span-5 flex h-full min-h-0 justify-center">
           <RandomFlipStudentCard
             student={null}
             isFlipping={false}
@@ -53,8 +69,8 @@ export default function RandomFlipCardsGrid({
 
   if (!hasStudents) {
     return (
-      <GridShell>
-        <div className="col-span-5 flex justify-center py-4">
+      <GridShell rowCount={1}>
+        <div className="col-span-5 flex h-full min-h-0 justify-center">
           <RandomFlipStudentCard
             student={null}
             isFlipping={false}
@@ -72,8 +88,8 @@ export default function RandomFlipCardsGrid({
 
   return (
     <div
-      className="grid h-full min-h-0 w-full content-start gap-2 overflow-auto p-2"
-      style={{ gridTemplateColumns: `repeat(${GRID_COLS}, minmax(0, 1fr))` }}
+      className="grid h-full min-h-0 w-full gap-2 overflow-hidden p-2"
+      style={getGridStyle(rowCount)}
     >
       {slots.map((student, index) => (
         <RandomFlipStudentCard

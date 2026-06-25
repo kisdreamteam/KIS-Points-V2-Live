@@ -2,14 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Student } from '@/lib/types';
-import Image from 'next/image';
 import AwardPointsModalHost from '@/features/dashboard/AwardPointsModalHost';
 import PointsAwardedConfirmationModal from '@/features/dashboard/components/modals/PointsAwardedConfirmationModal';
 import RandomPoolToggle from '@/features/dashboard/components/random/RandomPoolToggle';
 import RandomPickCountSlider from '@/features/dashboard/components/random/RandomPickCountSlider';
-import RandomPickedThisRound from '@/features/dashboard/components/random/RandomPickedThisRound';
+import RandomPointsList from '@/features/dashboard/components/random/RandomPointsList';
 import RandomFlipCardsGrid from '@/features/dashboard/components/random/RandomFlipCardsGrid';
-import { normalizeAvatarPath } from '@/lib/iconUtils';
 import { emitSeatingStudentPointsDelta } from '@/lib/events/students';
 import { useAwardConfirmationModal } from '@/features/dashboard/hooks/useAwardConfirmationModal';
 import { useRandomStudentFlow } from '@/features/dashboard/hooks/useRandomStudentFlow';
@@ -19,7 +17,6 @@ import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/dashbo
 import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/seatingChartRefresh';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
-import IconNoCircleX from '@/components/ui/icons/iconNoCircleX';
 
 type RandomProps = {
   classId: string;
@@ -29,7 +26,6 @@ type RandomProps = {
 
 const UI_SCALE = 0.9;
 const scalePx = (n: number) => Math.round(n * UI_SCALE);
-const selectedAvatarSize = scalePx(75);
 const listAvatarSize = scalePx(48);
 
 export default function Random({ classId, onClose, registerCloseHandler }: RandomProps) {
@@ -65,7 +61,6 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
     setPickCount,
     pickedThisRound,
     isPicking,
-    selectedStudent,
     presentStudents,
     poolPickStats,
     poolPickedLabel,
@@ -226,29 +221,13 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
       : `Add ${pickedThisRound.length} students to the points list`;
 
   return (
-    <div className="h-full w-full flex flex-col min-h-0">
+    <div className="h-full w-full flex flex-col min-h-0 ">
       <div className="flex-1 min-h-0 flex flex-row items-stretch gap-4 px-6 overflow-hidden">
         <div className="flex-shrink-0 w-full max-w-lg min-h-0 overflow-y-auto py-4">
           <div className="text-center w-full">
-            <h1 className="text-4xl font-bold text-white mb-5">Random Student Selector</h1>
-            <p className="text-white/80 text-lg mb-5">{helperText}</p>
+            <h1 className="text-5xl font-bold text-white mb-5">Random Picker</h1>
+            {/* <p className="text-white/80 text-lg mb-5">{helperText}</p> */}
 
-            {!isLoading && totalStudents > 0 && (
-              <div className="mb-5 flex items-center justify-center gap-4">
-                <p className="text-white/90 text-base font-semibold">
-                  {poolPickStats.picked} of {poolPickStats.total} {poolPickedLabel} picked
-                </p>
-                <button
-                  onClick={() =>
-                    void handleResetPickedStudents(classId, pickerPool, () => clearRoundSelection())
-                  }
-                  disabled={isResetting || isPicking}
-                  className="bg-white/20 hover:bg-white/30 disabled:bg-white/10 disabled:text-white/60 text-white px-5 py-2 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed"
-                >
-                  {isResetting ? 'Resetting...' : 'Reset'}
-                </button>
-              </div>
-            )}
 
             {!isLoading && totalStudents > 0 && !allPresentAbsent && (
               <>
@@ -267,38 +246,35 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
               </>
             )}
 
+            {!isLoading && totalStudents > 0 && (
+              <div className="mb-5 flex items-center justify-center gap-4">
+                <p className="text-white/90 text-base font-semibold">
+                  {poolPickStats.picked} of {poolPickStats.total} {poolPickedLabel} picked
+                </p>
+                <button
+                  onClick={() =>
+                    void handleResetPickedStudents(classId, pickerPool, () => clearRoundSelection())
+                  }
+                  disabled={isResetting || isPicking}
+                  className="bg-white/20 hover:bg-white/30 disabled:bg-white/10 disabled:text-white/60 text-white px-5 py-2 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed"
+                >
+                  {isResetting ? 'Resetting...' : 'Reset'}
+                </button>
+              </div>
+            )}
+
+
             {!isLoading && remainingInPool > 0 && (
               <button
                 onClick={() => void runPickRound()}
                 disabled={isPicking}
-                className="bg-pink-600 hover:bg-pink-700 disabled:bg-gray-500 text-white px-9 py-4 rounded-xl font-bold text-xl transition-colors shadow-lg disabled:cursor-not-allowed"
+                className="bg-brand-pink hover:bg-brand-pink disabled:bg-gray-500 text-white px-9 py-4 rounded-xl font-bold text-xl transition-colors shadow-lg disabled:cursor-not-allowed"
               >
                 {spinButtonLabel}
               </button>
             )}
 
             <div className="mt-8 p-7 bg-white/20 rounded-2xl backdrop-blur-sm">
-              <RandomPickedThisRound students={pickedThisRound} />
-
-              {selectedStudent ? (
-                <>
-                  <p className="text-white text-2xl font-semibold mb-3">Selected:</p>
-                  <div className="flex items-center gap-4 justify-center mb-5">
-                    <Image
-                      src={normalizeAvatarPath(selectedStudent.avatar)}
-                      alt={`${selectedStudent.first_name} ${selectedStudent.last_name}`}
-                      width={selectedAvatarSize}
-                      height={selectedAvatarSize}
-                      className="rounded-full bg-[#FDF2F0] border-4 border-white"
-                    />
-                    <p className="text-white text-4xl font-bold">
-                      {selectedStudent.first_name} {selectedStudent.last_name}
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <p className="text-white text-xl font-semibold mb-5 text-center">No student selected</p>
-              )}
               <button
                 onClick={() => {
                   setLastAwardedStudentIds(pickedRoundStudentIds);
@@ -317,74 +293,35 @@ export default function Random({ classId, onClose, registerCloseHandler }: Rando
                 {addRoundToListButtonLabel}
               </button>
             </div>
-
-            {!isLoading && totalStudents > 0 && (
-              <div className="mt-6 bg-white/20 rounded-3xl p-4 backdrop-blur-sm flex flex-col">
-                <div className="mb-3">
-                  <h3 className="text-white text-xl font-bold">Points List</h3>
-                  <p className="text-white/80 text-sm">{pointsListStudents.length} students selected</p>
-                </div>
-
-                <div className="max-h-48 overflow-y-auto pr-1 space-y-3">
-                  {pointsListStudents.length === 0 ? (
-                    <div className="py-6 flex items-center justify-center text-center">
-                      <p className="text-white/70 text-sm">No students in the list yet</p>
-                    </div>
-                  ) : (
-                    pointsListStudents.map((student, index) => (
-                      <div
-                        key={`${student.id}-${index}`}
-                        className="bg-white/20 rounded-xl p-3 flex items-center gap-3"
-                      >
-                        <Image
-                          src={normalizeAvatarPath(student.avatar)}
-                          alt={`${student.first_name} ${student.last_name}`}
-                          width={listAvatarSize}
-                          height={listAvatarSize}
-                          className="rounded-xl border-2 border-white shrink-0"
-                        />
-                        <p className="text-white font-semibold text-sm flex-1 min-w-0 truncate">
-                          {student.first_name} {student.last_name}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveStudentFromPointsList(index)}
-                          className="shrink-0 p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors"
-                          aria-label={`Remove ${student.first_name} ${student.last_name} from list`}
-                          title="Remove from list"
-                        >
-                          <IconNoCircleX className="w-4 h-4" strokeWidth={2.5} />
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                <button
-                  onClick={() => {
-                    setLastAwardedStudentIds(pointsListStudentIds);
-                    handleOpenListAwardModal();
-                  }}
-                  disabled={pointsListStudents.length === 0}
-                  className="mt-3 w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-colors shadow-lg"
-                >
-                  Award points to students on the list
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
-        <div className="flex flex-1 min-h-0 min-w-0 flex-col items-stretch justify-start">
-          <RandomFlipCardsGrid
-            slotCount={pickCount}
-            displayedStudents={displayedStudents}
-            isFlipping={isFlipping}
-            isBouncing={isBouncing}
-            flipStepKey={flipStepKey}
-            isLoading={isLoading}
-            hasStudents={totalStudents > 0}
-          />
+        <div className="flex flex-1 min-h-0 min-w-0 flex-row gap-3 py-4 bg-brand-cream">
+          <div className="flex-1 min-h-0 min-w-0">
+            <RandomFlipCardsGrid
+              slotCount={pickCount}
+              displayedStudents={displayedStudents}
+              isFlipping={isFlipping}
+              isBouncing={isBouncing}
+              flipStepKey={flipStepKey}
+              isLoading={isLoading}
+              hasStudents={totalStudents > 0}
+            />
+          </div>
+
+          {!isLoading && pointsListStudents.length > 0 ? (
+            <div className="flex w-full max-w-xs shrink-0 min-h-0 flex-col overflow-hidden border-l border-white/20 pl-3">
+              <RandomPointsList
+                students={pointsListStudents}
+                avatarSize={listAvatarSize}
+                onRemove={handleRemoveStudentFromPointsList}
+                onAward={() => {
+                  setLastAwardedStudentIds(pointsListStudentIds);
+                  handleOpenListAwardModal();
+                }}
+              />
+            </div>
+          ) : null}
         </div>
       </div>
 

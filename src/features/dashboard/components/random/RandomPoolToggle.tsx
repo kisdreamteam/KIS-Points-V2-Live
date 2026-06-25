@@ -13,7 +13,7 @@ type RandomPoolToggleProps = {
 export default function RandomPoolToggle({ value, onChange, poolCounts, disabled = false }: RandomPoolToggleProps) {
   return (
     <div className="mb-4 w-full max-w-md mx-auto">
-      <p className="text-white/70 text-xs font-semibold uppercase tracking-wide mb-2 text-center">Student pool</p>
+      {/* <p className="text-white/70 text-xs font-semibold uppercase tracking-wide mb-2 text-center">Student po00ol</p> */}
       <RandomSegmentedToggle<PickerPool>
         ariaLabel="Student pool filter"
         value={value}

@@ -82,7 +82,7 @@ body {
 }
 
 .random-flip-card-bounce {
-  animation: random-card-bounce 450ms ease-out;
+  animation: random-card-bounce 225ms ease-out;
 }
 
 .random-pick-count-slider {
