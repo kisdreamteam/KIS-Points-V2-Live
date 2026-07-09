@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 import AddPlusIcon from '@/components/ui/icons/AddPlusIcon';
 import CanvasPointsLogIcon from '@/components/ui/icons/CanvasPointsLogIcon';
+import CanvasPointsReportIcon from '@/components/ui/icons/CanvasPointsReportIcon';
 import CanvasTeachersViewIcon from '@/components/ui/icons/CanvasTeachersViewIcon';
 import EditPencilIcon from '@/components/ui/icons/EditPencilIcon';
 import type {
@@ -15,7 +16,7 @@ import { STUDENT_EVENTS } from '@/lib/events/students';
 
 type Preset = {
   event: string;
-  renderIcon: (disabled: boolean) => ReactNode;
+  renderIcon: (disabled: boolean, active: boolean) => ReactNode;
   variant?: 'default' | 'muted';
 };
 
@@ -46,6 +47,14 @@ const PRESETS: Record<ToolbarActionId, Preset> = {
       </svg>
     ),
   },
+  'points-report': {
+    event: STUDENT_EVENTS.STAGE_TOGGLE_POINTS_REPORT,
+    renderIcon: (d, active) => (
+      <CanvasPointsReportIcon
+        className={d ? 'w-6 h-6 text-gray-500' : active ? 'w-6 h-6 text-brand-purple' : 'w-6 h-6 text-black'}
+      />
+    ),
+  },
   'teacher-view': {
     event: STUDENT_EVENTS.STAGE_TOGGLE_TEACHER_VIEW,
     renderIcon: (d) => (
@@ -63,12 +72,14 @@ const PRESETS: Record<ToolbarActionId, Preset> = {
 
 export function toWorkspaceToolbarAction(action: ToolbarActionDef): WorkspaceToolbarAction {
   const preset = PRESETS[action.id];
+  const isActive = !!action.active;
   return {
     ...action,
-    icon: preset.renderIcon(!!action.disabled),
+    icon: preset.renderIcon(!!action.disabled, isActive),
     onClick: action.disabled
       ? undefined
       : () => window.dispatchEvent(new CustomEvent(preset.event)),
     variant: preset.variant,
+    active: isActive,
   };
 }

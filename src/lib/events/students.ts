@@ -16,6 +16,7 @@ export const STUDENT_EVENTS = {
   STAGE_CREATE_LAYOUT: 'stageToolbarCreateLayout',
   STAGE_OPEN_SEATING_EDITOR: 'stageToolbarOpenSeatingEditor',
   STAGE_TOGGLE_LAYOUT_MANAGER: 'stageToolbarToggleLayoutManager',
+  STAGE_TOGGLE_POINTS_REPORT: 'stageToolbarTogglePointsReport',
   STAGE_TOGGLE_TEACHER_VIEW: 'stageToolbarToggleTeacherView',
   SEATING_EDIT_MODE: 'seatingChartEditMode',
   SEATING_VIEW_SETTINGS_CHANGED: 'seatingChartViewSettingsChanged',

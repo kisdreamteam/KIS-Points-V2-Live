@@ -1,11 +1,14 @@
 'use client';
 
+import type { Dispatch, SetStateAction } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useShallow } from 'zustand/react/shallow';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import CreateLayoutModal from '@/features/seating/components/modals/CreateLayoutModal';
 import EditLayoutModal from '@/features/seating/components/modals/EditLayoutModal';
 import PointsLogDrawer from '@/features/dashboard/components/PointsLogDrawer';
+import PointsReportPanel from '@/features/dashboard/PointsReportPanel';
+import type { PointsReportPanelProps } from '@/features/dashboard/PointsReportPanel';
 import LayoutManagerDrawer from '@/features/seating/components/canvas/LayoutManagerDrawer';
 import SeatingCanvasDecor from '@/features/seating/components/canvas/SeatingCanvasDecor';
 import SeatingGroupsCanvas from '@/features/seating/SeatingGroupsCanvas';
@@ -28,6 +31,9 @@ type SeatingViewWorkspaceProps = {
   selectedGroupIds?: string[];
   onSelectStudent?: (studentId: string) => void;
   onSelectGroup?: (groupId: string) => void;
+  isPointsReportOpen?: boolean;
+  pointsReportPanelProps?: PointsReportPanelProps;
+  setIsPointsReportOpen?: Dispatch<SetStateAction<boolean>>;
 };
 
 export default function SeatingViewWorkspace({
@@ -37,6 +43,9 @@ export default function SeatingViewWorkspace({
   selectedGroupIds = [],
   onSelectStudent,
   onSelectGroup,
+  isPointsReportOpen = false,
+  pointsReportPanelProps,
+  setIsPointsReportOpen,
 }: SeatingViewWorkspaceProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -103,6 +112,7 @@ export default function SeatingViewWorkspace({
     setSelectedLayoutId,
     layouts,
     setIsPointLogOpen,
+    setIsPointsReportOpen: setIsPointsReportOpen ?? (() => {}),
   });
 
   const toolbarInset = useDashboardToolbarInset();
@@ -120,9 +130,16 @@ export default function SeatingViewWorkspace({
   });
 
   return (
-    <StageTwoColumnSplit rightRail={<SeatingViewWorkspaceToolbar />}>
+    <StageTwoColumnSplit
+      rightRail={<SeatingViewWorkspaceToolbar isPointsReportOpen={isPointsReportOpen} />}
+    >
       <div className="h-full w-full min-h-0 flex flex-col">
         <div className="flex-1 min-h-0 overflow-hidden">
+          {isPointsReportOpen && pointsReportPanelProps ? (
+            <div className="h-full min-h-0 w-full p-4 bg-brand-cream">
+              <PointsReportPanel {...pointsReportPanelProps} />
+            </div>
+          ) : (
           <div className="font-spartan relative w-full h-full min-h-0 bg-brand-purple flex flex-col">
             <PointsLogDrawer
               isOpen={isPointLogOpen}
@@ -264,6 +281,7 @@ export default function SeatingViewWorkspace({
               onSave={handleEditLayoutSave}
             />
           </div>
+          )}
         </div>
       </div>
     </StageTwoColumnSplit>

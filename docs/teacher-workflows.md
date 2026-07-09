@@ -559,7 +559,7 @@ WF-33
 
 #### Related
 
-WF-65
+WF-66
 
 ---
 
@@ -587,7 +587,7 @@ WF-65
 
 #### Related
 
-WF-60, WF-63
+WF-60, WF-64
 
 ---
 
@@ -901,8 +901,8 @@ stateDiagram-v2
 
   gridView --> seatingView: WF-34 View menu
   seatingView --> gridView: WF-34 View menu
-  seatingView --> seatingEdit: WF-63 Editor toolbar
-  seatingEdit --> seatingView: WF-66 Close editor
+  seatingView --> seatingEdit: WF-64 Editor toolbar
+  seatingEdit --> seatingView: WF-67 Close editor
 ```
 
 ---
@@ -925,11 +925,11 @@ stateDiagram-v2
 
 #### Edge cases
 
-- No layouts: prompt to create (WF-64).
+- No layouts: prompt to create (WF-65).
 
 #### Related
 
-WF-34, WF-63
+WF-34, WF-64
 
 ---
 
@@ -977,7 +977,31 @@ WF-45, WF-46
 
 ---
 
-### WF-63: Enter seating editor
+### WF-63: Open points report
+
+**Goal:** View a class roster table with student numbers, names, gender, and points (total or filtered by category).  
+**Preconditions:** Inside class (grid or seating).  
+**Entry points:** Right rail **Points report** (above Teacher's view).
+
+#### Steps
+
+1. Click the points report icon on the workspace toolbar.
+2. Canvas shows the points report table (replaces grid or seating canvas).
+3. Default **Total** column shows each student's overall points.
+4. Optional: click **Filter categories**, select one or more categories, **Apply** — Points column shows net totals (positive and negative skills with the same name are consolidated).
+5. Toggle the same rail button to close and return to grid or seating.
+
+#### Outcome
+
+- Read-only roster report; custom point awards appear in Total only, not in named category filters.
+
+#### Related
+
+WF-45, WF-62, WF-48
+
+---
+
+### WF-64: Enter seating editor
 
 **Goal:** Modify layouts, groups, and assignments.  
 **Preconditions:** Seating view; at least one layout exists.  
@@ -1000,11 +1024,11 @@ WF-45, WF-46
 
 #### Related
 
-WF-65, WF-66
+WF-66, WF-67
 
 ---
 
-### WF-64: Create and manage layouts
+### WF-65: Create and manage layouts
 
 **Goal:** Add or switch seating layouts.  
 **Preconditions:** Seating view or editor.  
@@ -1022,14 +1046,14 @@ WF-65, WF-66
 
 #### Related
 
-WF-63, WF-65
+WF-64, WF-66
 
 ---
 
-### WF-65: Edit groups and assign seats
+### WF-66: Edit groups and assign seats
 
 **Goal:** Arrange students in the seating editor.  
-**Preconditions:** Seating editor active (WF-63).  
+**Preconditions:** Seating editor active (WF-64).  
 **Entry points:** Editor canvas and right rail menus.
 
 #### Steps
@@ -1050,11 +1074,11 @@ WF-63, WF-65
 
 #### Related
 
-WF-33, WF-66
+WF-33, WF-67
 
 ---
 
-### WF-66: Exit seating editor
+### WF-67: Exit seating editor
 
 **Goal:** Return to read-only seating view.  
 **Preconditions:** In editor (`?mode=edit`).  
@@ -1072,7 +1096,7 @@ WF-33, WF-66
 
 #### Related
 
-WF-63, WF-60
+WF-64, WF-60
 
 ---
 
@@ -1277,7 +1301,7 @@ WF-13
 
 #### Related
 
-WF-10, WF-63, WF-80
+WF-10, WF-64, WF-80
 
 ---
 
@@ -1287,7 +1311,7 @@ WF-10, WF-63, WF-80
 |-------|----------|-------------------|
 | No classes | `/dashboard` | WF-12 |
 | No students | Class grid | WF-31 |
-| No seating layouts | Seating view | WF-64 |
+| No seating layouts | Seating view | WF-65 |
 | No eligible for award | Award modal | WF-50 or adjust selection |
 
 ---
@@ -1329,10 +1353,11 @@ WF-10, WF-63, WF-80
 | WF-60 | View seating chart |
 | WF-61 | Teacher's view |
 | WF-62 | Point log drawer |
-| WF-63 | Enter seating editor |
-| WF-64 | Create / manage layouts |
-| WF-65 | Edit groups and seats |
-| WF-66 | Exit seating editor |
+| WF-63 | Points report |
+| WF-64 | Enter seating editor |
+| WF-65 | Create / manage layouts |
+| WF-66 | Edit groups and seats |
+| WF-67 | Exit seating editor |
 | WF-70 | Timer |
 | WF-71 | Bells |
 | WF-73 | Happy Meter |

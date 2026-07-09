@@ -7,6 +7,7 @@ import StudentsSeatingBranch from '@/features/seating/StudentsSeatingBranch';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import { useArchiveStudent } from '@/features/students/hooks/useArchiveStudent';
 import { useClassPointLog } from '@/hooks/useClassPointLog';
+import { usePointsReport } from '@/hooks/usePointsReport';
 import { useStudentsModalsState } from '@/features/students/hooks/useStudentsModalsState';
 import { useStudentsSelection } from '@/features/students/hooks/useStudentsSelection';
 import { useStudentsToolbarEvents } from '@/features/students/hooks/useStudentsToolbarEvents';
@@ -117,6 +118,48 @@ export default function StudentsStageContent({
     pagedPointLogRows,
   } = useClassPointLog(classId);
 
+  const {
+    isPointsReportOpen,
+    setIsPointsReportOpen,
+    selectedNameKeys,
+    categoryCatalog,
+    isFiltered,
+    isLoading: isPointsReportLoading,
+    error: pointsReportError,
+    reportRows,
+    selectedCategoryLabels,
+    selectTotalMode,
+    applyCategoryFilter,
+    removeCategoryFilter,
+  } = usePointsReport(classId);
+
+  const pointsReportPanelProps = useMemo(
+    () => ({
+      rows: reportRows,
+      isLoading: isPointsReportLoading,
+      error: pointsReportError,
+      isFiltered,
+      selectedNameKeys,
+      selectedCategoryLabels,
+      categoryCatalog,
+      onSelectTotal: selectTotalMode,
+      onApplyCategoryFilter: applyCategoryFilter,
+      onRemoveCategoryFilter: removeCategoryFilter,
+    }),
+    [
+      reportRows,
+      isPointsReportLoading,
+      pointsReportError,
+      isFiltered,
+      selectedNameKeys,
+      selectedCategoryLabels,
+      categoryCatalog,
+      selectTotalMode,
+      applyCategoryFilter,
+      removeCategoryFilter,
+    ]
+  );
+
   useStudentsToolbarEvents({
     classId,
     currentView,
@@ -130,6 +173,7 @@ export default function StudentsStageContent({
     onSelectAllGirls: selectAllGirls,
     clearGroupSelection,
     setIsPointLogOpen,
+    setIsPointsReportOpen,
   });
 
   return (
@@ -145,6 +189,9 @@ export default function StudentsStageContent({
           selectedGroupIds={selectedGroupIds}
           onSelectStudent={handleSelectStudent}
           onSelectGroup={handleSelectGroup}
+          isPointsReportOpen={isPointsReportOpen}
+          pointsReportPanelProps={pointsReportPanelProps}
+          setIsPointsReportOpen={setIsPointsReportOpen}
         />
       ) : (
         <StudentsGridBranch
@@ -153,6 +200,8 @@ export default function StudentsStageContent({
           isLoadingStudents={isLoadingStudents}
           error={error}
           isPointLogOpen={isPointLogOpen}
+          isPointsReportOpen={isPointsReportOpen}
+          pointsReportPanelProps={pointsReportPanelProps}
           setLogPage={setLogPage}
           setRowsPerPage={setRowsPerPage}
           rowsPerPage={rowsPerPage}

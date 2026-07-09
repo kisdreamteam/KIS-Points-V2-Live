@@ -53,7 +53,7 @@ This prototype validates structure and core teacher workflows — not production
 - Parent or student portals
 - Mobile-native apps
 - Real-time multi-teacher collaboration UI beyond collaborators table
-- Reporting / analytics beyond points log drawer
+- Reporting / analytics beyond class points report and point log drawer
 - Full localization (`preferred_language` in schema; UI is English)
 
 ### Engineering
@@ -99,6 +99,7 @@ A teacher can:
 4. Switch grid ↔ seating view; edit seating layout and assign students
 5. Mark daily attendance; verify macro awards skip absent students
 6. Use timer, bells, and random picker
+7. Open class points report (roster table with optional category filters)
 
 Technical bar:
 

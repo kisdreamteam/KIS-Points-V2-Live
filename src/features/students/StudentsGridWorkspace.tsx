@@ -5,6 +5,7 @@ import StageTwoColumnSplit, {
   STAGE_DRAWER_RIGHT_OFFSET_PX,
 } from '@/components/ui/StageTwoColumnSplit';
 import PointsLogDrawer from '@/features/dashboard/components/PointsLogDrawer';
+import PointsReportPanel from '@/features/dashboard/PointsReportPanel';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingState from '@/components/ui/LoadingState';
 import ErrorState from '@/components/ui/ErrorState';
@@ -17,6 +18,7 @@ import {
 } from '@/features/dashboard/hooks/useDashboardToolbarInset';
 import { useCloseDrawersOnClickOutside } from '@/hooks/useCloseDrawersOnClickOutside';
 import type { PointLogRow } from '@/hooks/useClassPointLog';
+import type { PointsReportPanelProps } from '@/features/dashboard/PointsReportPanel';
 
 export type StudentsGridWorkspaceProps = {
   classId: string;
@@ -24,6 +26,8 @@ export type StudentsGridWorkspaceProps = {
   isLoadingStudents: boolean;
   error: string | null;
   isPointLogOpen: boolean;
+  isPointsReportOpen: boolean;
+  pointsReportPanelProps: PointsReportPanelProps;
   setLogPage: Dispatch<SetStateAction<number>>;
   setRowsPerPage: Dispatch<SetStateAction<number>>;
   rowsPerPage: number;
@@ -55,6 +59,8 @@ export default function StudentsGridWorkspace({
   isLoadingStudents,
   error,
   isPointLogOpen,
+  isPointsReportOpen,
+  pointsReportPanelProps,
   setLogPage,
   setRowsPerPage,
   rowsPerPage,
@@ -94,6 +100,14 @@ export default function StudentsGridWorkspace({
 
     if (error) {
       return <ErrorState error={error} onRetry={() => void refreshDashboardStudents()} />;
+    }
+
+    if (isPointsReportOpen) {
+      return (
+        <div className="h-full min-h-0 w-full min-w-0 max-w-10xl mx-auto p-4">
+          <PointsReportPanel {...pointsReportPanelProps} />
+        </div>
+      );
     }
 
     return (
@@ -146,7 +160,7 @@ export default function StudentsGridWorkspace({
   })();
 
   return (
-    <StageTwoColumnSplit rightRail={<StudentsGridWorkspaceToolbar />}>
+    <StageTwoColumnSplit rightRail={<StudentsGridWorkspaceToolbar isPointsReportOpen={isPointsReportOpen} />}>
       {mainContent}
     </StageTwoColumnSplit>
   );

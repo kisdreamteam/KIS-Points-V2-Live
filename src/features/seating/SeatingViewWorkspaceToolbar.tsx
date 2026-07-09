@@ -6,7 +6,13 @@ import DashboardWorkspaceToolbar from '@/features/dashboard/stage/DashboardWorks
 import { buildShellToolbarConfig } from '@/features/dashboard/stage/dashboardToolbarConfig';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 
-export default function SeatingViewWorkspaceToolbar() {
+type SeatingViewWorkspaceToolbarProps = {
+  isPointsReportOpen?: boolean;
+};
+
+export default function SeatingViewWorkspaceToolbar({
+  isPointsReportOpen = false,
+}: SeatingViewWorkspaceToolbarProps) {
   const seatingLayoutsCount = useSeatingStore(useShallow((s) => s.layouts.length));
 
   const toolbarConfig = useMemo(
@@ -15,8 +21,9 @@ export default function SeatingViewWorkspaceToolbar() {
         activeView: 'seating_chart',
         isEditMode: false,
         seatingLayoutsCount,
+        activeBottomActionIds: isPointsReportOpen ? ['points-report'] : [],
       }),
-    [seatingLayoutsCount]
+    [seatingLayoutsCount, isPointsReportOpen]
   );
 
   return <DashboardWorkspaceToolbar toolbarConfig={toolbarConfig} />;

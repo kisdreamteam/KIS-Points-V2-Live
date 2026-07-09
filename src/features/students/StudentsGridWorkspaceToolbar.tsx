@@ -7,7 +7,13 @@ import { buildShellToolbarConfig } from '@/features/dashboard/stage/dashboardToo
 import { useLayoutStore } from '@/stores/useLayoutStore';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 
-export default function StudentsGridWorkspaceToolbar() {
+type StudentsGridWorkspaceToolbarProps = {
+  isPointsReportOpen?: boolean;
+};
+
+export default function StudentsGridWorkspaceToolbar({
+  isPointsReportOpen = false,
+}: StudentsGridWorkspaceToolbarProps) {
   const activeView = useLayoutStore((s) => s.activeView);
   const seatingLayoutsCount = useSeatingStore(useShallow((s) => s.layouts.length));
 
@@ -17,8 +23,9 @@ export default function StudentsGridWorkspaceToolbar() {
         activeView,
         isEditMode: false,
         seatingLayoutsCount,
+        activeBottomActionIds: isPointsReportOpen ? ['points-report'] : [],
       }),
-    [activeView, seatingLayoutsCount]
+    [activeView, seatingLayoutsCount, isPointsReportOpen]
   );
 
   return <DashboardWorkspaceToolbar toolbarConfig={toolbarConfig} />;

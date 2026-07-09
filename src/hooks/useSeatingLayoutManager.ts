@@ -31,6 +31,7 @@ type UseSeatingLayoutManagerParams = {
   setSelectedLayoutId: (id: string | null) => void;
   layouts: SeatingChartRecord[];
   setIsPointLogOpen: Dispatch<SetStateAction<boolean>>;
+  setIsPointsReportOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 export function useSeatingLayoutManager({
@@ -42,6 +43,7 @@ export function useSeatingLayoutManager({
   setSelectedLayoutId,
   layouts,
   setIsPointLogOpen,
+  setIsPointsReportOpen,
 }: UseSeatingLayoutManagerParams) {
   const router = useRouter();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -230,11 +232,19 @@ export function useSeatingLayoutManager({
     const onTogglePointLogEvent = () => {
       if (currentView !== 'seating') return;
       setIsLayoutManagerOpen(false);
+      setIsPointsReportOpen(false);
       setIsPointLogOpen((v) => !v);
+    };
+    const onTogglePointsReportEvent = () => {
+      if (currentView !== 'seating') return;
+      setIsLayoutManagerOpen(false);
+      setIsPointLogOpen(false);
+      setIsPointsReportOpen((v) => !v);
     };
     const onToggleLayoutManagerEvent = () => {
       if (currentView !== 'seating') return;
       setIsPointLogOpen(false);
+      setIsPointsReportOpen(false);
       setIsLayoutManagerOpen((v) => !v);
     };
 
@@ -242,15 +252,17 @@ export function useSeatingLayoutManager({
     window.addEventListener(STUDENT_EVENTS.STAGE_OPEN_SEATING_EDITOR, onOpenEditorEvent);
     window.addEventListener(STUDENT_EVENTS.STAGE_TOGGLE_TEACHER_VIEW, onToggleTeacherViewEvent);
     window.addEventListener(STUDENT_EVENTS.STAGE_TOGGLE_POINT_LOG, onTogglePointLogEvent);
+    window.addEventListener(STUDENT_EVENTS.STAGE_TOGGLE_POINTS_REPORT, onTogglePointsReportEvent);
     window.addEventListener(STUDENT_EVENTS.STAGE_TOGGLE_LAYOUT_MANAGER, onToggleLayoutManagerEvent);
     return () => {
       window.removeEventListener(STUDENT_EVENTS.STAGE_CREATE_LAYOUT, onCreateLayoutEvent);
       window.removeEventListener(STUDENT_EVENTS.STAGE_OPEN_SEATING_EDITOR, onOpenEditorEvent);
       window.removeEventListener(STUDENT_EVENTS.STAGE_TOGGLE_TEACHER_VIEW, onToggleTeacherViewEvent);
       window.removeEventListener(STUDENT_EVENTS.STAGE_TOGGLE_POINT_LOG, onTogglePointLogEvent);
+      window.removeEventListener(STUDENT_EVENTS.STAGE_TOGGLE_POINTS_REPORT, onTogglePointsReportEvent);
       window.removeEventListener(STUDENT_EVENTS.STAGE_TOGGLE_LAYOUT_MANAGER, onToggleLayoutManagerEvent);
     };
-  }, [classId, currentView, handleOpenSeatingEditor, layouts.length, setIsPointLogOpen]);
+  }, [classId, currentView, handleOpenSeatingEditor, layouts.length, setIsPointLogOpen, setIsPointsReportOpen]);
 
   const handleDeleteConfirmed = useCallback(async () => {
     if (!layoutToDelete) return;

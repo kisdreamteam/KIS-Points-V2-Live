@@ -20,6 +20,7 @@ interface UseStudentsToolbarEventsParams {
   onSelectAllGirls: () => void;
   clearGroupSelection: () => void;
   setIsPointLogOpen: Dispatch<SetStateAction<boolean>>;
+  setIsPointsReportOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 export function useStudentsToolbarEvents({
@@ -35,6 +36,7 @@ export function useStudentsToolbarEvents({
   onSelectAllGirls,
   clearGroupSelection,
   setIsPointLogOpen,
+  setIsPointsReportOpen,
 }: UseStudentsToolbarEventsParams) {
   useEffect(() => {
     useLayoutStore.getState().setMultiSelectMode(false);
@@ -86,18 +88,31 @@ export function useStudentsToolbarEvents({
   useEffect(() => {
     if (currentView !== 'grid') {
       setIsPointLogOpen(false);
+      setIsPointsReportOpen(false);
     }
     if (currentView !== 'seating') {
       clearGroupSelection();
     }
-  }, [currentView, setIsPointLogOpen, clearGroupSelection]);
+  }, [currentView, setIsPointLogOpen, setIsPointsReportOpen, clearGroupSelection]);
 
   useEffect(() => {
     const handleTogglePointLog = () => {
       if (currentView !== 'grid') return;
+      setIsPointsReportOpen(false);
       setIsPointLogOpen((v) => !v);
     };
     window.addEventListener(STUDENT_EVENTS.STAGE_TOGGLE_POINT_LOG, handleTogglePointLog);
     return () => window.removeEventListener(STUDENT_EVENTS.STAGE_TOGGLE_POINT_LOG, handleTogglePointLog);
-  }, [currentView, setIsPointLogOpen]);
+  }, [currentView, setIsPointLogOpen, setIsPointsReportOpen]);
+
+  useEffect(() => {
+    const handleTogglePointsReport = () => {
+      if (currentView !== 'grid') return;
+      setIsPointLogOpen(false);
+      setIsPointsReportOpen((v) => !v);
+    };
+    window.addEventListener(STUDENT_EVENTS.STAGE_TOGGLE_POINTS_REPORT, handleTogglePointsReport);
+    return () =>
+      window.removeEventListener(STUDENT_EVENTS.STAGE_TOGGLE_POINTS_REPORT, handleTogglePointsReport);
+  }, [currentView, setIsPointLogOpen, setIsPointsReportOpen]);
 }
