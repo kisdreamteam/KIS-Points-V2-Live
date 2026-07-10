@@ -1,0 +1,487 @@
+# Project Audit Report
+
+**Date:** July 9, 2026  
+**Scope:** Read-only review for security, memory efficiency, naming conventions, potential bugs, dead code, and inefficient code.  
+**Note:** This report suggests improvements only. No app logic or UI was changed as part of this audit.
+
+---
+
+## Executive Summary
+
+The app has a clear feature-first structure and generally respects the documented 3-tier / 3-layer architecture. Supabase access is mostly isolated in `lib/api` and feature `lib/api` modules, while UI components usually receive data through hooks and props.
+
+The biggest risks are not single catastrophic bugs, but several practical cleanup areas:
+
+- Security depends heavily on Supabase Row Level Security (RLS), so every table touched from the browser must have verified policies.
+- Dashboard route protection is client-side, so server-side middleware would add a stronger first gate.
+- Some point-history/report queries aggregate data in the browser, which is fine for small classes but may become slow as point history grows.
+- Student-grid and cross-tab point sync work can cause more re-renders than necessary.
+- A few debug logs, legacy aliases, architecture boundary drifts, and large hooks make maintenance harder.
+- Student numbering and some batch operations can race if multiple teachers act at the same time.
+
+---
+
+## Security Suggestions
+
+### 1. Verify RLS on all client-accessed tables
+
+**Where:** `supabase/migrations/`, `docs/db-schema.md`, `src/features/dashboard/lib/api/points.ts`, `src/features/dashboard/lib/api/pointsReport.ts`, `src/features/students/lib/api/attendanceService.ts`, `src/features/seating/lib/api/seating.ts`, `src/lib/api/auth.service.ts`
+
+**Finding:** The migrations in this repo clearly enable RLS for `classes`, `students`, `point_categories`, and `class_collaborators`, but the audit did not find matching RLS migrations for `profiles`, `attendance_events`, `point_events`, `custom_point_events`, `seating_charts`, `seating_groups`, or `student_seat_assignments`.
+
+**Why it matters:** The browser can query and write data directly through the Supabase anon key. That is normal for Supabase apps, but the database must enforce who can read and write each row. Without RLS, a user could potentially read or change attendance, points, seating, or profile data they should not access.
+
+**Suggestion:** Verify in Supabase that every client-touched table has RLS enabled and class-owner/collaborator policies equivalent to `students` and `point_categories`. If policies exist only in production, add them to versioned migrations so the repo remains the source of truth.
+
+### 2. Public Supabase keys are expected, but RLS is the real security boundary
+
+**Where:** `src/lib/client.ts`
+
+**Finding:** The app uses `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
+**Why it matters:** `NEXT_PUBLIC_*` values are visible to anyone using the website. This is expected for a browser Supabase client, but it means the anon key is not a secret.
+
+**Suggestion:** Keep service-role keys out of the browser entirely, continue ignoring `.env*`, and treat RLS policies plus RPC permissions as the real protection layer.
+
+### 3. Browser storage is used for preferences and recent selections
+
+**Where:** `src/hooks/useSeatingLayoutManager.ts`, `src/hooks/useSeatingChart.ts`, `src/components/ui/MovableToolPanel.tsx`, `src/stores/usePreferenceStore.ts`, `src/features/students/hooks/useStudentsSelection.ts`, `src/features/dashboard/components/frame/navbars/MultiSelectBottomNav.tsx`
+
+**Finding:** The app stores selected layouts, teacher view, tool panel positions, preferences, and recent selected IDs in `localStorage`.
+
+**Why it matters:** `localStorage` is readable by any script running on the page. It is fine for convenience settings, but it should not hold sensitive information or long-lived data that would be risky on a shared computer.
+
+**Suggestion:** Keep this storage limited to non-sensitive preferences. For recent selections, consider clearing them on sign-out and class switch, and avoid storing names, emails, or tokens.
+
+### 4. Collaborator and owner checks should be enforced in the database, not just the UI
+
+**Where:** `src/features/classes/hooks/useClassManagement.ts`, `src/features/classes/lib/api/classes.ts`, `supabase/migrations/`
+
+**Finding:** The UI prevents non-owners from managing class info and collaborators, and migrations include owner/collaborator policies for several tables.
+
+**Why it matters:** UI checks are helpful, but users can bypass UI with direct API calls. The database must reject unauthorized changes.
+
+**Suggestion:** Periodically audit Supabase policies and RPC definitions (`create_new_class`, `list_accessible_classes`, `lookup_teacher_by_email`, `award_points_to_student`) to confirm they enforce the same rules as the UI.
+
+### 5. Add server-side route protection for dashboard routes
+
+**Where:** `src/app/dashboard/layout.tsx`, `src/features/dashboard/hooks/sync/DashboardClassesSync.tsx`, `src/features/dashboard/hooks/sync/DashboardProfileSync.tsx`
+
+**Finding:** Dashboard protection currently happens after the client app loads and checks session state. There is no `middleware.ts` gate for `/dashboard/*`.
+
+**Why it matters:** Users without a valid session can still receive the dashboard JavaScript and shell before the client redirects them. RLS should still block data, but server-side route protection gives a stronger first layer.
+
+**Suggestion:** Add Supabase SSR middleware for `/dashboard/*` to validate cookies and redirect unauthenticated users before rendering the dashboard.
+
+### 6. Prefer validated user checks for security-sensitive decisions
+
+**Where:** `src/lib/api/auth.service.ts`, `src/lib/api/auth.ts`, `src/features/dashboard/lib/api/skills.ts`
+
+**Finding:** Some auth helpers use `supabase.auth.getSession()`.
+
+**Why it matters:** `getSession()` reads the local session. For sensitive decisions, Supabase recommends validating the user with `getUser()` because it checks with Supabase Auth.
+
+**Suggestion:** Use `getUser()` where code is deciding whether a user may do something important, and keep `getSession()` for lightweight UI state only.
+
+### 7. Validate route `classId` before loading class data
+
+**Where:** `src/features/dashboard/hooks/sync/useDashboardRouteStateSync.ts`, `src/features/dashboard/hooks/sync/DashboardStudentSync.tsx`, `src/features/dashboard/hooks/sync/dashboardStudentRefresh.ts`
+
+**Finding:** A `/dashboard/classes/[classId]` URL can trigger data fetches for that ID before the app verifies it is in the user's accessible class list.
+
+**Why it matters:** Correct RLS should still block unauthorized data, but the app should avoid even attempting to load class data for a class the user cannot access.
+
+**Suggestion:** Add an app-layer guard that checks the route `classId` against accessible classes before triggering roster, attendance, or seating fetches.
+
+### 8. Enforce signup and role restrictions outside the form
+
+**Where:** `src/features/auth/hooks/useAuthFlow.ts`, `src/lib/api/auth.service.ts`
+
+**Finding:** Email-domain and role restrictions are mostly enforced by React form logic.
+
+**Why it matters:** A modified client can bypass form checks and call auth helpers directly.
+
+**Suggestion:** Mirror these restrictions in Supabase Auth settings, hooks, database triggers, or profile creation policies.
+
+### 9. Add security headers
+
+**Where:** `next.config.ts`
+
+**Finding:** The audit did not find configured security headers such as Content Security Policy, frame protection, or HSTS.
+
+**Why it matters:** Security headers help browsers block common attack paths like clickjacking and some script injection patterns.
+
+**Suggestion:** Add a conservative `headers()` configuration, then loosen it only where required by Supabase and external assets.
+
+---
+
+## Memory & Performance Efficiency
+
+### 1. Points report fetches event rows and aggregates in the browser
+
+**Where:** `src/features/dashboard/lib/api/pointsReport.ts`, `src/hooks/usePointsReport.ts`
+
+**Finding:** Category-filtered report totals fetch matching `point_events` rows and sum them client-side.
+
+**Why it matters:** This is simple and works for small classes, but point history grows over time. A class with many students and months of events could download many rows just to show a single summary table.
+
+**Suggestion:** Move category totals into a Supabase RPC or SQL view that groups by `student_id` and category server-side. That reduces network traffic and memory use.
+
+### 2. Filtered points report can refetch often while open
+
+**Where:** `src/hooks/usePointsReport.ts`
+
+**Finding:** The report refetches filtered totals when the `students` array changes, because the hook depends on the whole students array.
+
+**Why it matters:** This keeps data fresh, but a points update or roster refresh can trigger a full report refetch. For a small prototype this is acceptable; for larger use it may feel sluggish.
+
+**Suggestion:** Refetch based on a smaller key such as student IDs plus a points version/timestamp, or trigger report refresh from point-award completion events.
+
+### 3. Large seating hook concentrates many responsibilities
+
+**Where:** `src/hooks/useSeatingChart.ts`
+
+**Finding:** `useSeatingChart.ts` is large and handles fetching, layout state, group operations, randomizing, swapping, alerts, and event listeners.
+
+**Why it matters:** Large hooks keep a lot of state and callbacks alive at once. They are also harder to reason about, which makes performance and bug fixes riskier.
+
+**Suggestion:** Split it gradually into focused hooks: layout fetching, group CRUD, seat assignment, randomization, and editor events.
+
+### 4. Random sorting with `Math.random() - 0.5` is inefficient and biased
+
+**Where:** `src/hooks/useSeatingChart.ts`
+
+**Finding:** Random seating uses `.sort(() => Math.random() - 0.5)`.
+
+**Why it matters:** This common shortcut does not produce a perfectly fair shuffle and can be less efficient than a proper shuffle.
+
+**Suggestion:** Use a Fisher-Yates shuffle helper for seating randomization.
+
+### 5. Some list counts load full rows instead of asking the database for counts
+
+**Where:** `src/features/classes/lib/api/classes.ts`
+
+**Finding:** `getStudentCountsByClassIds` selects `class_id` for all students and counts them in JavaScript.
+
+**Why it matters:** For small classes this is fine. At scale, it downloads rows only to count them.
+
+**Suggestion:** Use a database aggregate or RPC for counts when the data grows.
+
+### 6. Student grid work can multiply during point updates
+
+**Where:** `src/features/students/components/cards/StudentCard.tsx`, `src/features/students/StudentsCardsGrid.tsx`, `src/features/students/stores/dashboardStudentSelectors.ts`
+
+**Finding:** A point update replaces the student list, the grid re-sorts students, and each card performs list/selection checks during render.
+
+**Why it matters:** With typical class sizes this is manageable, but frequent awards or multi-select operations can cause many small recalculations at once.
+
+**Suggestion:** Consider normalizing students by ID in the store, using `Set`-based selection checks, and memoizing sorted IDs so one student's point change does not make every card do avoidable work.
+
+### 7. Cross-tab point sync updates students one at a time
+
+**Where:** `src/features/dashboard/hooks/sync/DashboardStudentSync.tsx`, `src/features/dashboard/stores/useDashboardStore.ts`
+
+**Finding:** The store has a good batched `applyPointsDelta` pattern, but some sync paths update students in a loop.
+
+**Why it matters:** Updating students one-by-one can trigger multiple UI refreshes instead of one.
+
+**Suggestion:** Add a batch update store action and use it for realtime/cross-tab point sync.
+
+### 8. Student roster cache is unbounded
+
+**Where:** `src/features/dashboard/hooks/sync/dashboardStudentRefresh.ts`
+
+**Finding:** A module-level cache keeps class rosters for visited classes without an eviction policy.
+
+**Why it matters:** Long sessions across many classes can slowly grow memory usage.
+
+**Suggestion:** Add a small LRU limit, clear old class entries on class switch, or clear the cache on sign-out.
+
+### 9. Point log downloads all history before paginating
+
+**Where:** `src/features/dashboard/lib/api/points.ts`, `src/hooks/useClassPointLog.ts`
+
+**Finding:** The point log fetches all standard and custom point events for all class students, then paginates in the browser.
+
+**Why it matters:** Older classes can accumulate a lot of point history. Downloading everything makes the first open slower and uses more memory.
+
+**Suggestion:** Add server-side pagination, a date range, or a capped query with cursor/offset support.
+
+### 10. Random picker keeps a separate roster copy
+
+**Where:** `src/features/dashboard/hooks/useRandomStudentFlow.ts`, `src/features/dashboard/tools/Random.tsx`
+
+**Finding:** Random picker fetches and stores its own students separately from the dashboard store/cache.
+
+**Why it matters:** This keeps duplicate roster data in memory and can drift from the main roster if sync timing differs.
+
+**Suggestion:** Reuse dashboard roster data when possible, and only fetch extra Random-specific fields such as `has_been_picked` when needed.
+
+---
+
+## Naming & Architecture Conventions
+
+### 1. Legacy alias exports keep old names alive
+
+**Where:** `src/features/classes/lib/api/classes.ts`, `src/features/students/lib/api/students.ts`, `src/features/dashboard/lib/api/points.ts`
+
+**Finding:** Several files export newer function names and older aliases, such as `fetchStudentsByClassId`, `insertStudent`, and `awardPointsToStudents`.
+
+**Why it matters:** Aliases reduce migration pain, but over time they make it unclear which name is preferred.
+
+**Suggestion:** Keep a short deprecation list, migrate imports to the canonical names, then remove aliases in one cleanup pass.
+
+### 2. `useSeatingLayoutManager` lives in global hooks but is seating-specific
+
+**Where:** `src/hooks/useSeatingLayoutManager.ts`
+
+**Finding:** The hook is tightly tied to seating layouts but lives in the shared `src/hooks` folder.
+
+**Why it matters:** Shared hooks are best for cross-feature utilities. Feature-specific orchestration is easier to find under the feature it serves.
+
+**Suggestion:** Consider moving it to `src/features/seating/hooks/useSeatingLayoutManager.ts` in a future refactor, updating imports only.
+
+### 3. Orchestration hooks are split across two homes
+
+**Where:** `src/hooks/`, `src/features/*/hooks/`
+
+**Finding:** Some orchestration hooks live globally (`useClassPointLog`, `usePointsReport`, `useSeatingChart`), while many similar hooks live under feature folders.
+
+**Why it matters:** A new developer may not know where to put the next hook, and related logic can become harder to find.
+
+**Suggestion:** Clarify the rule in docs: global `src/hooks` for truly cross-feature hooks; feature-specific orchestration under `src/features/<feature>/hooks`.
+
+### 4. Dashboard chrome sometimes performs orchestration
+
+**Where:** `src/features/dashboard/components/frame/navbars/LeftNav.tsx`, `src/features/dashboard/components/frame/navbars/SeatingEditorLeftNav.tsx`, `src/features/dashboard/layouts/DashboardShell.tsx`
+
+**Finding:** Some Tier 1 chrome changes global state directly or mounts modal orchestration directly.
+
+**Why it matters:** Chrome is easiest to maintain when it mostly displays navigation and delegates behavior to sync hooks or Tier 2 hosts.
+
+**Suggestion:** When touching these areas, move behavior toward the existing host/controller and sync-hook patterns.
+
+### 5. Some Tier 3 UI still reads stores or imports hook helpers
+
+**Where:** `src/features/classes/components/cards/ClassCard.tsx`, `src/features/dashboard/components/menus/LeftNavWebsitesMenu.tsx`, `src/features/dashboard/components/PointsLogDrawer.tsx`, `src/features/dashboard/components/points-report/PointsReportTable.tsx`
+
+**Finding:** A few presentational components still read stores or import types/helpers from hook files.
+
+**Why it matters:** It blurs the boundary between UI and orchestration, making components harder to reuse and test.
+
+**Suggestion:** Treat these as cleanup targets when those files are next edited; pass data and formatter helpers down through props where practical.
+
+### 6. Dashboard content has a few viewport-height exceptions
+
+**Where:** `src/features/dashboard/DashboardView.tsx`, `src/features/dashboard/components/frame/navbars/LeftNav.tsx`
+
+**Finding:** The audit found `h-screen` / `max-h-screen` usage inside dashboard content/chrome.
+
+**Why it matters:** Dashboard internals are supposed to rely on the shell grid with `h-full` and `min-h-0`; viewport height classes can cause scroll or overflow quirks.
+
+**Suggestion:** Replace inner viewport-height classes with grid-safe sizing when touching these files.
+
+### 7. Naming style is mostly good, but API modules mix verbs
+
+**Where:** `src/features/students/lib/api/students.ts`, `src/features/classes/lib/api/classes.ts`, `src/features/dashboard/lib/api/points.ts`
+
+**Finding:** Function names mix `list`, `fetch`, `insert`, `create`, and legacy aliases.
+
+**Why it matters:** Mixed verbs make it harder for a new developer to guess the right function name.
+
+**Suggestion:** Prefer a consistent vocabulary: `list*` for collections, `get*` for one value, `create*`, `update*`, `delete*`, and avoid new `fetch*` aliases.
+
+### 8. Icon file names use mixed conventions
+
+**Where:** `src/components/ui/icons/`
+
+**Finding:** Icon files use styles like `iconAddPlus.tsx`, `IconTimerClock`, `AddPlusIcon.tsx`, `CanvasPointsReportIcon.tsx`, and `EditorAddMultipleIcon.tsx`.
+
+**Why it matters:** Mixed naming is harmless at runtime but makes searching and adding icons slower.
+
+**Suggestion:** Pick one future convention, preferably `PascalCaseIcon.tsx`, and migrate gradually.
+
+### 9. Dependency versions should be aligned
+
+**Where:** `package.json`
+
+**Finding:** The app uses `next` `^16.0.7`, but `eslint-config-next` is `15.5.4`.
+
+**Why it matters:** ESLint rules may not exactly match the installed Next.js version, which can cause confusing lint behavior.
+
+**Suggestion:** Align `eslint-config-next` with the installed Next major version when the package ecosystem supports it.
+
+### 10. Dev and production build engines differ
+
+**Where:** `package.json`
+
+**Finding:** `dev` uses `next dev --webpack`, while `build` uses `next build --turbopack`.
+
+**Why it matters:** The app may behave differently in development and production if the bundlers resolve or optimize code differently.
+
+**Suggestion:** Use the same engine for dev and build where practical, or document why the split is intentional.
+
+---
+
+## Potential Bugs
+
+### 1. Student numbers can race during simultaneous adds
+
+**Where:** `src/features/students/lib/api/students.ts`
+
+**Finding:** New student numbers are assigned by reading the current max number and adding one in client-driven code.
+
+**Why it matters:** If two teachers add students at the same time, both can calculate the same next number before either insert finishes.
+
+**Suggestion:** Move student-number assignment into a database transaction/RPC, or add a uniqueness constraint plus retry logic.
+
+### 2. Class deletion may leave related records behind
+
+**Where:** `src/features/classes/lib/api/classes.ts`
+
+**Finding:** `deleteClassPermanently` deletes students and then the class. It does not visibly delete point events, custom point events, seating charts, groups, assignments, attendance events, or collaborators in this function.
+
+**Why it matters:** If the database does not cascade all related tables, deleting a class can leave orphaned history or fail because child rows still exist.
+
+**Suggestion:** Confirm foreign-key cascade rules in Supabase. If they are not comprehensive, use a database RPC for class deletion.
+
+### 3. Points reset may not reset all history consistently
+
+**Where:** `src/features/students/lib/api/students.ts`, `docs/db-schema.md`
+
+**Finding:** `resetPointsByStudentIds` sets cached `students.points` to zero, and a separate helper deletes custom point events. Standard `point_events` are not deleted here.
+
+**Why it matters:** The visible total can be zero while the point log/report history still contains old standard events. That may be intentional, but it can confuse teachers.
+
+**Suggestion:** Decide and document the product rule: reset totals only, reset custom events only, or reset all history. Align reports with that rule.
+
+### 4. Class creation silently returns if fallback lookup fails
+
+**Where:** `src/features/classes/lib/api/classes.ts`
+
+**Finding:** If `create_new_class` succeeds but does not return a class ID, the fallback lookup can fail and `createClass` simply returns without throwing.
+
+**Why it matters:** The UI may think creation completed while the icon update did not happen, or the class does not appear as expected.
+
+**Suggestion:** Throw an explicit error when the new class ID cannot be resolved.
+
+### 5. Points report popover positioning may overflow on small screens
+
+**Where:** `src/features/dashboard/components/points-report/CategoryFilterPopover.tsx`
+
+**Finding:** The popover uses a fixed position from the button and only clamps the left edge.
+
+**Why it matters:** On small screens or near the bottom of the viewport, the popup can go off-screen.
+
+**Suggestion:** Reuse the existing anchored dropdown helper pattern used by toolbar menus, or clamp both horizontal and vertical edges.
+
+---
+
+## Dead Code & Inefficient Code
+
+### 1. Unused drag-and-drop dependency
+
+**Where:** `package.json`, `package-lock.json`
+
+**Finding:** `@hello-pangea/dnd` is installed but no imports were found.
+
+**Why it matters:** Unused dependencies increase install size, audit surface, and potentially bundle size if accidentally imported later.
+
+**Suggestion:** Remove it unless drag-and-drop work is planned soon.
+
+### 2. Debug logs remain in seating chart logic
+
+**Where:** `src/hooks/useSeatingChart.ts`
+
+**Finding:** There are `console.log` calls for swapping students and opening group edit modal.
+
+**Why it matters:** Debug logs can leak classroom data into the browser console and make production debugging noisy.
+
+**Suggestion:** Remove them or guard them behind a development-only debug flag.
+
+### 3. Many user-facing errors still use browser `alert`
+
+**Where:** `src/hooks/useSeatingChart.ts`, `src/features/classes/hooks/useClassManagement.ts`, `src/features/dashboard/hooks/useSubmitPointAward.ts`, and others
+
+**Finding:** The app uses many `alert()` and one `confirm()` call for errors and confirmations.
+
+**Why it matters:** Alerts block the browser, are hard to style, and can feel inconsistent with the rest of the app's modal system.
+
+**Suggestion:** Gradually replace alerts with existing modal/toast patterns. This is a UX cleanup, not an urgent security issue.
+
+### 4. Duplicate sorting logic exists in multiple places
+
+**Where:** `src/features/students/stores/dashboardStudentSelectors.ts`, `src/features/students/hooks/useSortedStudents.ts`, `src/hooks/usePointsReport.ts`
+
+**Finding:** Student sorting rules are implemented in more than one place.
+
+**Why it matters:** Duplicate sorting logic can drift, creating small differences between grid, reports, and nav behavior.
+
+**Suggestion:** Move roster sorting into one shared utility and reuse it everywhere.
+
+### 5. Duplicate or unused icons
+
+**Where:** `src/components/ui/icons/iconAddPlus.tsx`, `src/components/ui/icons/EditPencilIcon.tsx`, `src/components/ui/icons/iconEditPencil.tsx`
+
+**Finding:** `iconAddPlus.tsx` appears unused, and pencil icons exist in two variants.
+
+**Why it matters:** Small duplicates are harmless but make the icon library harder to search and maintain.
+
+**Suggestion:** Remove unused icons and consolidate duplicate icons during an icon naming cleanup.
+
+### 6. Generated build output should stay out of git
+
+**Where:** `.gitignore`, `.next/`
+
+**Finding:** `.gitignore` correctly ignores `/.next/`, but the working tree previously showed many untracked `.next` files.
+
+**Why it matters:** Build output is large, noisy, and can hide real code changes in git status.
+
+**Suggestion:** Keep `.next/` ignored and occasionally clean local build output before reviewing status.
+
+### 7. Some helper comments describe behavior that should be encoded in names/tests
+
+**Where:** `src/hooks/useSeatingChart.ts`, `src/lib/iconUtils.ts`, `src/features/dashboard/stores/useDashboardStore.ts`
+
+**Finding:** A few comments explain important invariants, such as seat-index behavior and static icon counts.
+
+**Why it matters:** Comments help, but important business rules are safer when backed by tests or small named helpers.
+
+**Suggestion:** When tests are added, cover seat-index behavior, points reset behavior, and attendance filtering.
+
+---
+
+## Recommended Priority List
+
+### High Priority
+
+1. Verify and version-control RLS policies for `point_events` and `custom_point_events`.
+2. Move student-number assignment into a database-safe flow to avoid duplicate numbers.
+3. Confirm class deletion cascades or replace it with a database RPC.
+4. Remove unused `@hello-pangea/dnd` if drag-and-drop is not planned.
+5. Batch cross-tab student point sync updates.
+
+### Medium Priority
+
+1. Move points-report and point-log aggregation/pagination server-side when point history grows.
+2. Split `useSeatingChart.ts` into smaller hooks and reduce duplicate seating state.
+3. Normalize student grid subscriptions and consolidate sorting utilities.
+4. Replace `Math.random() - 0.5` shuffles with Fisher-Yates.
+5. Add an eviction policy for roster caches.
+6. Align `eslint-config-next` with the installed Next.js major version.
+
+### Low Priority
+
+1. Remove debug `console.log` calls.
+2. Replace browser alerts with app-native modals/toasts.
+3. Retire legacy API aliases after imports are migrated.
+4. Clarify hook placement rules and clean up feature-specific hooks in `src/hooks`.
+5. Standardize icon naming.
+6. Align or document Webpack dev vs Turbopack build usage.
+7. Keep generated `.next/` output out of commits.
+
+---
+
+## Final Notes
+
+This codebase is in decent shape for a prototype: state is mostly centralized, Supabase access is mostly isolated, and the dashboard/app-folder boundaries are largely respected. The most important next step is hardening the data layer, because the browser app is only as secure as the database policies behind it.
