@@ -491,8 +491,10 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       };
     }, [selectedLayoutId, applyLayoutViewSettings]);
 
-    const fetchGroups = useCallback(async () => {
+    const fetchGroups = useCallback(async (options?: { preserveLocalPositions?: boolean }) => {
       if (!selectedLayoutId) return;
+
+      const preserveLocalPositions = options?.preserveLocalPositions ?? false;
 
       try {
         setIsLoadingGroups(true);
@@ -506,6 +508,8 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           setGroupPositions(prev => {
             const newPositions = new Map(prev);
             groupsData.forEach((group, index) => {
+              // Keep any position already tracked locally (e.g. unsaved drags)
+              if (preserveLocalPositions && newPositions.has(group.id)) return;
               // Use saved position from database if available, otherwise default
               if (group.position_x !== undefined && group.position_y !== undefined) {
                 newPositions.set(group.id, { 
@@ -1069,8 +1073,8 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
             return newPositions;
           });
           
-          // Refresh groups to get the latest data
-          await fetchGroups();
+          // Refresh groups to get the latest data (keep unsaved drag positions)
+          await fetchGroups({ preserveLocalPositions: true });
         }
       } catch (err) {
         console.error('Unexpected error creating multiple groups:', err);
