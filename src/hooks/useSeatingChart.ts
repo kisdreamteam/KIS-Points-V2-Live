@@ -79,7 +79,7 @@ const BATCH_GROUP_HEIGHT = 150;
 const BATCH_GROUP_HORIZONTAL_SPACING = 30;
 const BATCH_GROUP_VERTICAL_SPACING = 30;
 const BATCH_GROUP_START_X = 50;
-const BATCH_GROUP_START_Y = 50;
+const BATCH_GROUP_START_Y = 150;
 
 function getMaxSeatIndexFromAssignments(assignments: GroupAssignment[]): number {
   if (assignments.length === 0) return 0;
@@ -1033,7 +1033,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         const nextGroupNumber = groups.length + 1;
         const groupsToCreate: GroupToCreate[] = [];
         for (let i = 0; i < numGroups; i++) {
-          const { x, y } = getBatchGroupPosition(i, groupWidth);
+          const { x, y } = getBatchGroupPosition(groups.length + i, groupWidth);
           
           groupsToCreate.push({
             name: `Group ${nextGroupNumber + i}`,

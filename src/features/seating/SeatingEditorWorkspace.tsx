@@ -237,6 +237,7 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
                 showObjects={showObjects}
                 layoutOrientation={layoutOrientation}
                 borderClassName="border-black"
+                showSaveHint
               />
               {isLoadingGroups ? (
                 <div className="flex items-center justify-center p-8 relative" style={{ zIndex: 1 }}>

@@ -6,6 +6,7 @@ interface SeatingCanvasDecorProps {
   layoutOrientation: string;
   isTeacherView?: boolean;
   borderClassName?: string;
+  showSaveHint?: boolean;
 }
 
 export default function SeatingCanvasDecor({
@@ -14,6 +15,7 @@ export default function SeatingCanvasDecor({
   layoutOrientation,
   isTeacherView = false,
   borderClassName = 'border-gray-800',
+  showSaveHint = false,
 }: SeatingCanvasDecorProps) {
   const teacherViewLabelStyle: CSSProperties | undefined = isTeacherView
     ? { display: 'inline-block', transform: 'rotate(-180deg)' }
@@ -48,6 +50,33 @@ export default function SeatingCanvasDecor({
             Whiteboard and TV
           </span>
         </div>
+
+        {showSaveHint && (
+          <div
+            className={`sticky left-1/2 -translate-x-1/2 bg-red-600 border-2 border-red-800 rounded-lg flex items-center justify-center gap-2 px-4`}
+            style={{
+              top: '40px',
+              width: 'fit-content',
+              maxWidth: '90%',
+              height: '36px',
+              zIndex: 1,
+            }}
+          >
+            <span className="text-white font-semibold whitespace-nowrap" style={teacherViewLabelStyle}>
+              You must click on the &quot;X&quot; to save this seating chart
+            </span>
+            <svg
+              className="w-5 h-5 text-white flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              style={teacherViewLabelStyle}
+              aria-hidden
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </div>
+        )}
 
         {showObjects && (
           <div
