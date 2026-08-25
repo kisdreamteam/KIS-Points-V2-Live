@@ -50,7 +50,7 @@ export default function StudentCard({
 
   const cardClassName =
     isMultiSelectMode && isSelected
-      ? 'z-[1] hover:shadow-md ring-4 ring-blue-500'
+      ? 'z-[1] hover:shadow-md ring-4 ring-blue-500 !bg-blue-200'
       : 'z-[1] hover:shadow-md hover:!bg-blue-100';
 
   const topRightSlot = isMultiSelectMode ? (
