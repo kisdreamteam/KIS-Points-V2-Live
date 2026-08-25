@@ -80,6 +80,10 @@ const BATCH_GROUP_HORIZONTAL_SPACING = 30;
 const BATCH_GROUP_VERTICAL_SPACING = 30;
 const BATCH_GROUP_START_X = 50;
 const BATCH_GROUP_START_Y = 150;
+/** Yellow highlight hold before moving a student during randomize (50% faster than 600ms). */
+const RANDOMIZE_ABOUT_TO_MOVE_MS = 300;
+/** Blue highlight hold before advancing to the next student during randomize (50% faster than 800ms). */
+const RANDOMIZE_BEING_PLACED_MS = 400;
 
 function getMaxSeatIndexFromAssignments(assignments: GroupAssignment[]): number {
   if (assignments.length === 0) return 0;
@@ -763,8 +767,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           // Show yellow (about to move)
           setStudentsAboutToMove(prev => new Set(prev).add(student.id));
           
-          // Wait a bit before showing blue (increased from 300ms to 600ms)
-          await new Promise(resolve => setTimeout(resolve, 600));
+          await new Promise((resolve) => setTimeout(resolve, RANDOMIZE_ABOUT_TO_MOVE_MS));
           
           // Show blue (being placed) and update local state
           setStudentsAboutToMove(prev => {
@@ -785,8 +788,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
             return newMap;
           });
           
-          // Wait a bit before moving to next student (increased from 400ms to 800ms)
-          await new Promise(resolve => setTimeout(resolve, 800));
+          await new Promise((resolve) => setTimeout(resolve, RANDOMIZE_BEING_PLACED_MS));
           
           // Remove blue state
           setStudentsBeingPlaced(prev => {
@@ -933,25 +935,26 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     }, []);
 
     const removeStudentFromGroup = (studentId: string, groupId: string) => {
-      let removedStudent: Student | undefined;
-      setGroupAssignments(prev => {
+      const list = groupAssignmentsRef.current.get(groupId) ?? [];
+      const found = list.find((a) => a.student.id === studentId);
+      if (!found) return;
+
+      const removedStudent = found.student;
+
+      setGroupAssignments((prev) => {
         const newMap = new Map(prev);
-        const list = newMap.get(groupId) ?? [];
-        const found = list.find(a => a.student.id === studentId);
-        if (found) removedStudent = found.student;
-        if (removedStudent) {
-          newMap.set(groupId, list.filter(a => a.student.id !== studentId));
-        }
+        const currentList = newMap.get(groupId) ?? [];
+        newMap.set(groupId, currentList.filter((a) => a.student.id !== studentId));
         return newMap;
       });
 
-      if (removedStudent) {
-        setUnseatedStudents((prev: Student[]) => {
-          if (!prev.find(s => s.id === removedStudent!.id)) {
-            return [...prev, removedStudent!];
-          }
-          return prev;
-        });
+      setUnseatedStudents((prev: Student[]) => {
+        const existingIds = new Set(prev.map((s) => s.id));
+        return existingIds.has(removedStudent.id) ? prev : [...prev, removedStudent];
+      });
+
+      if (selectedStudentForGroup?.id === studentId) {
+        setSelectedStudentForGroup(null);
       }
     };
 
