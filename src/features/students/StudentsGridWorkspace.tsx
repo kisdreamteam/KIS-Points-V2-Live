@@ -161,7 +161,14 @@ export default function StudentsGridWorkspace({
 
   return (
     <StageTwoColumnSplit rightRail={<StudentsGridWorkspaceToolbar isPointsReportOpen={isPointsReportOpen} />}>
-      {mainContent}
+      <div
+        className={[
+          'h-full min-h-0 w-full min-w-0 transition-colors duration-300',
+          isMultiSelectMode ? 'bg-white/50' : 'bg-brand-purple',
+        ].join(' ')}
+      >
+        {mainContent}
+      </div>
     </StageTwoColumnSplit>
   );
 }
