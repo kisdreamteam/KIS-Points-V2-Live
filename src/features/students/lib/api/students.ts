@@ -2,6 +2,7 @@ import { createClient } from '@/lib/client';
 import type { Student } from '@/lib/types';
 import { throwApiError } from '@/lib/api/errors';
 import type { PickerPool } from '@/features/dashboard/lib/randomPickerPool';
+import { parseStudentLevel } from '@/features/students/lib/studentLevel';
 
 export async function listStudentsByClassId(classId: string): Promise<Student[]> {
   const supabase = createClient();
@@ -16,6 +17,7 @@ export async function listStudentsByClassId(classId: string): Promise<Student[]>
         avatar,
         student_number,
         gender,
+        level,
         class_id
       `
     )
@@ -32,7 +34,7 @@ export async function listStudentsForRandomByClassId(classId: string): Promise<S
   const supabase = createClient();
   const { data, error } = await supabase
     .from('students')
-    .select('id, first_name, last_name, points, class_id, student_number, gender, avatar, has_been_picked')
+    .select('id, first_name, last_name, points, class_id, student_number, gender, level, avatar, has_been_picked')
     .eq('class_id', classId)
     .eq('is_archived', false)
     .order('last_name', { ascending: true });
@@ -111,10 +113,12 @@ export async function createStudent(studentData: {
   class_id: string;
   avatar: string;
   gender?: string | null;
+  level?: string | null;
 }): Promise<void> {
   const supabase = createClient();
   const student_number = await getNextStartingStudentNumber(studentData.class_id);
-  const { error } = await supabase.from('students').insert({ ...studentData, student_number });
+  const level = parseStudentLevel(studentData.level);
+  const { error } = await supabase.from('students').insert({ ...studentData, student_number, level });
   if (error) throwApiError(error, 'createStudent');
 }
 
@@ -151,13 +155,17 @@ export async function updateStudent(
     last_name: string | null;
     student_number: number | null;
     gender: string | null;
+    level?: string | null;
     avatar?: string;
   }
 ): Promise<void> {
   const supabase = createClient();
+  const { level, ...rest } = patch;
+  const updatePayload =
+    level !== undefined ? { ...rest, level: parseStudentLevel(level) } : rest;
   const { error } = await supabase
     .from('students')
-    .update(patch)
+    .update(updatePayload)
     .eq('id', studentId);
   if (error) throwApiError(error, 'updateStudent');
 }
@@ -169,11 +177,13 @@ export async function bulkUpdateStudents(
     last_name: string | null;
     student_number: number | null;
     gender: string | null;
+    level: string | null;
   }>
 ): Promise<void> {
   const supabase = createClient();
   await Promise.all(
     updates.map(async (student) => {
+      const level = parseStudentLevel(student.level);
       const { error } = await supabase
         .from('students')
         .update({
@@ -181,6 +191,7 @@ export async function bulkUpdateStudents(
           last_name: student.last_name,
           student_number: student.student_number,
           gender: student.gender,
+          level,
         })
         .eq('id', student.id);
       if (error) throwApiError(error, 'bulkUpdateStudents');

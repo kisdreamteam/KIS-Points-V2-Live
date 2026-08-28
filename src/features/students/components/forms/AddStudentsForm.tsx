@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import StudentEnglishLevelSelect from '@/features/students/components/forms/StudentEnglishLevelSelect';
 
 export type AddStudentsFormSubmitValues =
   | {
       mode: 'single';
       studentName: string;
       gender: string | null;
+      level: string | null;
     }
   | {
       mode: 'bulk';
@@ -35,6 +37,7 @@ export default function AddStudentsForm({
   const [view, setView] = useState<'single' | 'bulk'>('single');
   const [studentName, setStudentName] = useState('');
   const [gender, setGender] = useState<string>('');
+  const [level, setLevel] = useState<string>('');
   const [studentList, setStudentList] = useState('');
   const [importType, setImportType] = useState<'word' | 'excel'>('word');
 
@@ -42,6 +45,7 @@ export default function AddStudentsForm({
     setView('single');
     setStudentName('');
     setGender('');
+    setLevel('');
     setStudentList('');
     setImportType('word');
     onClose();
@@ -50,7 +54,12 @@ export default function AddStudentsForm({
   const handleSaveStudent = async () => {
     const name = studentName.trim();
     if (!name) return;
-    await onSubmit({ mode: 'single', studentName: name, gender: gender.trim() || null });
+    await onSubmit({
+      mode: 'single',
+      studentName: name,
+      gender: gender.trim() || null,
+      level: level.trim() || null,
+    });
     onStudentAdded();
     handleClose();
   };
@@ -100,6 +109,10 @@ export default function AddStudentsForm({
                 <option value="Boy">Boy</option>
                 <option value="Girl">Girl</option>
               </select>
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Level</label>
+              <StudentEnglishLevelSelect value={level} onChange={setLevel} />
             </div>
           </div>
           <div className="flex items-center justify-between pt-4">

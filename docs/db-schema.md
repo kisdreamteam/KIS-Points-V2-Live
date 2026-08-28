@@ -47,6 +47,7 @@ Note: Students are mapped directly to classes (1:N).
 * `student_number` (int4, nullable) - *Front-end display number*
 * `class_id` (uuid, FK to classes)
 * `gender` (text, nullable)
+* `level` (text, nullable) - *English level: A, B, C, D, FC*
 * `has_been_picked` (boolean) - *State for random student picker*
 * `is_archived` (boolean, nullable) - *Soft-delete; archiving removes `student_seat_assignments` rows without renumbering remaining `seat_index` values*
 

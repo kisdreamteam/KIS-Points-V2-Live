@@ -21,6 +21,7 @@ export interface Student {
   avatar?: string; // Optional, may have a default
   student_number: number | null; // Integer type in database
   gender: string | null; // Optional, nullable
+  level: string | null; // English level: A, B, C, D, FC
   class_id: string;
   is_archived?: boolean;
 }

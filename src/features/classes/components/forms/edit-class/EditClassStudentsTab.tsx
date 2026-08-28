@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { normalizeAvatarPath } from '@/lib/iconUtils';
+import StudentEnglishLevelSelect from '@/features/students/components/forms/StudentEnglishLevelSelect';
 import type { StudentWithPhoto } from '@/features/classes/hooks/useClassManagement';
 
 type EditClassStudentsTabProps = {
@@ -18,6 +19,7 @@ type EditClassStudentsTabProps = {
     value: string | number | null
   ) => void;
   onGenderToggle: (studentId: string, gender: 'Boy' | 'Girl') => void;
+  onLevelChange: (studentId: string, level: string) => void;
 };
 
 export default function EditClassStudentsTab({
@@ -30,6 +32,7 @@ export default function EditClassStudentsTab({
   onSave,
   onFieldChange,
   onGenderToggle,
+  onLevelChange,
 }: EditClassStudentsTabProps) {
   return (
     <div className="space-y-4">
@@ -53,6 +56,7 @@ export default function EditClassStudentsTab({
           <span className="w-32 flex-shrink-0">Last Name</span>
           <span className="w-20 flex-shrink-0 text-center">Student Number</span>
           <span className="w-28 flex-shrink-0 text-center">Gender</span>
+          <span className="w-24 flex-shrink-0 text-center">Level</span>
         </div>
       )}
 
@@ -113,6 +117,13 @@ export default function EditClassStudentsTab({
                 />
                 Girl
               </label>
+            </div>
+            <div className="w-24 flex-shrink-0">
+              <StudentEnglishLevelSelect
+                value={student.level ?? ''}
+                onChange={(value) => onLevelChange(student.id, value)}
+                className="w-full h-9 rounded border border-gray-300 px-2 text-sm bg-white"
+              />
             </div>
           </div>
         ))}

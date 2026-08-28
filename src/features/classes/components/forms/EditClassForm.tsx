@@ -53,6 +53,7 @@ export default function EditClassForm({ mgmt, onClose, onAddStudent }: EditClass
               onSave={() => void mgmt.handleSaveAllChanges()}
               onFieldChange={mgmt.updateStudentField}
               onGenderToggle={mgmt.handleGenderToggle}
+              onLevelChange={mgmt.handleLevelChange}
             />
           )}
 

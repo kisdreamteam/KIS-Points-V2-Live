@@ -240,7 +240,7 @@ export async function listStudentsForClassEdit(classId: string): Promise<Student
   const supabase = createClient();
   const { data, error } = await supabase
     .from('students')
-    .select('id, first_name, last_name, avatar, student_number, gender, class_id, points')
+    .select('id, first_name, last_name, avatar, student_number, gender, level, class_id, points')
     .eq('class_id', classId)
     .eq('is_archived', false);
   if (error) throwApiError(error, 'listStudentsForClassEdit');

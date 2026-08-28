@@ -173,6 +173,7 @@ export function useClassManagement({
           class_id: classId,
           avatar: getRandomAvatar(),
           gender: values.gender,
+          level: values.level,
         });
       } else {
         const lines = values.studentList.split('\n').filter((line) => line.trim() !== '');
@@ -281,7 +282,8 @@ export function useClassManagement({
           student.first_name !== originalStudent.first_name ||
           student.last_name !== originalStudent.last_name ||
           student.student_number !== originalStudent.student_number ||
-          student.gender !== originalStudent.gender;
+          student.gender !== originalStudent.gender ||
+          student.level !== originalStudent.level;
         if (!hasChanged) return [];
         return [{
           id: student.id,
@@ -289,6 +291,7 @@ export function useClassManagement({
           last_name: student.last_name?.trim() || null,
           student_number: student.student_number,
           gender: student.gender,
+          level: student.level,
         }];
       });
       await bulkUpdateStudents(updates);
@@ -343,7 +346,7 @@ export function useClassManagement({
   }, []);
 
   const updateStudentField = useCallback(
-    (studentId: string, field: keyof Pick<Student, 'first_name' | 'last_name' | 'student_number' | 'gender'>, value: string | number | null) => {
+    (studentId: string, field: keyof Pick<Student, 'first_name' | 'last_name' | 'student_number' | 'gender' | 'level'>, value: string | number | null) => {
       setStudents((prev) =>
         prev.map((student) => {
           if (student.id !== studentId) return student;
@@ -366,6 +369,16 @@ export function useClassManagement({
         const newGender = student.gender === targetGender ? null : targetGender;
         return { ...student, gender: newGender };
       })
+    );
+    setHasUnsavedChanges(true);
+  }, []);
+
+  const handleLevelChange = useCallback((studentId: string, rawLevel: string) => {
+    const nextLevel = rawLevel.trim() || null;
+    setStudents((prev) =>
+      prev.map((student) =>
+        student.id === studentId ? { ...student, level: nextLevel } : student
+      )
     );
     setHasUnsavedChanges(true);
   }, []);
@@ -408,5 +421,6 @@ export function useClassManagement({
     handleSwitchFirstAndLastNames,
     updateStudentField,
     handleGenderToggle,
+    handleLevelChange,
   };
 }

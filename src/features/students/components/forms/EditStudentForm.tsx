@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import FormLabel from '@/components/ui/FormLabel';
+import StudentEnglishLevelSelect from '@/features/students/components/forms/StudentEnglishLevelSelect';
 
 const INPUT_CLASS =
   'w-full h-12 rounded-[12px] border border-black/20 bg-white px-4 text-[16px] text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-brand-purple/30';
@@ -17,12 +18,14 @@ export type EditStudentFormProps = {
   lastName: string;
   studentNumber: string;
   gender: string;
+  level: string;
   selectedAvatar: string;
   isLoading: boolean;
   onFirstNameChange: (value: string) => void;
   onLastNameChange: (value: string) => void;
   onStudentNumberChange: (value: string) => void;
   onGenderChange: (value: string) => void;
+  onLevelChange: (value: string) => void;
   onAvatarChange: (path: string) => void;
   onCancel: () => void;
   onSave: () => void;
@@ -33,12 +36,14 @@ export default function EditStudentForm({
   lastName,
   studentNumber,
   gender,
+  level,
   selectedAvatar,
   isLoading,
   onFirstNameChange,
   onLastNameChange,
   onStudentNumberChange,
   onGenderChange,
+  onLevelChange,
   onAvatarChange,
   onCancel,
   onSave,
@@ -167,6 +172,17 @@ export default function EditStudentForm({
           <option value="Boy">Boy</option>
           <option value="Girl">Girl</option>
         </select>
+      </div>
+
+      <div>
+        <FormLabel htmlFor="edit-student-level" className="block text-sm font-bold text-gray-900 mb-2">
+          Level
+        </FormLabel>
+        <StudentEnglishLevelSelect
+          value={level}
+          onChange={onLevelChange}
+          className={INPUT_CLASS}
+        />
       </div>
 
       <div className="flex justify-end gap-3 pt-4">

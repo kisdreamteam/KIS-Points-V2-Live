@@ -65,6 +65,7 @@ export function useDashboardStudentModalActions({
             class_id: currentClassId,
             avatar: getRandomAvatar(),
             gender: values.gender,
+            level: values.level,
           });
         } else {
           const lines = values.studentList.split('\n').filter((line) => line.trim() !== '');

@@ -12,6 +12,7 @@ export type EditStudentModalSubmitValues = {
   last_name: string | null;
   student_number: number | null;
   gender: string | null;
+  level: string | null;
   avatar: string;
 };
 
@@ -27,6 +28,7 @@ export default function EditStudentModal({ isOpen, onClose, student, onSubmit }:
   const [lastName, setLastName] = useState('');
   const [studentNumber, setStudentNumber] = useState('');
   const [gender, setGender] = useState<string>('');
+  const [level, setLevel] = useState<string>('');
   const [selectedAvatar, setSelectedAvatar] = useState<string>('/images/dashboard/student-avatars/avatar-01.png');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -38,12 +40,14 @@ export default function EditStudentModal({ isOpen, onClose, student, onSubmit }:
       setStudentNumber(student.student_number?.toString() || '');
       setSelectedAvatar(normalizeAvatarPath(student.avatar));
       setGender(student.gender || '');
+      setLevel(student.level ?? '');
       setIsLoadingData(false);
     } else if (!isOpen) {
       setFirstName('');
       setLastName('');
       setStudentNumber('');
       setGender('');
+      setLevel('');
       setSelectedAvatar('/images/dashboard/student-avatars/avatar-01.png');
       setIsLoadingData(true);
     }
@@ -68,6 +72,7 @@ export default function EditStudentModal({ isOpen, onClose, student, onSubmit }:
         last_name: lastName.trim() || null,
         student_number: studentNumberValue,
         gender: gender.trim() || null,
+        level: level.trim() || null,
         avatar: selectedAvatar,
       });
     } catch (err) {
@@ -97,12 +102,14 @@ export default function EditStudentModal({ isOpen, onClose, student, onSubmit }:
             lastName={lastName}
             studentNumber={studentNumber}
             gender={gender}
+            level={level}
             selectedAvatar={selectedAvatar}
             isLoading={isLoading}
             onFirstNameChange={setFirstName}
             onLastNameChange={setLastName}
             onStudentNumberChange={setStudentNumber}
             onGenderChange={setGender}
+            onLevelChange={setLevel}
             onAvatarChange={setSelectedAvatar}
             onCancel={onClose}
             onSave={() => void handleSave()}
