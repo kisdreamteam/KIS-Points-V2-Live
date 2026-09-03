@@ -20,10 +20,12 @@ export type SeatingEditorToolbarActionsReturn = {
   showFurniture: boolean;
   teachersDeskLeft: boolean;
   colorByGender: boolean;
+  colorByLevel: boolean;
   onToggleShowGrid: (next: boolean) => void;
   onToggleShowFurniture: (next: boolean) => void;
   onToggleTeachersDeskLeft: (next: boolean) => void;
   onToggleColorByGender: () => void;
+  onToggleColorByLevel: () => void;
   onRandomize: () => void;
   onClearAllGroups: () => void;
   onDeleteAllGroups: () => void;
@@ -39,6 +41,7 @@ export function useSeatingEditorToolbarActions(): SeatingEditorToolbarActionsRet
   const [showFurniture, setShowFurniture] = useState(true);
   const [teachersDeskLeft, setTeachersDeskLeft] = useState(true);
   const [colorByGender, setColorByGender] = useState(true);
+  const [colorByLevel, setColorByLevel] = useState(false);
 
   const emitViewSettingsChanged = useCallback(
     (partial: {
@@ -46,6 +49,7 @@ export function useSeatingEditorToolbarActions(): SeatingEditorToolbarActionsRet
       show_objects?: boolean;
       layout_orientation?: 'Left' | 'Right';
       color_by_gender?: boolean;
+      color_by_level?: boolean;
     }) => {
       if (!layoutId) return;
       emitSeatingViewSettingsChanged({
@@ -63,6 +67,7 @@ export function useSeatingEditorToolbarActions(): SeatingEditorToolbarActionsRet
       setTeachersDeskLeft(detail.layout_orientation === 'Left');
     }
     if (detail.color_by_gender !== undefined) setColorByGender(detail.color_by_gender);
+    if (detail.color_by_level !== undefined) setColorByLevel(detail.color_by_level);
   }, []);
 
   useEffect(() => {
@@ -77,6 +82,7 @@ export function useSeatingEditorToolbarActions(): SeatingEditorToolbarActionsRet
         const orient = data.layout_orientation ?? 'Left';
         setTeachersDeskLeft(orient === 'Left');
         setColorByGender(data.color_by_gender ?? true);
+        setColorByLevel(data.color_by_level ?? false);
       } catch (err) {
         console.error('Unexpected error fetching layout view settings (editor toolbar):', err);
       }
@@ -166,6 +172,20 @@ export function useSeatingEditorToolbarActions(): SeatingEditorToolbarActionsRet
     }
   }, [layoutId, colorByGender, emitViewSettingsChanged]);
 
+  const onToggleColorByLevel = useCallback(async () => {
+    if (!layoutId) return;
+    const next = !colorByLevel;
+    setColorByLevel(next);
+    try {
+      await updateLayoutViewSettings(layoutId, { color_by_level: next });
+      useSeatingStore.getState().syncLayoutViewSettings(layoutId, { color_by_level: next });
+      emitViewSettingsChanged({ color_by_level: next });
+    } catch (err) {
+      console.error('Unexpected error updating color_by_level:', err);
+      setColorByLevel(!next);
+    }
+  }, [layoutId, colorByLevel, emitViewSettingsChanged]);
+
   const onRandomize = useCallback(() => {
     emitSeatingRandomize();
   }, []);
@@ -191,10 +211,12 @@ export function useSeatingEditorToolbarActions(): SeatingEditorToolbarActionsRet
     showFurniture,
     teachersDeskLeft,
     colorByGender,
+    colorByLevel,
     onToggleShowGrid,
     onToggleShowFurniture,
     onToggleTeachersDeskLeft,
     onToggleColorByGender,
+    onToggleColorByLevel,
     onRandomize,
     onClearAllGroups,
     onDeleteAllGroups,

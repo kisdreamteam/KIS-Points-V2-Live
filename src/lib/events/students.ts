@@ -27,7 +27,6 @@ export const STUDENT_EVENTS = {
   SEATING_SAVE: 'seatingChartSave',
   SEATING_ADD_MULTIPLE_GROUPS: 'seatingChartAddMultipleGroups',
   SEATING_AUTO_ASSIGN_SEATS: 'seatingChartAutoAssignSeats',
-  SEATING_COLOR_CODE_BY: 'seatingChartColorCodeBy',
   /** Layout-hosted award modal: patch seating `groupAssignments` only (roster already updated in the dashboard store). */
   SEATING_STUDENT_POINTS_DELTA: 'seatingStudentPointsDelta',
   /** After multi-student award completes: clear grid multi-select selection (listeners in useStudentsSelection). */
@@ -49,10 +48,10 @@ export type SeatingViewSettingsChangedDetail = {
   show_objects?: boolean;
   layout_orientation?: 'Left' | 'Right';
   color_by_gender?: boolean;
+  color_by_level?: boolean;
 };
 export type SeatingSaveDetail = { onSaveComplete?: () => void };
 export type SeatingAddMultipleGroupsDetail = { numGroups: number };
-export type SeatingColorCodeByDetail = { colorCodeBy: 'Gender' | 'Level' };
 
 export function emitSelectionCountChanged(detail: SelectionCountChangedDetail) {
   window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.SELECTION_COUNT_CHANGED, { detail }));
@@ -104,10 +103,6 @@ export function emitSeatingAddMultipleGroups(detail: SeatingAddMultipleGroupsDet
 
 export function emitSeatingAutoAssignSeats() {
   window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.SEATING_AUTO_ASSIGN_SEATS));
-}
-
-export function emitSeatingColorCodeBy(detail: SeatingColorCodeByDetail) {
-  window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.SEATING_COLOR_CODE_BY, { detail }));
 }
 
 export type SeatingStudentPointsDeltaDetail = { classId: string; studentIds: string[]; delta: number };

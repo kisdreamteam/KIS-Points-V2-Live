@@ -57,10 +57,12 @@ export default function SeatingEditorWorkspaceToolbar({
     showFurniture,
     teachersDeskLeft,
     colorByGender,
+    colorByLevel,
     onToggleShowGrid,
     onToggleShowFurniture,
     onToggleTeachersDeskLeft,
     onToggleColorByGender,
+    onToggleColorByLevel,
     onAutoAssignSeats,
     onRandomize,
     onAddGroups,
@@ -181,10 +183,12 @@ export default function SeatingEditorWorkspaceToolbar({
         showFurniture={showFurniture}
         teachersDeskLeft={teachersDeskLeft}
         colorByGender={colorByGender}
+        colorByLevel={colorByLevel}
         onToggleShowGrid={onToggleShowGrid}
         onToggleShowFurniture={onToggleShowFurniture}
         onToggleTeachersDeskLeft={onToggleTeachersDeskLeft}
         onToggleColorByGender={onToggleColorByGender}
+        onToggleColorByLevel={onToggleColorByLevel}
       />
     </div>
   );

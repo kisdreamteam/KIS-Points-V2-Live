@@ -7,6 +7,10 @@ import type { GroupAssignment, SeatingGroupRecord } from '@/features/seating/lib
 import { getNextIndex, getSlotIndex } from '@/features/seating/lib/seatingLogic';
 import { getPresentStudentIdsForGroup } from '@/features/seating/lib/seatingSelection';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
+import {
+  getSeatingCardStyles,
+  getViewMultiSelectCardClasses,
+} from '@/features/seating/lib/seatingCardStyles';
 import { openMultiStudentPointsAward } from '@/features/students/hooks/useBatchPointsAward';
 import { useModalStore } from '@/stores/useModalStore';
 
@@ -42,7 +46,7 @@ export default function SeatingGroupsCanvas({
 }: SeatingGroupsCanvasProps) {
   const showGroupSelection = isMultiSelectMode;
 
-  const { groups, groupAssignmentsById, groupPositionsById, isLoadingGroups, colorByGender } =
+  const { groups, groupAssignmentsById, groupPositionsById, isLoadingGroups, colorByGender, colorByLevel } =
     useSeatingStore(
       useShallow((s) => ({
         groups: s.groups,
@@ -50,6 +54,7 @@ export default function SeatingGroupsCanvas({
         groupPositionsById: s.groupPositionsById,
         isLoadingGroups: s.isLoadingGroups,
         colorByGender: s.colorByGender,
+        colorByLevel: s.colorByLevel,
       }))
     );
 
@@ -155,20 +160,9 @@ export default function SeatingGroupsCanvas({
           const isExplicitlySelected =
             isMultiSelectMode && selectedStudentIds.includes(student.id);
           const isHighlighted = isInSelectedGroup || isExplicitlySelected;
-          let bgColor: string;
-          if (isHighlighted) {
-            bgColor = 'bg-yellow-200 border-yellow-400';
-          } else if (!colorByGender) {
-            bgColor = 'bg-white border-gray-200';
-          } else if (student.gender === null || student.gender === undefined || student.gender === '') {
-            bgColor = 'bg-white border-gray-200';
-          } else if (student.gender === 'Boy') {
-            bgColor = 'bg-blue-200 border-blue-300';
-          } else if (student.gender === 'Girl') {
-            bgColor = 'bg-pink-200 border-pink-300';
-          } else {
-            bgColor = 'bg-white border-gray-200';
-          }
+          const cardClasses = isHighlighted
+            ? getViewMultiSelectCardClasses()
+            : getSeatingCardStyles(student, { colorByGender, colorByLevel }).className;
 
           return (
             <div
@@ -181,7 +175,7 @@ export default function SeatingGroupsCanvas({
                   handleStudentClick(student);
                 }
               }}
-              className={`flex items-center gap-1 p-1.5 rounded border cursor-pointer hover:opacity-90 transition-opacity min-w-0 overflow-hidden ${bgColor}`}
+              className={`flex items-center gap-1 p-1.5 rounded border cursor-pointer hover:opacity-90 transition-opacity min-w-0 overflow-hidden ${cardClasses}`}
               style={{
                 width: '100%',
                 height: `${studentCardHeight}px`,

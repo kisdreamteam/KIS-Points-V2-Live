@@ -99,6 +99,8 @@ The master configuration for a room's layout.
 * `show_grid` (boolean)
 * `show_objects` (boolean)
 * `layout_orientation` (text)
+* `color_by_gender` (boolean) - *Gender background tint on seated student cards*
+* `color_by_level` (boolean, default: false) - *Level border color/thickness on seated student cards*
 
 **Table: `seating_groups`**
 Defines a specific cluster of desks (e.g., a "table" or "row").

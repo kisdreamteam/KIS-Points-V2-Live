@@ -267,8 +267,6 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     const canvasContainerRef = useRef<HTMLDivElement | null>(null);
     // Track which group is being dragged
     const [draggedGroupId, setDraggedGroupId] = useState<string | null>(null);
-    // Color coding mode: "Gender" or "Level"
-    const [colorCodeBy, setColorCodeBy] = useState<'Gender' | 'Level'>('Gender');
     // View settings from database
     const [showGrid, setShowGrid] = useState<boolean>(true);
     const [showObjects, setShowObjects] = useState<boolean>(true);
@@ -279,6 +277,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       show_objects?: boolean | null;
       layout_orientation?: string | null;
       color_by_gender?: boolean | null;
+      color_by_level?: boolean | null;
     }) => {
       if (data.show_grid !== undefined) {
         setShowGrid(data.show_grid ?? true);
@@ -288,9 +287,6 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       }
       if (data.layout_orientation !== undefined) {
         setLayoutOrientation(data.layout_orientation ?? 'Left');
-      }
-      if (data.color_by_gender !== undefined) {
-        setColorCodeBy(data.color_by_gender ? 'Gender' : 'Level');
       }
     }, []);
     
@@ -461,6 +457,8 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           show_grid?: boolean | null;
           show_objects?: boolean | null;
           layout_orientation?: string | null;
+          color_by_gender?: boolean | null;
+          color_by_level?: boolean | null;
         }>;
         const detail = customEvent.detail;
         if (!detail || detail.layoutId !== selectedLayoutId) return;
@@ -1950,8 +1948,6 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     canvasContainerRef,
     draggedGroupId,
     setDraggedGroupId,
-    colorCodeBy,
-    setColorCodeBy,
     showGrid,
     setShowGrid,
     showObjects,

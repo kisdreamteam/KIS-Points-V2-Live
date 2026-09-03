@@ -7,6 +7,12 @@ import StageTwoColumnSplit from '@/components/ui/StageTwoColumnSplit';
 import SeatingEditorWorkspaceToolbar from '@/features/seating/SeatingEditorWorkspaceToolbar';
 import { useShallow } from 'zustand/react/shallow';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
+import {
+  getEditorAboutToMoveCardClasses,
+  getEditorBeingPlacedCardClasses,
+  getEditorSwapSelectedCardClasses,
+  getSeatingCardStyles,
+} from '@/features/seating/lib/seatingCardStyles';
 import { Student } from '@/lib/types';
 import CreateLayoutModal from '@/features/seating/components/modals/CreateLayoutModal';
 import EditGroupModal from '@/features/seating/components/modals/EditGroupModal';
@@ -15,6 +21,7 @@ import SuccessNotificationModal from '@/components/ui/modals/SuccessNotification
 import IconSettingsWheel from '@/components/ui/icons/iconSettingsWheel';
 import IconEditPencil from '@/components/ui/icons/iconEditPencil';
 import SeatingCanvasDecor from '@/features/seating/components/canvas/SeatingCanvasDecor';
+import SeatingLevelColorKey from '@/features/seating/components/canvas/SeatingLevelColorKey';
 import SeatingEditorGroupSettingsMenu from '@/features/seating/components/menus/SeatingEditorGroupSettingsMenu';
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 import { useSeatingChartEditor } from '@/hooks/useSeatingChart';
@@ -25,13 +32,15 @@ type SeatingEditorWorkspaceProps = {
 };
 
 export default function SeatingEditorWorkspace({ classId, students }: SeatingEditorWorkspaceProps) {
-  const { selectedStudentForGroup, setSelectedStudentForGroup, setUnseatedStudents, unseatedStudents } =
+  const { selectedStudentForGroup, setSelectedStudentForGroup, setUnseatedStudents, unseatedStudents, colorByGender, colorByLevel } =
     useSeatingStore(
       useShallow((s) => ({
         unseatedStudents: s.unseatedStudents,
         setUnseatedStudents: s.setUnseatedStudents,
         selectedStudentForGroup: s.selectedStudentForGroup,
         setSelectedStudentForGroup: s.setSelectedStudentForGroup,
+        colorByGender: s.colorByGender,
+        colorByLevel: s.colorByLevel,
       }))
     );
   const selectedLayoutId = useSeatingStore((s) => s.selectedLayoutId);
@@ -78,7 +87,6 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
     selectedStudentForSwap,
     studentsAboutToMove,
     studentsBeingPlaced,
-    colorCodeBy,
     isRandomizing,
     handleStudentClick,
     removeStudentFromGroup,
@@ -239,6 +247,7 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
                 borderClassName="border-black"
                 showSaveHint
               />
+              <SeatingLevelColorKey visible={colorByLevel} />
               {isLoadingGroups ? (
                 <div className="flex items-center justify-center p-8 relative" style={{ zIndex: 1 }}>
                   <p className="text-white/80">Loading groups...</p>
@@ -275,25 +284,19 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
                       const isAboutToMove = studentsAboutToMove.has(student.id);
                       const isBeingPlaced = studentsBeingPlaced.has(student.id);
 
-                      let bgColor = 'bg-white border-gray-200 hover:bg-gray-50';
+                      let cardClasses: string;
                       if (isAboutToMove) {
-                        bgColor = 'bg-yellow-300 border-yellow-500 hover:bg-yellow-400';
+                        cardClasses = getEditorAboutToMoveCardClasses();
                       } else if (isBeingPlaced) {
-                        bgColor = 'bg-blue-300 border-blue-500 hover:bg-blue-400';
+                        cardClasses = getEditorBeingPlacedCardClasses();
                       } else if (isSelected) {
-                        bgColor = 'bg-yellow-300 border-yellow-500 hover:bg-yellow-400';
+                        cardClasses = getEditorSwapSelectedCardClasses();
                       } else {
-                        if (colorCodeBy === 'Gender') {
-                          if (student.gender === null || student.gender === undefined || student.gender === '') {
-                            bgColor = 'bg-white border-gray-200 hover:bg-gray-50';
-                          } else if (student.gender === 'Boy') {
-                            bgColor = 'bg-blue-200 border-blue-300 hover:bg-blue-300';
-                          } else if (student.gender === 'Girl') {
-                            bgColor = 'bg-pink-200 border-pink-300 hover:bg-pink-300';
-                          }
-                        } else {
-                          bgColor = 'bg-white border-gray-200 hover:bg-gray-50';
-                        }
+                        cardClasses = getSeatingCardStyles(student, {
+                          colorByGender,
+                          colorByLevel,
+                          forEditor: true,
+                        }).className;
                       }
 
                       return (
@@ -302,7 +305,7 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
                           onClick={(e) => handleStudentClick(e, student.id, group.id)}
                           onMouseDown={(e) => e.stopPropagation()}
                           className={`flex items-center gap-1 p-1.5 rounded border transition-colors min-w-0 overflow-hidden ${isRandomizing ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'
-                            } ${bgColor}`}
+                            } ${cardClasses}`}
                           style={{
                             width: '100%',
                             height: `${studentCardHeight}px`

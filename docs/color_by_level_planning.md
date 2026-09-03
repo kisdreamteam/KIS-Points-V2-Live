@@ -299,7 +299,7 @@ Color by Gender is a **layout-scoped view setting** persisted immediately to Sup
 
 ## Phase 2 — Plan: "Color by Level" Implementation
 
-> **Revision (latest):** Color by Level affects **border color and thickness only**, not card backgrounds. Color by Gender backgrounds stay as-is. Both toggles can be **ON at the same time**. No eligibility warning popup. **Uniform border weight:** when Color by Level is OFF → all cards **thin** borders; when ON → all cards **`border-[3px]`** (assigned level = level color; missing level = **`border-gray-300`**). Missing gender → white bg (gender rules unchanged).
+> **Revision (latest):** Color by Level affects **border color and thickness only**, not card backgrounds. Color by Gender backgrounds stay as-is. Both toggles can be **ON at the same time**. No eligibility warning popup. **Uniform border weight:** when Color by Level is OFF → all cards **thin** borders; when ON → all cards **`border-[7px]`** (assigned level = level color; missing level = **`border-gray-100/10`**). Missing gender → white bg (gender rules unchanged).
 
 ### Product goal
 
@@ -322,7 +322,7 @@ Requirements:
 | Layer | Controlled by | What changes on the card |
 |-------|---------------|--------------------------|
 | **Background** | Color by Gender (unchanged) | Boy → `bg-blue-200`; Girl → `bg-pink-200`; no gender → `bg-white` |
-| **Border** | Color by Level (new) | Level OFF → **thin** border (1px); Level ON → **`border-[3px]`** + level color, or **`border-gray-300`** if no level |
+| **Border** | Color by Level (new) | Level OFF → **thin** border (1px); Level ON → **`border-[7px]`** + level color, or **`border-gray-100/10`** if no level |
 
 Both toggles are **independent booleans**. Any combination is valid:
 
@@ -330,15 +330,15 @@ Both toggles are **independent booleans**. Any combination is valid:
 |-----------------|----------------|----------------------------|
 | OFF | OFF | White bg, default thin gray border |
 | ON | OFF | Blue-200 bg, gender border (`border-blue-300`) — today’s behavior |
-| OFF | ON | White bg, thick yellow-500 border (level B) |
-| ON | ON | Blue-200 bg, thick yellow-500 border (gender + level visible together) |
+| OFF | ON | White bg, thick yellow-300 border (level B) |
+| ON | ON | Blue-200 bg, thick yellow-300 border (gender + level visible together) |
 
 #### Partial assignment (no popup)
 
 Mirrors the permissive Color by Gender pattern — no gate, no Edit Class warning:
 
 - **Missing gender** (Color by Gender ON): white background (gender rules).
-- **Missing level** (Color by Level ON): **`border-[3px] border-gray-300`** — thick neutral border (visible on white and colored backgrounds; thick white was rejected as invisible on white cards).
+- **Missing level** (Color by Level ON): **`border-[7px] border-gray-100/10`** — thick neutral border (visible on white and colored backgrounds; thick white was rejected as invisible on white cards).
 - **Missing both** (both toggles ON): white background + thick gray border.
 - Students **always appear** on the canvas; incomplete data is visible through styling, not blocked.
 
@@ -357,8 +357,8 @@ flowchart TD
   Student --> LevelToggle
   GenderToggle -->|ON| GenderBg[Background: blue / pink / white]
   GenderToggle -->|OFF| NeutralBg[Background: white]
-  LevelToggle -->|ON + has level| LevelBorder["Border: border-3px + level color"]
-  LevelToggle -->|ON + no level| MissingBorder["Border: border-3px border-gray-300"]
+  LevelToggle -->|ON + has level| LevelBorder["Border: border-7px + level color"]
+  LevelToggle -->|ON + no level| MissingBorder["Border: border-7px border-gray-100/10"]
   LevelToggle -->|OFF| DefaultBorder["Border: thin gender or gray-200"]
 
   GenderBg --> Compose[Merge bg + border classes]
@@ -385,10 +385,10 @@ background = genderBackgroundRules(student, colorByGender)
 if (!colorByLevel) {
   border = thinGenderOrDefault(student, colorByGender)  // 1px: border-blue-300, border-pink-300, or border-gray-200
 } else if (student.level is null/empty) {
-  border = "border-[3px] border-gray-300"
+  border = "border-[7px] border-gray-100/10"
 } else {
-  border = "border-[3px] " + levelBorderColor(student.level)
-  // FC → border-red-500; A → border-orange-500; B → border-yellow-500; C → border-green-500; D → border-blue-500
+  border = "border-[7px] " + levelBorderColor(student.level)
+  // FC → border-red-500; A → border-green-400; B → border-yellow-300; C → border-blue-400; D → border-blue-800
 }
 
 // Then apply override layer if active (multi-select, randomize animation, swap selection)
@@ -399,7 +399,7 @@ if (!colorByLevel) {
 | colorByLevel | All cards |
 |--------------|-----------|
 | OFF | **Thin** borders (1px) — gender-colored or `border-gray-200` |
-| ON | **`border-[3px]`** on every card — level color if assigned, **`border-gray-300`** if not |
+| ON | **`border-[7px]`** on every card — level color if assigned, **`border-gray-100/10`** if not |
 
 Background is **always** from gender rules only; level never changes `bg-*`.
 
@@ -410,16 +410,16 @@ Semantic scale: **FC = lowest**, **D = highest** (rainbow progression on the bor
 | Level | Border color (Tailwind) |
 |-------|-------------------------|
 | **FC** (lowest) | `border-red-500` |
-| **A** | `border-orange-500` |
-| **B** | `border-yellow-500` |
-| **C** | `border-green-500` |
-| **D** (highest) | `border-blue-500` |
+| **A** | `border-green-400` |
+| **B** | `border-yellow-300` |
+| **C** | `border-blue-400` |
+| **D** (highest) | `border-blue-800` |
 
-**Border weight (decided):** See [Border composition algorithm](#border-composition-algorithm). Summary: Level OFF → thin (1px); Level ON → **`border-[3px]`** everywhere.
+**Border weight (decided):** See [Border composition algorithm](#border-composition-algorithm). Summary: Level OFF → thin (1px); Level ON → **`border-[7px]`** everywhere.
 
 **Border precedence (decided):** When both toggles are ON and level is assigned, the thick level border **fully replaces** the gender border (no inner gender ring).
 
-**Gender OFF + Level ON + no gender:** `bg-white` + **`border-[3px] border-gray-300`** when level is missing; thick level color when level is assigned.
+**Gender OFF + Level ON + no gender:** `bg-white` + **`border-[7px] border-gray-100/10`** when level is missing; thick level color when level is assigned.
 
 **Backgrounds:** Do **not** change level-based backgrounds. Gender backgrounds apply when Color by Gender is ON; otherwise white.
 
@@ -549,7 +549,7 @@ flowchart LR
 
 **Realtime re-color:** When gender or level is edited in Edit Class, cards update **immediately** after roster refresh.
 
-**Override priority (decided):** Multi-select yellow and randomize animation states override composed card styles (same priority as today). **Multi-select border wins over level border** (e.g. level B `border-yellow-500` is overridden by multi-select `border-yellow-400`) because multi-select has a specific purpose.
+**Override priority (decided):** Multi-select yellow and randomize animation states override composed card styles (same priority as today). **Multi-select border wins over level border** (e.g. level B `border-yellow-300` is overridden by multi-select `border-yellow-400`) because multi-select has a specific purpose.
 
 ---
 
@@ -597,7 +597,7 @@ Uses existing:
 - Coloring **unseated** students in `SeatingEditorLeftNav`
 - View-mode toolbar toggles
 - Coloring in Students grid view
-- On-canvas level legend — **deferred** to Appendix C (not v1)
+- On-canvas level legend — **shipped** (see [Appendix C](#appendix-c--on-canvas-level-border-key))
 
 ---
 
@@ -669,7 +669,7 @@ These were decided in a previous revision and are **replaced** by the border + s
 | Level changes **background** (blue/pink per gender × level) | Border color + thickness only |
 | Mutual exclusivity `{ none, gender, level }` | Two independent booleans |
 | Eligibility gate + warning popup + Edit Class CTA | Partial inline styling, no popup |
-| Missing data → `bg-green-500` | Missing level → **`border-[3px] border-gray-300`** when level ON |
+| Missing data → `bg-green-500` | Missing level → **`border-[7px] border-gray-100/10`** when level ON |
 | Deriving Level from `!color_by_gender` / `colorCodeBy` enum | Two independent store booleans |
 | Thin border for missing level when level ON | Uniform **thick** borders when level ON |
 | White text on dark level backgrounds | N/A — backgrounds stay light gender colors or white |
@@ -700,7 +700,7 @@ These were decided in a previous revision and are **replaced** by the border + s
 **Manual tests:**
 
 - [ ] Both toggles ON: gender bg + thick level border replaces gender border
-- [ ] Missing level + level ON: **`border-[3px] border-gray-300`** (not thin)
+- [ ] Missing level + level ON: **`border-[7px] border-gray-100/10`** (not thin)
 - [ ] Level OFF: all cards thin borders
 - [ ] Missing gender + gender ON: white bg
 - [ ] Multi-select overrides level border
@@ -710,7 +710,7 @@ These were decided in a previous revision and are **replaced** by the border + s
 
 ### Phase 2 summary
 
-Color by Level is a **border overlay** on existing gender backgrounds: **FC→red, A→orange, B→yellow, C→green, D→blue** at **`border-[3px]`** when level is assigned. **Uniform weight:** level OFF → thin borders everywhere; level ON → thick borders everywhere (missing level → **`border-gray-300`**). Color by Gender is **unchanged**. Two **independent** Zustand/Supabase booleans (`colorByGender`, `colorByLevel`). Shared [`seatingCardStyles.ts`](src/features/seating/lib/seatingCardStyles.ts). Ready for implementation.
+Color by Level is a **border overlay** on existing gender backgrounds: **FC→red, A→green-400, B→yellow-300, C→blue-400, D→blue-800** at **`border-[7px]`** when level is assigned. **Uniform weight:** level OFF → thin borders everywhere; level ON → thick borders everywhere (missing level → **`border-gray-100/10`**). Color by Gender is **unchanged**. Two **independent** Zustand/Supabase booleans (`colorByGender`, `colorByLevel`). Shared [`seatingCardStyles.ts`](src/features/seating/lib/seatingCardStyles.ts) + on-canvas [`SeatingLevelColorKey.tsx`](src/features/seating/components/canvas/SeatingLevelColorKey.tsx).
 
 ---
 
@@ -718,24 +718,26 @@ Color by Level is a **border overlay** on existing gender backgrounds: **FC→re
 
 **Single file to edit when changing card styling:**
 
-`src/features/seating/lib/seatingCardStyles.ts` *(to be created)*
+`src/features/seating/lib/seatingCardStyles.ts` *(created — single source for card borders and legend swatches)*
 
 Both `SeatingGroupsCanvas.tsx` (view) and `SeatingEditorWorkspace.tsx` (editor) call this helper — do not duplicate Tailwind strings in Tier 2 components.
+
+On-canvas key: `src/features/seating/components/canvas/SeatingLevelColorKey.tsx` — composed by view + editor workspaces when `colorByLevel === true`.
 
 ### Color by Level — border only (same for all genders)
 
 **When `colorByLevel` is OFF:** thin borders (1px) — gender default or `border-gray-200`.
 
-**When `colorByLevel` is ON:** **`border-[3px]`** on every card:
+**When `colorByLevel` is ON:** **`border-[7px]`** on every card:
 
 | Condition | Border classes |
 |-----------|----------------|
-| Has level FC | `border-[3px] border-red-500` |
-| Has level A | `border-[3px] border-orange-500` |
-| Has level B | `border-[3px] border-yellow-500` |
-| Has level C | `border-[3px] border-green-500` |
-| Has level D | `border-[3px] border-blue-500` |
-| Missing level | `border-[3px] border-gray-300` |
+| Has level FC | `border-[7px] border-red-500` |
+| Has level A | `border-[7px] border-green-400` |
+| Has level B | `border-[7px] border-yellow-300` |
+| Has level C | `border-[7px] border-blue-400` |
+| Has level D | `border-[7px] border-blue-800` |
+| Missing level | `border-[7px] border-gray-100/10` |
 
 When **level ON + assigned level:** level border **replaces** gender border entirely.
 
@@ -757,11 +759,11 @@ When **Color by Gender is OFF:** `bg-white`; border from level rules or default 
 
 | Gender | Level | Gender ON | Level ON | Result |
 |--------|-------|-----------|----------|--------|
-| Boy | B | `bg-blue-200` | thick `border-yellow-500` | Blue card, thick yellow border |
-| Girl | D | `bg-pink-200` | thick `border-blue-500` | Pink card, thick blue border |
-| — | — | ON | ON | White bg, **`border-[3px] border-gray-300`** (missing gender + level) |
-| Boy | — | ON | ON | Blue bg, **`border-[3px] border-gray-300`** (missing level) |
-| — | B | OFF | ON | White bg, thick `border-yellow-500` (gender off, level on) |
+| Boy | B | `bg-blue-200` | thick `border-yellow-300` | Blue card, thick yellow border |
+| Girl | D | `bg-pink-200` | thick `border-blue-800` | Pink card, thick blue border |
+| — | — | ON | ON | White bg, **`border-[7px] border-gray-100/10`** (missing gender + level) |
+| Boy | — | ON | ON | Blue bg, **`border-[7px] border-gray-100/10`** (missing level) |
+| — | B | OFF | ON | White bg, thick `border-yellow-300` (gender off, level on) |
 
 ### Override colors (applied first — wins over gender/level composition)
 
@@ -819,26 +821,36 @@ Seat assignments and group positions **only** — not color mode, grid, furnitur
 
 ---
 
-## Appendix C — Future reference: on-canvas level border key
+## Appendix C — On-canvas level border key
 
-**Deferred from v1 (decided).** Do not ship in initial implementation.
+**Shipped.** Visible when `colorByLevel === true` in **view mode** and **editor mode**.
 
-### Border color legend
+### Component
 
-Similar to furniture overlay / “exit to save” hints, show a compact **level → border color** key on the canvas:
+| File | Role |
+|------|------|
+| [`SeatingLevelColorKey.tsx`](src/features/seating/components/canvas/SeatingLevelColorKey.tsx) | Tier 3 presentational key — 5 stacked swatches + labels |
+| [`seatingCardStyles.ts`](src/features/seating/lib/seatingCardStyles.ts) | `getSeatingLevelLegendItems()` — swatch colors match card border colors |
+| [`SeatingViewWorkspace.tsx`](src/features/seating/SeatingViewWorkspace.tsx) | Composes key inside canvas wrapper (rotates with teacher view) |
+| [`SeatingEditorWorkspace.tsx`](src/features/seating/SeatingEditorWorkspace.tsx) | Composes key inside scrollable cream canvas area |
 
-| Swatch (border sample) | Label |
-|------------------------|-------|
-| Red thick border | FC |
-| Orange | A |
-| Yellow | B |
-| Green | C |
-| Blue | D |
-| Thick gray border | No level assigned (when level mode ON) |
+### Layout
 
-**Likely placement:** Tier 3 component (e.g. `SeatingLevelBorderKey.tsx`) composed by `SeatingEditorWorkspace` / `SeatingViewWorkspace` when `colorByLevel === true`.
+- **Placement:** top-right of the seating canvas (`absolute top-3 right-3`)
+- **Order (top → bottom):** FC, A, B, C, D (semantic lowest → highest)
+- **Each row:** solid color square (~18px) + level label (`FC`, `A`, …)
+- **Pointer events:** none — does not block group drag/click
+- **Missing level:** not shown in the key (5 assigned-level swatches only)
 
-**Reference UI patterns:** `SeatingCanvasDecor` and existing editor chrome overlays.
+Swatch fills use the same palette as card borders:
+
+| Swatch | Label | Tailwind fill |
+|--------|-------|---------------|
+| Red | FC | `bg-red-500` |
+| Green | A | `bg-green-400` |
+| Yellow | B | `bg-yellow-300` |
+| Blue | C | `bg-blue-400` |
+| Dark blue | D | `bg-blue-800` |
 
 ---
 
@@ -847,13 +859,13 @@ Similar to furniture overlay / “exit to save” hints, show a compact **level 
 | # | Topic | Decision |
 |---|-------|----------|
 | 1 | `color_by_level` column | **Exists in Supabase** — manually added to `seating_charts` (`boolean`, default `FALSE`). Wire app + docs; optional repo migration for parity. |
-| 2 | Border weight | **Level OFF** → thin (1px). **Level ON** → **`border-[3px]`** on all cards |
-| 3 | Missing-level border | **`border-[3px] border-gray-300`** when level ON (thick gray — visible on white cards; thick white rejected) |
+| 2 | Border weight | **Level OFF** → thin (1px). **Level ON** → **`border-[7px]`** on all cards |
+| 3 | Missing-level border | **`border-[7px] border-gray-100/10`** when level ON (thick gray — visible on white cards; thick white rejected) |
 | 4 | Both toggles ON | Level border **fully replaces** gender border color |
 | 5 | Gender OFF + Level ON + no gender | **White bg**; thick gray or level border per level ON rules |
 | 6 | New layout defaults | `color_by_gender: true`, **`color_by_level: false`** |
 | 7 | Multi-select vs level border | Multi-select **overrides** level border (yes) |
-| 8 | On-canvas legend | **Defer** to Appendix C — not v1 |
+| 8 | On-canvas legend | **Shipped** — `SeatingLevelColorKey` top-right when `colorByLevel` ON |
 | 9 | Helper file name | **`seatingCardStyles.ts`** (backgrounds + borders) |
 | 10 | Store model | **Two independent booleans** — `colorByGender` + `colorByLevel`; no `colorCodeBy` enum |
 | 11 | Cleanup `colorCodeBy` / `emitSeatingColorCodeBy` | **Yes**, after [Dead code audit](#dead-code-audit) + validation |

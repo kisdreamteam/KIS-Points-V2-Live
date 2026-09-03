@@ -18,10 +18,12 @@ interface SeatingViewSettingsMenuProps {
   showFurniture: boolean;
   teachersDeskLeft: boolean;
   colorByGender: boolean;
+  colorByLevel: boolean;
   onToggleShowGrid: (next: boolean) => void;
   onToggleShowFurniture: (next: boolean) => void;
   onToggleTeachersDeskLeft: (next: boolean) => void;
   onToggleColorByGender: () => void;
+  onToggleColorByLevel: () => void;
 }
 
 export default function SeatingViewSettingsMenu({
@@ -33,10 +35,12 @@ export default function SeatingViewSettingsMenu({
   showFurniture,
   teachersDeskLeft,
   colorByGender,
+  colorByLevel,
   onToggleShowGrid,
   onToggleShowFurniture,
   onToggleTeachersDeskLeft,
   onToggleColorByGender,
+  onToggleColorByLevel,
 }: SeatingViewSettingsMenuProps) {
   if (!isOpen) return null;
 
@@ -138,14 +142,21 @@ export default function SeatingViewSettingsMenu({
         </button>
       </div>
 
-      <div className="flex items-center justify-between px-4 py-2 opacity-50 hover:bg-gray-50">
+      <div className="flex items-center justify-between px-4 py-2 hover:bg-gray-50">
         <span className="text-sm font-medium text-gray-700">Color by Level</span>
         <button
           type="button"
-          disabled
-          className="relative inline-flex h-6 w-11 cursor-not-allowed items-center rounded-full bg-gray-300 transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleColorByLevel();
+          }}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${colorByLevel ? toggleTrackOn : toggleTrackOff
+            }`}
         >
-          <span className="inline-block h-4 w-4 translate-x-1 transform rounded-full bg-white transition-transform" />
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${colorByLevel ? 'translate-x-6' : 'translate-x-1'
+              }`}
+          />
         </button>
       </div>
     </MenuSurface>

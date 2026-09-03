@@ -11,6 +11,7 @@ import PointsReportPanel from '@/features/dashboard/PointsReportPanel';
 import type { PointsReportPanelProps } from '@/features/dashboard/PointsReportPanel';
 import LayoutManagerDrawer from '@/features/seating/components/canvas/LayoutManagerDrawer';
 import SeatingCanvasDecor from '@/features/seating/components/canvas/SeatingCanvasDecor';
+import SeatingLevelColorKey from '@/features/seating/components/canvas/SeatingLevelColorKey';
 import SeatingGroupsCanvas from '@/features/seating/SeatingGroupsCanvas';
 import SeatingViewWorkspaceToolbar from '@/features/seating/SeatingViewWorkspaceToolbar';
 import StageTwoColumnSplit, {
@@ -60,11 +61,12 @@ export default function SeatingViewWorkspace({
       layoutsError: s.layoutsError,
     }))
   );
-  const { showGrid, showObjects, layoutOrientation } = useSeatingStore(
+  const { showGrid, showObjects, layoutOrientation, colorByLevel } = useSeatingStore(
     useShallow((s) => ({
       showGrid: s.showGrid,
       showObjects: s.showObjects,
       layoutOrientation: s.layoutOrientation,
+      colorByLevel: s.colorByLevel,
     }))
   );
 
@@ -224,6 +226,7 @@ export default function SeatingViewWorkspace({
                           isTeacherView={isTeacherView}
                           borderClassName="border-gray-800"
                         />
+                        <SeatingLevelColorKey visible={colorByLevel} isTeacherView={isTeacherView} />
                         <SeatingGroupsCanvas
                           isTeacherView={isTeacherView}
                           isMultiSelectMode={isMultiSelectMode}

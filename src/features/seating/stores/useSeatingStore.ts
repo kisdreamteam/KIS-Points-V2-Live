@@ -28,6 +28,7 @@ interface SeatingStore {
   showObjects: boolean;
   layoutOrientation: string;
   colorByGender: boolean;
+  colorByLevel: boolean;
   unseatedStudents: Student[];
   selectedStudentForGroup: Student | null;
   setLayouts: (layouts: SeatingChartRecord[]) => void;
@@ -47,6 +48,7 @@ interface SeatingStore {
     show_objects?: boolean | null;
     layout_orientation?: string | null;
     color_by_gender?: boolean | null;
+    color_by_level?: boolean | null;
   }) => void;
   syncLayoutViewSettings: (
     layoutId: string,
@@ -55,6 +57,7 @@ interface SeatingStore {
       show_objects?: boolean | null;
       layout_orientation?: string | null;
       color_by_gender?: boolean | null;
+      color_by_level?: boolean | null;
     }
   ) => void;
   setUnseatedStudents: (next: UnseatedSet) => void;
@@ -71,6 +74,7 @@ const initialViewSettings = {
   showObjects: true,
   layoutOrientation: 'Left' as string,
   colorByGender: true,
+  colorByLevel: false,
 };
 
 export const useSeatingStore = create<SeatingStore>((set, get) => ({
@@ -105,6 +109,7 @@ export const useSeatingStore = create<SeatingStore>((set, get) => ({
       showObjects: data.show_objects ?? true,
       layoutOrientation: data.layout_orientation ?? 'Left',
       colorByGender: data.color_by_gender ?? true,
+      colorByLevel: data.color_by_level ?? false,
     }),
 
   syncLayoutViewSettings: (layoutId, patch) =>
@@ -121,6 +126,9 @@ export const useSeatingStore = create<SeatingStore>((set, get) => ({
           ...(patch.color_by_gender !== undefined
             ? { color_by_gender: patch.color_by_gender ?? undefined }
             : {}),
+          ...(patch.color_by_level !== undefined
+            ? { color_by_level: patch.color_by_level ?? undefined }
+            : {}),
         };
       });
 
@@ -136,6 +144,8 @@ export const useSeatingStore = create<SeatingStore>((set, get) => ({
           patch.layout_orientation !== undefined ? (patch.layout_orientation ?? 'Left') : s.layoutOrientation,
         colorByGender:
           patch.color_by_gender !== undefined ? (patch.color_by_gender ?? true) : s.colorByGender,
+        colorByLevel:
+          patch.color_by_level !== undefined ? (patch.color_by_level ?? false) : s.colorByLevel,
       };
     }),
 
