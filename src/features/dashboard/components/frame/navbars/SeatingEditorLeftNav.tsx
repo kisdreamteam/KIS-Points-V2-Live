@@ -1,10 +1,18 @@
 'use client';
 
+import { useShallow } from 'zustand/react/shallow';
+import { getSeatingCardStyles } from '@/features/seating/lib/seatingCardStyles';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import { Student } from '@/lib/types';
 
 export default function SeatingEditorLeftNav() {
-  const unseatedStudents = useSeatingStore((s) => s.unseatedStudents);
+  const { unseatedStudents, colorByGender, colorByLevel } = useSeatingStore(
+    useShallow((s) => ({
+      unseatedStudents: s.unseatedStudents,
+      colorByGender: s.colorByGender,
+      colorByLevel: s.colorByLevel,
+    }))
+  );
   const setSelectedStudentForGroup = useSeatingStore((s) => s.setSelectedStudentForGroup);
 
   const handleStudentClick = (student: Student) => {
@@ -34,20 +42,28 @@ export default function SeatingEditorLeftNav() {
         ) : (
           unseatedStudents
             .filter((student, index, self) => self.findIndex((s) => s.id === student.id) === index)
-            .map((student) => (
+            .map((student) => {
+            const cardClasses = getSeatingCardStyles(student, {
+              colorByGender,
+              colorByLevel,
+              forEditor: true,
+            }).className;
+
+            return (
             <div
               key={student.id}
               onClick={() => handleStudentClick(student)}
-              className="flex items-center p-3 hover:bg-blue-300 rounded-lg cursor-pointer transition-colors bg-blue-100 border border-gray-200"
+              className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors ${cardClasses}`}
             >
               {/* Student Name with Number */}
               <div className="flex-1 min-w-0">
-                <span className="text-base font-medium text-brand-purple block truncate font-spartan">
+                <span className="text-base font-medium text-gray-800 block truncate font-spartan">
                   {student.student_number ? `${student.student_number}. ` : ''}{student.first_name}
                 </span>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 
