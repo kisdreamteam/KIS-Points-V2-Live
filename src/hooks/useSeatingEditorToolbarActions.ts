@@ -1,8 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { fetchLayoutViewSettings, updateLayoutViewSettings } from '@/features/seating/lib/api/seating';
+import { useCallback } from 'react';
+import { updateLayoutViewSettings } from '@/features/seating/lib/api/seating';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import {
   emitSeatingAddMultipleGroups,
@@ -11,9 +10,7 @@ import {
   emitSeatingDeleteAllGroups,
   emitSeatingRandomize,
   emitSeatingViewSettingsChanged,
-  STUDENT_EVENTS,
 } from '@/lib/events/students';
-import type { SeatingViewSettingsChangedDetail } from '@/lib/events/students';
 
 export type SeatingEditorToolbarActionsReturn = {
   showGrid: boolean;
@@ -34,14 +31,12 @@ export type SeatingEditorToolbarActionsReturn = {
 };
 
 export function useSeatingEditorToolbarActions(): SeatingEditorToolbarActionsReturn {
-  const searchParams = useSearchParams();
-  const layoutId = searchParams?.get('layout');
-
-  const [showGrid, setShowGrid] = useState(true);
-  const [showFurniture, setShowFurniture] = useState(true);
-  const [teachersDeskLeft, setTeachersDeskLeft] = useState(true);
-  const [colorByGender, setColorByGender] = useState(true);
-  const [colorByLevel, setColorByLevel] = useState(false);
+  const layoutId = useSeatingStore((s) => s.selectedLayoutId);
+  const showGrid = useSeatingStore((s) => s.showGrid);
+  const showFurniture = useSeatingStore((s) => s.showObjects);
+  const teachersDeskLeft = useSeatingStore((s) => s.layoutOrientation === 'Left');
+  const colorByGender = useSeatingStore((s) => s.colorByGender);
+  const colorByLevel = useSeatingStore((s) => s.colorByLevel);
 
   const emitViewSettingsChanged = useCallback(
     (partial: {
@@ -60,64 +55,18 @@ export function useSeatingEditorToolbarActions(): SeatingEditorToolbarActionsRet
     [layoutId]
   );
 
-  const applyViewDetail = useCallback((detail: SeatingViewSettingsChangedDetail) => {
-    if (detail.show_grid !== undefined) setShowGrid(detail.show_grid);
-    if (detail.show_objects !== undefined) setShowFurniture(detail.show_objects);
-    if (detail.layout_orientation !== undefined) {
-      setTeachersDeskLeft(detail.layout_orientation === 'Left');
-    }
-    if (detail.color_by_gender !== undefined) setColorByGender(detail.color_by_gender);
-    if (detail.color_by_level !== undefined) setColorByLevel(detail.color_by_level);
-  }, []);
-
-  useEffect(() => {
-    if (!layoutId) return;
-
-    const load = async () => {
-      try {
-        const data = await fetchLayoutViewSettings(layoutId);
-        if (!data) return;
-        setShowGrid(data.show_grid ?? true);
-        setShowFurniture(data.show_objects ?? true);
-        const orient = data.layout_orientation ?? 'Left';
-        setTeachersDeskLeft(orient === 'Left');
-        setColorByGender(data.color_by_gender ?? true);
-        setColorByLevel(data.color_by_level ?? false);
-        useSeatingStore.getState().syncLayoutViewSettings(layoutId, data);
-      } catch (err) {
-        console.error('Unexpected error fetching layout view settings (editor toolbar):', err);
-      }
-    };
-
-    void load();
-  }, [layoutId]);
-
-  useEffect(() => {
-    if (!layoutId) return;
-
-    const onViewSettings = (event: Event) => {
-      const custom = event as CustomEvent<SeatingViewSettingsChangedDetail>;
-      const detail = custom.detail;
-      if (!detail || detail.layoutId !== layoutId) return;
-      applyViewDetail(detail);
-    };
-
-    window.addEventListener(STUDENT_EVENTS.SEATING_VIEW_SETTINGS_CHANGED, onViewSettings as EventListener);
-    return () =>
-      window.removeEventListener(STUDENT_EVENTS.SEATING_VIEW_SETTINGS_CHANGED, onViewSettings as EventListener);
-  }, [layoutId, applyViewDetail]);
-
   const onToggleShowGrid = useCallback(
     async (newValue: boolean) => {
       if (!layoutId) return;
-      setShowGrid(newValue);
+      const st = useSeatingStore.getState();
+      const previous = st.showGrid;
+      st.syncLayoutViewSettings(layoutId, { show_grid: newValue });
       try {
         await updateLayoutViewSettings(layoutId, { show_grid: newValue });
-        useSeatingStore.getState().syncLayoutViewSettings(layoutId, { show_grid: newValue });
         emitViewSettingsChanged({ show_grid: newValue });
       } catch (err) {
         console.error('Unexpected error updating show_grid:', err);
-        setShowGrid(!newValue);
+        st.syncLayoutViewSettings(layoutId, { show_grid: previous });
       }
     },
     [layoutId, emitViewSettingsChanged]
@@ -126,14 +75,15 @@ export function useSeatingEditorToolbarActions(): SeatingEditorToolbarActionsRet
   const onToggleShowFurniture = useCallback(
     async (newValue: boolean) => {
       if (!layoutId) return;
-      setShowFurniture(newValue);
+      const st = useSeatingStore.getState();
+      const previous = st.showObjects;
+      st.syncLayoutViewSettings(layoutId, { show_objects: newValue });
       try {
         await updateLayoutViewSettings(layoutId, { show_objects: newValue });
-        useSeatingStore.getState().syncLayoutViewSettings(layoutId, { show_objects: newValue });
         emitViewSettingsChanged({ show_objects: newValue });
       } catch (err) {
         console.error('Unexpected error updating show_objects:', err);
-        setShowFurniture(!newValue);
+        st.syncLayoutViewSettings(layoutId, { show_objects: previous });
       }
     },
     [layoutId, emitViewSettingsChanged]
@@ -142,18 +92,16 @@ export function useSeatingEditorToolbarActions(): SeatingEditorToolbarActionsRet
   const onToggleTeachersDeskLeft = useCallback(
     async (newValue: boolean) => {
       if (!layoutId || !showFurniture) return;
-      setTeachersDeskLeft(newValue);
+      const st = useSeatingStore.getState();
+      const previous = st.layoutOrientation;
+      const orientation = newValue ? 'Left' : 'Right';
+      st.syncLayoutViewSettings(layoutId, { layout_orientation: orientation });
       try {
-        await updateLayoutViewSettings(layoutId, {
-          layout_orientation: newValue ? 'Left' : 'Right',
-        });
-        useSeatingStore.getState().syncLayoutViewSettings(layoutId, {
-          layout_orientation: newValue ? 'Left' : 'Right',
-        });
-        emitViewSettingsChanged({ layout_orientation: newValue ? 'Left' : 'Right' });
+        await updateLayoutViewSettings(layoutId, { layout_orientation: orientation });
+        emitViewSettingsChanged({ layout_orientation: orientation });
       } catch (err) {
         console.error('Unexpected error updating layout_orientation:', err);
-        setTeachersDeskLeft(!newValue);
+        st.syncLayoutViewSettings(layoutId, { layout_orientation: previous });
       }
     },
     [layoutId, showFurniture, emitViewSettingsChanged]
@@ -161,31 +109,33 @@ export function useSeatingEditorToolbarActions(): SeatingEditorToolbarActionsRet
 
   const onToggleColorByGender = useCallback(async () => {
     if (!layoutId) return;
-    const next = !colorByGender;
-    setColorByGender(next);
+    const st = useSeatingStore.getState();
+    const previous = st.colorByGender;
+    const next = !previous;
+    st.syncLayoutViewSettings(layoutId, { color_by_gender: next });
     try {
       await updateLayoutViewSettings(layoutId, { color_by_gender: next });
-      useSeatingStore.getState().syncLayoutViewSettings(layoutId, { color_by_gender: next });
       emitViewSettingsChanged({ color_by_gender: next });
     } catch (err) {
       console.error('Unexpected error updating color_by_gender:', err);
-      setColorByGender(!next);
+      st.syncLayoutViewSettings(layoutId, { color_by_gender: previous });
     }
-  }, [layoutId, colorByGender, emitViewSettingsChanged]);
+  }, [layoutId, emitViewSettingsChanged]);
 
   const onToggleColorByLevel = useCallback(async () => {
     if (!layoutId) return;
-    const next = !colorByLevel;
-    setColorByLevel(next);
+    const st = useSeatingStore.getState();
+    const previous = st.colorByLevel;
+    const next = !previous;
+    st.syncLayoutViewSettings(layoutId, { color_by_level: next });
     try {
       await updateLayoutViewSettings(layoutId, { color_by_level: next });
-      useSeatingStore.getState().syncLayoutViewSettings(layoutId, { color_by_level: next });
       emitViewSettingsChanged({ color_by_level: next });
     } catch (err) {
       console.error('Unexpected error updating color_by_level:', err);
-      setColorByLevel(!next);
+      st.syncLayoutViewSettings(layoutId, { color_by_level: previous });
     }
-  }, [layoutId, colorByLevel, emitViewSettingsChanged]);
+  }, [layoutId, emitViewSettingsChanged]);
 
   const onRandomize = useCallback(() => {
     emitSeatingRandomize();

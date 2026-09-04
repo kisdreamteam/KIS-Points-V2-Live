@@ -439,8 +439,9 @@ Normal canvas edits: **optimistic `useSeatingStore` update → `useSeatingEditor
 | Flow | Hook / event | Notes |
 |------|--------------|-------|
 | Seat/group drag, add/remove, swap | `useSeatingEditorPersistence` | Rollback store + error toast on failure |
-| View settings toggles | `useSeatingEditorToolbarActions` | Immediate DB + store + `SEATING_VIEW_SETTINGS_CHANGED` |
+| View settings toggles | `useSeatingEditorToolbarActions` | Optimistic store → DB + `SEATING_VIEW_SETTINGS_CHANGED`; reads/writes `useSeatingStore` only |
 | Exit editor (Close X) | `handleClose` in `useSeatingChart` | Navigate only; `refreshSeatingGroupsForLayout` safety net; `SeatingChartDataSync` also refreshes groups + view settings on `SEATING_EDIT_MODE` false |
+| View settings hydration | `SeatingChartDataSync` | Fetch on layout change / edit exit / tab visible; Supabase realtime; local toggle events |
 | Manual layout repair | `SEATING_REPAIR_LAYOUT` → `repairSeatingLayoutFromStore` | Settings → Sync layout; full replace from store; recovery only |
 
 Full inventory: [`seating_editor_save_audit.md`](seating_editor_save_audit.md).
@@ -513,6 +514,7 @@ src/
 | done | Dashboard hooks rename + sync split (`*Refresh.ts` / `*Sync.tsx`); see `features/dashboard/hooks/README.md` |
 | done | `<AttendanceSync />` mounted in `DashboardView.tsx` |
 | done | Seating editor immediate persistence + Option C store (groups/assignments/positions); one seat per layout; manual repair — see [`seating_editor_save_audit.md`](seating_editor_save_audit.md) |
+| done | View settings store-canonical (grid/furniture/desk/colors); central hydration in `SeatingChartDataSync` |
 
 ---
 

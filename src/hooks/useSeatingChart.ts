@@ -17,15 +17,12 @@ import {
   deleteStudentSeatAssignmentsForGroupIds,
   deleteStudentSeatAssignmentsForSeatingGroupId,
   deleteTeamAssignmentsAndGroup,
-  fetchLayoutViewSettings,
   fetchSeatingGroupsWithAssignments,
   fetchSeatingLayoutsByClassId,
   insertSeatingGroup,
   insertSeatingGroups,
   insertStudentSeatAssignments,
   insertStudentSeatAssignmentsBatched,
-  renumberSeatIndicesForGroup as renumberSeatIndicesForGroupApi,
-  subscribeToSeatingChartRowUpdates,
   updateSeatingGroupFields,
   updateSeatingGroupsLayoutBatch,
 } from '@/features/seating/lib/api/seating';
@@ -293,29 +290,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     const canvasContainerRef = useRef<HTMLDivElement | null>(null);
     // Track which group is being dragged
     const [draggedGroupId, setDraggedGroupId] = useState<string | null>(null);
-    // View settings from database
-    const [showGrid, setShowGrid] = useState<boolean>(true);
-    const [showObjects, setShowObjects] = useState<boolean>(true);
-    const [layoutOrientation, setLayoutOrientation] = useState<string>('Left');
 
-    const applyLayoutViewSettings = useCallback((data: {
-      show_grid?: boolean | null;
-      show_objects?: boolean | null;
-      layout_orientation?: string | null;
-      color_by_gender?: boolean | null;
-      color_by_level?: boolean | null;
-    }) => {
-      if (data.show_grid !== undefined) {
-        setShowGrid(data.show_grid ?? true);
-      }
-      if (data.show_objects !== undefined) {
-        setShowObjects(data.show_objects ?? true);
-      }
-      if (data.layout_orientation !== undefined) {
-        setLayoutOrientation(data.layout_orientation ?? 'Left');
-      }
-    }, []);
-    
     // Helper function to show success notification
     const showSuccessNotification = (title: string, message: string) => {
       setSuccessNotification({ isOpen: true, title, message });
@@ -335,11 +310,6 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       setUnseatedStudents,
       showError: showSuccessNotification,
     });
-
-    // Renumber seat_index to 1..N for a group (after remove or column change). Keeps display order.
-    const renumberSeatIndicesForGroup = useCallback(async (groupId: string) => {
-      await renumberSeatIndicesForGroupApi(groupId);
-    }, []);
 
     // Handle close button - navigate back to seating chart view (remove mode=edit); no batch save
     const handleClose = useCallback(() => {
@@ -456,84 +426,6 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         localStorage.setItem(storageKey, selectedLayoutId);
       }
     }, [selectedLayoutId, classId]);
-
-    // Fetch layout settings (show_grid, show_objects, layout_orientation) when layout changes
-    useEffect(() => {
-      const fetchLayoutSettings = async () => {
-        if (!selectedLayoutId) return;
-        
-        try {
-          const data = await fetchLayoutViewSettings(selectedLayoutId);
-
-          if (data) {
-            // Set values from database (default to true/Left if null)
-            applyLayoutViewSettings(data);
-          }
-        } catch (err) {
-          console.error('Unexpected error fetching layout settings:', err);
-        }
-      };
-
-      fetchLayoutSettings();
-    }, [selectedLayoutId, applyLayoutViewSettings]);
-
-    // Keep view settings in sync without aggressive polling:
-    // 1) local custom events, 2) realtime row updates, 3) low-frequency visible-tab fallback.
-    useEffect(() => {
-      if (!selectedLayoutId) return;
-
-      const handleViewSettingsUpdate = async () => {
-        if (document.visibilityState !== 'visible') return;
-        try {
-          const data = await fetchLayoutViewSettings(selectedLayoutId);
-          if (!data) return;
-          applyLayoutViewSettings(data);
-        } catch {
-          // Silently fail
-        }
-      };
-
-      const handleLocalSettingsEvent = (event: Event) => {
-        const customEvent = event as CustomEvent<{
-          layoutId?: string;
-          show_grid?: boolean | null;
-          show_objects?: boolean | null;
-          layout_orientation?: string | null;
-          color_by_gender?: boolean | null;
-          color_by_level?: boolean | null;
-        }>;
-        const detail = customEvent.detail;
-        if (!detail || detail.layoutId !== selectedLayoutId) return;
-        applyLayoutViewSettings(detail);
-      };
-
-      const handleVisibilityChange = () => {
-        if (document.visibilityState === 'visible') {
-          void handleViewSettingsUpdate();
-        }
-      };
-
-      window.addEventListener(STUDENT_EVENTS.SEATING_VIEW_SETTINGS_CHANGED, handleLocalSettingsEvent as EventListener);
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-
-      const { unsubscribe } = subscribeToSeatingChartRowUpdates(
-        selectedLayoutId,
-        (nextRow) => {
-          applyLayoutViewSettings(nextRow);
-        },
-        { channelSuffix: '_editor' }
-      );
-
-      // Low-frequency fallback in case realtime is unavailable.
-      const interval = setInterval(handleViewSettingsUpdate, 15000);
-
-      return () => {
-        clearInterval(interval);
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-        window.removeEventListener(STUDENT_EVENTS.SEATING_VIEW_SETTINGS_CHANGED, handleLocalSettingsEvent as EventListener);
-        unsubscribe();
-      };
-    }, [selectedLayoutId, applyLayoutViewSettings]);
 
     const fetchGroups = useCallback(async (options?: { preserveLocalPositions?: boolean }) => {
       if (!selectedLayoutId) return;
@@ -2082,15 +1974,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     canvasContainerRef,
     draggedGroupId,
     setDraggedGroupId,
-    showGrid,
-    setShowGrid,
-    showObjects,
-    setShowObjects,
-    layoutOrientation,
-    setLayoutOrientation,
-    applyLayoutViewSettings,
     showSuccessNotification,
-    renumberSeatIndicesForGroup,
     handleClose,
     dragOffsetRef,
     isRandomizing,

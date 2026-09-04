@@ -185,7 +185,7 @@ Resolved via `awardPointsTargets.ts` (`filterEligibleStudentIds`, `resolveAwardT
 | May 2026 | Dashboard hooks rename + sync split (`*Refresh.ts` / `*Sync.tsx`) |
 | May 2026 | North-star docs added (`source-of-truth`, `project-scope`, `product-spec`) |
 | June 2026 | Skill add/edit forms no longer collect points; award weight chosen in Award Points modal |
-| Sep 2026 | Seating editor: immediate granular persistence; Option C unified groups/assignments/positions in `useSeatingStore`; one seat per layout (`UNIQUE(student_id, seating_chart_id)`); manual layout repair (`SEATING_REPAIR_LAYOUT`); see [`seating_editor_save_audit.md`](seating_editor_save_audit.md) |
+| Sep 2026 | Seating editor: immediate granular persistence; Option C unified groups/assignments/positions in `useSeatingStore`; one seat per layout (`UNIQUE(student_id, seating_chart_id)`); manual layout repair (`SEATING_REPAIR_LAYOUT`); view settings store-canonical — see [`seating_editor_save_audit.md`](seating_editor_save_audit.md) |
 
 ---
 

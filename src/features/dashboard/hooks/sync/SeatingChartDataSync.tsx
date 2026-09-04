@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
+import { subscribeToSeatingChartRowUpdates } from '@/features/seating/lib/api/seating';
 import {
   refreshLayoutViewSettings,
   refreshSeatingGroupsForLayout,
@@ -68,6 +69,36 @@ export function SeatingChartDataSync() {
     };
     window.addEventListener(STUDENT_EVENTS.SEATING_EDIT_MODE, handleSeatingEditMode as EventListener);
     return () => window.removeEventListener(STUDENT_EVENTS.SEATING_EDIT_MODE, handleSeatingEditMode as EventListener);
+  }, [selectedLayoutId]);
+
+  useEffect(() => {
+    if (!selectedLayoutId) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void refreshLayoutViewSettings(selectedLayoutId);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    const { unsubscribe } = subscribeToSeatingChartRowUpdates(
+      selectedLayoutId,
+      (nextRow) => {
+        useSeatingStore.getState().syncLayoutViewSettings(selectedLayoutId, nextRow);
+      },
+      {
+        onRefresh: (payload) => {
+          if (payload.layoutId !== selectedLayoutId) return;
+          void refreshSeatingGroupsForLayout(selectedLayoutId);
+        },
+      }
+    );
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      unsubscribe();
+    };
   }, [selectedLayoutId]);
 
   return null;

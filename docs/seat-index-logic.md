@@ -26,7 +26,7 @@ Assignment orchestration lives in **`useSeatingChartEditor`** ([`src/hooks/useSe
 - **Auto-Append:** Adding a student without a target uses `getNextSeatIndex` → `max(current_indices) + 1`. This does **not** fill holes automatically.
 - **Column Expansion:** The "Expand in Column" feature uses `getNextSeatIndexInColumn` to find the next vertical slot in a specific column rather than appending to the end of the reading order.
 - **Remove / move / swap:** Store updated optimistically; targeted Layer 3 calls (`insert`, `update`, `delete`, `swapSeatAssignments`) + derived `group_rows` write. See [`seating_editor_save_audit.md`](seating_editor_save_audit.md).
-- **Renumbering:** Layer 3 exposes `renumberSeatIndicesForGroup` in [`seating.ts`](../src/features/seating/lib/api/seating.ts) (contiguous `seat_index` 1..N in reading order). The editor hook wraps that API in a callback, but **nothing in the editor UI currently calls it**, so day-to-day edits do not auto-renumber. Holes after remove are intentional. Treat as **available plumbing / future use** unless wired into specific operations (would also need store refresh after API).
+- **Empty seats stay (no auto-renumber):** On remove, delete that assignment only — do **not** compact remaining `seat_index` values to `1..N`. Empty slots remain so other students keep their visual place. Auto-append still uses `max(indices) + 1` and does not fill holes; manual slot click still assigns that exact `seat_index`.
 
 ## 4. Architectural Implementation Note
 - **View canvas (`SeatingGroupsCanvas`):** Reads assignments from `useSeatingStore`; renders students at calculated coordinates from `seat_index`.

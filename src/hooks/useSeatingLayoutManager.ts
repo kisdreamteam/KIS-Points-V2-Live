@@ -6,13 +6,10 @@ import { useRouter } from 'next/navigation';
 import {
   createSeatingLayout,
   deleteSeatingLayoutCascade,
-  subscribeToSeatingChartRowUpdates,
   updateSeatingLayoutName,
   type SeatingChartRecord,
 } from '@/features/seating/lib/api/seating';
 import {
-  refreshLayoutViewSettings,
-  refreshSeatingGroupsForLayout,
   refreshSeatingLayoutsForClass,
 } from '@/features/dashboard/hooks/sync/seatingChartRefresh';
 import { STUDENT_EVENTS, emitSeatingEditMode, emitSeatingLayoutSelected } from '@/lib/events/students';
@@ -131,62 +128,6 @@ export function useSeatingLayoutManager({
       useSeatingStore.getState().applyLayoutViewSettings(currentLayout);
     }
   }, [selectedLayoutId, layouts]);
-
-  useEffect(() => {
-    if (!selectedLayoutId) return;
-
-    const handleViewSettingsUpdate = async () => {
-      if (document.visibilityState !== 'visible') return;
-      await refreshLayoutViewSettings(selectedLayoutId);
-    };
-
-    const handleLocalSettingsEvent = (event: Event) => {
-      const customEvent = event as CustomEvent<{
-        layoutId?: string;
-        show_grid?: boolean | null;
-        show_objects?: boolean | null;
-        layout_orientation?: string | null;
-        color_by_gender?: boolean | null;
-        color_by_level?: boolean | null;
-      }>;
-      const detail = customEvent.detail;
-      if (!detail || detail.layoutId !== selectedLayoutId) return;
-      useSeatingStore.getState().syncLayoutViewSettings(selectedLayoutId, detail);
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        void handleViewSettingsUpdate();
-      }
-    };
-
-    void refreshLayoutViewSettings(selectedLayoutId);
-
-    window.addEventListener(STUDENT_EVENTS.SEATING_VIEW_SETTINGS_CHANGED, handleLocalSettingsEvent as EventListener);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    const { unsubscribe } = subscribeToSeatingChartRowUpdates(
-      selectedLayoutId,
-      (nextRow) => {
-        useSeatingStore.getState().syncLayoutViewSettings(selectedLayoutId, nextRow);
-      },
-      {
-        onRefresh: (payload) => {
-          if (payload.layoutId !== selectedLayoutId) return;
-          void refreshSeatingGroupsForLayout(selectedLayoutId);
-        },
-      }
-    );
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener(
-        STUDENT_EVENTS.SEATING_VIEW_SETTINGS_CHANGED,
-        handleLocalSettingsEvent as EventListener
-      );
-      unsubscribe();
-    };
-  }, [selectedLayoutId]);
 
   const handleEditLayoutSave = useCallback(
     async (newName: string) => {

@@ -1,6 +1,14 @@
 import { createClient } from '@/lib/client';
 import type { Student } from '@/lib/types';
 import { throwApiError } from '@/lib/api/errors';
+import {
+  SEATING_REFRESH_EVENT,
+  clearSeatingRefreshChannel,
+  getJoinedSeatingRefreshChannel,
+  registerSeatingRefreshChannel,
+  seatingChartRefreshChannelName,
+  seatingChartsSettingsChannelName,
+} from '@/features/seating/lib/seatingRealtime';
 
 export type SeatingChartRecord = {
   id: string;
@@ -283,8 +291,6 @@ export type SeatingRefreshPayload = {
   emittedAt: number;
 };
 
-const SEATING_REFRESH_EVENT = 'seating_chart_refresh';
-
 async function resolveLayoutIdByGroupIds(groupIds: string[]): Promise<string | null> {
   if (groupIds.length === 0) return null;
   const supabase = createClient();
@@ -353,16 +359,40 @@ async function broadcastByGroupIds(groupIds: string[]): Promise<void> {
   await broadcastSeatingChartRefresh(layoutId);
 }
 
+async function sendSeatingRefreshBroadcast(
+  channel: ReturnType<ReturnType<typeof createClient>['channel']>,
+  payload: SeatingRefreshPayload
+): Promise<void> {
+  const result = await channel.send({
+    type: 'broadcast',
+    event: SEATING_REFRESH_EVENT,
+    payload,
+  });
+  if (result !== 'ok' && result !== 'timed out') {
+    throw new Error(`Failed to broadcast seating refresh (${String(result)})`);
+  }
+}
+
+/**
+ * Notify other tabs to refresh groups/assignments for a layout.
+ * Best-effort only — never throws; DB writes are already committed by callers.
+ */
 export async function broadcastSeatingChartRefresh(layoutId: string): Promise<void> {
-  const supabase = createClient();
   const payload: SeatingRefreshPayload = {
     layoutId,
     emittedAt: Date.now(),
   };
-  const channelName = `seating_chart_view_settings_${layoutId}`;
-  const channel = supabase.channel(channelName);
 
   try {
+    const joined = getJoinedSeatingRefreshChannel(layoutId);
+    if (joined) {
+      await sendSeatingRefreshBroadcast(joined, payload);
+      return;
+    }
+
+    const supabase = createClient();
+    const channel = supabase.channel(seatingChartRefreshChannelName(layoutId));
+
     await new Promise<void>((resolve, reject) => {
       let finished = false;
       const timeoutMs = 12_000;
@@ -384,18 +414,7 @@ export async function broadcastSeatingChartRefresh(layoutId: string): Promise<vo
         if (status === 'SUBSCRIBED') {
           void (async () => {
             try {
-              const result = await channel.send({
-                type: 'broadcast',
-                event: SEATING_REFRESH_EVENT,
-                payload,
-              });
-              if (result !== 'ok' && result !== 'timed out') {
-                done(() => {
-                  void supabase.removeChannel(channel);
-                  reject(new Error('Failed to broadcast seating refresh'));
-                });
-                return;
-              }
+              await sendSeatingRefreshBroadcast(channel, payload);
               done(() => {
                 void supabase.removeChannel(channel);
                 resolve();
@@ -419,23 +438,28 @@ export async function broadcastSeatingChartRefresh(layoutId: string): Promise<vo
       });
     });
   } catch (e) {
-    throwApiError(e instanceof Error ? e : new Error(String(e)), 'broadcastSeatingChartRefresh');
+    console.warn(
+      'broadcastSeatingChartRefresh failed (notify-only; DB write already committed):',
+      e instanceof Error ? e.message : e
+    );
   }
 }
 
-/** Supabase realtime: `seating_charts` row updates for view settings (grid/objects/orientation). */
+/**
+ * Supabase realtime: seating_charts view-settings updates + cross-tab assignment refresh.
+ * Uses separate channels so ephemeral broadcast publish never collides with the long-lived subscriber.
+ */
 export function subscribeToSeatingChartRowUpdates(
   layoutId: string,
   onNewRow: (row: LayoutViewSettings) => void,
   options?: {
-    channelSuffix?: string;
     onRefresh?: (payload: SeatingRefreshPayload) => void;
   }
 ): { unsubscribe: () => void } {
   const supabase = createClient();
-  const channelSuffix = options?.channelSuffix ?? '';
-  const realtimeChannel = supabase
-    .channel(`seating_chart_view_settings_${layoutId}${channelSuffix}`)
+
+  const settingsChannel = supabase
+    .channel(seatingChartsSettingsChannelName(layoutId))
     .on(
       'postgres_changes',
       {
@@ -449,6 +473,10 @@ export function subscribeToSeatingChartRowUpdates(
         onNewRow(nextRow);
       }
     )
+    .subscribe();
+
+  const refreshChannel = supabase
+    .channel(seatingChartRefreshChannelName(layoutId))
     .on(
       'broadcast',
       { event: SEATING_REFRESH_EVENT },
@@ -458,33 +486,22 @@ export function subscribeToSeatingChartRowUpdates(
         options?.onRefresh?.(refreshPayload);
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        registerSeatingRefreshChannel(layoutId, refreshChannel);
+      }
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        clearSeatingRefreshChannel(layoutId, refreshChannel);
+      }
+    });
 
   return {
     unsubscribe: () => {
-      void supabase.removeChannel(realtimeChannel);
+      clearSeatingRefreshChannel(layoutId, refreshChannel);
+      void supabase.removeChannel(settingsChannel);
+      void supabase.removeChannel(refreshChannel);
     },
   };
-}
-
-export async function renumberSeatIndicesForGroup(groupId: string): Promise<void> {
-  const supabase = createClient();
-  const { data: assignments, error } = await supabase
-    .from('student_seat_assignments')
-    .select('id')
-    .eq('seating_group_id', groupId)
-    .order('seat_index', { ascending: true, nullsFirst: false });
-
-  if (error) throwApiError(error, 'renumberSeatIndicesForGroup.select');
-  if (!assignments?.length) return;
-
-  for (let i = 0; i < assignments.length; i++) {
-    const { error: upErr } = await supabase
-      .from('student_seat_assignments')
-      .update({ seat_index: i + 1 })
-      .eq('id', assignments[i].id);
-    if (upErr) throwApiError(upErr, 'renumberSeatIndicesForGroup.update');
-  }
 }
 
 export async function updateSeatingGroupsLayoutBatch(

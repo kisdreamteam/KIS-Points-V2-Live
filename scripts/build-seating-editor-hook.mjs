@@ -40,7 +40,6 @@ import {
   insertSeatingGroups,
   insertStudentSeatAssignments,
   insertStudentSeatAssignmentsBatched,
-  renumberSeatIndicesForGroup as renumberSeatIndicesForGroupApi,
   subscribeToSeatingChartRowUpdates,
   updateSeatingGroupFields,
   updateSeatingGroupsLayoutBatch,

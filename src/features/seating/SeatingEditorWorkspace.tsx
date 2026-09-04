@@ -32,7 +32,7 @@ type SeatingEditorWorkspaceProps = {
 };
 
 export default function SeatingEditorWorkspace({ classId, students }: SeatingEditorWorkspaceProps) {
-  const { selectedStudentForGroup, setSelectedStudentForGroup, setUnseatedStudents, unseatedStudents, colorByGender, colorByLevel } =
+  const { selectedStudentForGroup, setSelectedStudentForGroup, setUnseatedStudents, unseatedStudents, colorByGender, colorByLevel, showGrid, showObjects, layoutOrientation } =
     useSeatingStore(
       useShallow((s) => ({
         unseatedStudents: s.unseatedStudents,
@@ -41,6 +41,9 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
         setSelectedStudentForGroup: s.setSelectedStudentForGroup,
         colorByGender: s.colorByGender,
         colorByLevel: s.colorByLevel,
+        showGrid: s.showGrid,
+        showObjects: s.showObjects,
+        layoutOrientation: s.layoutOrientation,
       }))
     );
   const selectedLayoutId = useSeatingStore((s) => s.selectedLayoutId);
@@ -71,9 +74,6 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
     isCreateModalOpen,
     setIsCreateModalOpen,
     handleCreateLayout,
-    showGrid,
-    showObjects,
-    layoutOrientation,
     isLoadingGroups,
     groups,
     canvasContainerRef,
