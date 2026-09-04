@@ -43,7 +43,7 @@ import {
 import { STUDENT_EVENTS, emitSeatingEditMode, type SeatingRepairLayoutDetail } from '@/lib/events/students';
 import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/seatingChartRefresh';
 import { getEditorPersistInFlight } from '@/features/seating/lib/seatingEditorPersistGate';
-import { useSeatingEditorPersistence } from '@/hooks/useSeatingEditorPersistence';
+import { useSeatingEditorPersistence } from '@/features/seating/hooks/useSeatingEditorPersistence';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import {
   assignmentsMapToRecord,

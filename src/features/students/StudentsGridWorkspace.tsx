@@ -17,7 +17,7 @@ import {
   useDashboardToolbarInset,
 } from '@/features/dashboard/hooks/useDashboardToolbarInset';
 import { useCloseDrawersOnClickOutside } from '@/hooks/useCloseDrawersOnClickOutside';
-import type { PointLogRow } from '@/hooks/useClassPointLog';
+import type { PointLogRow } from '@/features/dashboard/hooks/useClassPointLog';
 import type { PointsReportPanelProps } from '@/features/dashboard/PointsReportPanel';
 
 export type StudentsGridWorkspaceProps = {

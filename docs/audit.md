@@ -47,7 +47,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ### 3. Browser storage is used for preferences and recent selections
 
-**Where:** `src/hooks/useSeatingLayoutManager.ts`, `src/hooks/useSeatingChart.ts`, `src/components/ui/MovableToolPanel.tsx`, `src/stores/usePreferenceStore.ts`, `src/features/students/hooks/useStudentsSelection.ts`, `src/features/dashboard/components/frame/navbars/MultiSelectBottomNav.tsx`
+**Where:** `src/features/seating/hooks/useSeatingLayoutManager.ts`, `src/features/seating/hooks/useSeatingChart.ts`, `src/components/ui/MovableToolPanel.tsx`, `src/stores/usePreferenceStore.ts`, `src/features/students/hooks/useStudentsSelection.ts`, `src/features/dashboard/components/frame/navbars/MultiSelectBottomNav.tsx`
 
 **Finding:** The app stores selected layouts, teacher view, tool panel positions, preferences, and recent selected IDs in `localStorage`.
 
@@ -121,7 +121,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ### 1. Points report fetches event rows and aggregates in the browser
 
-**Where:** `src/features/dashboard/lib/api/pointsReport.ts`, `src/hooks/usePointsReport.ts`
+**Where:** `src/features/dashboard/lib/api/pointsReport.ts`, `src/features/dashboard/hooks/usePointsReport.ts`
 
 **Finding:** Category-filtered report totals fetch matching `point_events` rows and sum them client-side.
 
@@ -131,7 +131,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ### 2. Filtered points report can refetch often while open
 
-**Where:** `src/hooks/usePointsReport.ts`
+**Where:** `src/features/dashboard/hooks/usePointsReport.ts`
 
 **Finding:** The report refetches filtered totals when the `students` array changes, because the hook depends on the whole students array.
 
@@ -141,7 +141,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ### 3. Large seating hook concentrates many responsibilities
 
-**Where:** `src/hooks/useSeatingChart.ts`
+**Where:** `src/features/seating/hooks/useSeatingChart.ts`
 
 **Finding:** `useSeatingChart.ts` is large and handles fetching, layout state, group operations, randomizing, swapping, alerts, and event listeners.
 
@@ -151,7 +151,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ### 4. Random sorting with `Math.random() - 0.5` is inefficient and biased
 
-**Where:** `src/hooks/useSeatingChart.ts`
+**Where:** `src/features/seating/hooks/useSeatingChart.ts`
 
 **Finding:** Random seating uses `.sort(() => Math.random() - 0.5)`.
 
@@ -201,7 +201,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ### 9. Point log downloads all history before paginating
 
-**Where:** `src/features/dashboard/lib/api/points.ts`, `src/hooks/useClassPointLog.ts`
+**Where:** `src/features/dashboard/lib/api/points.ts`, `src/features/dashboard/hooks/useClassPointLog.ts`
 
 **Finding:** The point log fetches all standard and custom point events for all class students, then paginates in the browser.
 
@@ -231,25 +231,21 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 **Resolution (Sep 2026):** Migrated all call sites to canonical names (`list*` / `get*` / `create*` / `update*`) and removed the alias export blocks.
 
-### 2. `useSeatingLayoutManager` lives in global hooks but is seating-specific
+### 2. `useSeatingLayoutManager` lives in global hooks but is seating-specific — **Resolved**
 
-**Where:** `src/hooks/useSeatingLayoutManager.ts`
+**Where:** was `src/hooks/useSeatingLayoutManager.ts`
 
-**Finding:** The hook is tightly tied to seating layouts but lives in the shared `src/hooks` folder.
+**Finding:** The hook is tightly tied to seating layouts but lived in the shared `src/hooks` folder.
 
-**Why it matters:** Shared hooks are best for cross-feature utilities. Feature-specific orchestration is easier to find under the feature it serves.
+**Resolution (Sep 2026):** Moved to `src/features/seating/hooks/useSeatingLayoutManager.ts` with other seating orchestration hooks.
 
-**Suggestion:** Consider moving it to `src/features/seating/hooks/useSeatingLayoutManager.ts` in a future refactor, updating imports only.
-
-### 3. Orchestration hooks are split across two homes
+### 3. Orchestration hooks are split across two homes — **Resolved**
 
 **Where:** `src/hooks/`, `src/features/*/hooks/`
 
-**Finding:** Some orchestration hooks live globally (`useClassPointLog`, `usePointsReport`, `useSeatingChart`), while many similar hooks live under feature folders.
+**Finding:** Some orchestration hooks lived globally (`useClassPointLog`, `usePointsReport`, `useSeatingChart`), while many similar hooks lived under feature folders.
 
-**Why it matters:** A new developer may not know where to put the next hook, and related logic can become harder to find.
-
-**Suggestion:** Clarify the rule in docs: global `src/hooks` for truly cross-feature hooks; feature-specific orchestration under `src/features/<feature>/hooks`.
+**Resolution (Sep 2026):** Clarified placement in `source-of-truth.md` §6. Rehomed seating hooks under `features/seating/hooks/` and point log/report under `features/dashboard/hooks/`. `src/hooks/` retains only cross-feature UI utilities (`useAnchoredDropdownPortal`, `useCloseDrawersOnClickOutside`).
 
 ### 4. Dashboard chrome sometimes performs orchestration
 
@@ -391,7 +387,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ### 2. Debug logs remain in seating chart logic — **Resolved**
 
-**Where:** `src/hooks/useSeatingChart.ts`
+**Where:** `src/features/seating/hooks/useSeatingChart.ts`
 
 **Finding:** There were `console.log` calls for swapping students and opening group edit modal.
 
@@ -399,7 +395,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ### 3. Many user-facing errors still use browser `alert`
 
-**Where:** `src/hooks/useSeatingChart.ts`, `src/features/classes/hooks/useClassManagement.ts`, `src/features/dashboard/hooks/useSubmitPointAward.ts`, and others
+**Where:** `src/features/seating/hooks/useSeatingChart.ts`, `src/features/classes/hooks/useClassManagement.ts`, `src/features/dashboard/hooks/useSubmitPointAward.ts`, and others
 
 **Finding:** The app uses many `alert()` and one `confirm()` call for errors and confirmations.
 
@@ -409,7 +405,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ### 4. Duplicate sorting logic exists in multiple places
 
-**Where:** `src/features/students/stores/dashboardStudentSelectors.ts`, `src/features/students/hooks/useSortedStudents.ts`, `src/hooks/usePointsReport.ts`
+**Where:** `src/features/students/stores/dashboardStudentSelectors.ts`, `src/features/students/hooks/useSortedStudents.ts`, `src/features/dashboard/hooks/usePointsReport.ts`
 
 **Finding:** Student sorting rules are implemented in more than one place.
 
@@ -439,7 +435,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ### 7. Some helper comments describe behavior that should be encoded in names/tests
 
-**Where:** `src/hooks/useSeatingChart.ts`, `src/lib/iconUtils.ts`, `src/features/dashboard/stores/useDashboardStore.ts`
+**Where:** `src/features/seating/hooks/useSeatingChart.ts`, `src/lib/iconUtils.ts`, `src/features/dashboard/stores/useDashboardStore.ts`
 
 **Finding:** A few comments explain important invariants, such as seat-index behavior and static icon counts.
 
@@ -471,10 +467,9 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 ### Low Priority
 
 1. Replace browser alerts with app-native modals/toasts.
-2. Clarify hook placement rules and clean up feature-specific hooks in `src/hooks`.
-3. Standardize icon naming.
-4. Align or document Webpack dev vs Turbopack build usage.
-5. Keep generated `.next/` output out of commits.
+2. Standardize icon naming.
+3. Align or document Webpack dev vs Turbopack build usage.
+4. Keep generated `.next/` output out of commits.
 
 ---
 

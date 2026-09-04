@@ -24,7 +24,7 @@ import SeatingCanvasDecor from '@/features/seating/components/canvas/SeatingCanv
 import SeatingLevelColorKey from '@/features/seating/components/canvas/SeatingLevelColorKey';
 import SeatingEditorGroupSettingsMenu from '@/features/seating/components/menus/SeatingEditorGroupSettingsMenu';
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
-import { useSeatingChartEditor } from '@/hooks/useSeatingChart';
+import { useSeatingChartEditor } from '@/features/seating/hooks/useSeatingChart';
 
 type SeatingEditorWorkspaceProps = {
   classId: string;

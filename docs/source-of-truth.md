@@ -99,12 +99,13 @@ Auth/landing: `src/features/{auth,landing}/` — not subject to dashboard tier s
 
 | Location | Use when |
 |----------|----------|
-| `src/hooks/` | Cross-feature utilities used by 2+ domains (e.g. `useAnchoredDropdownPortal`, `useSeatingChart` / `useSeatingChartEditor`, `useSeatingEditorPersistence`, `useClassPointLog`) |
-| `src/features/dashboard/hooks/` | Dashboard orchestration, modal controllers, award-points chain, workspace toolbar |
+| `src/hooks/` | Cross-feature **UI utilities** only (currently `useAnchoredDropdownPortal`, `useCloseDrawersOnClickOutside`) |
+| `src/features/dashboard/hooks/` | Dashboard orchestration, modal controllers, award-points chain, workspace toolbar, point log/report (`useClassPointLog`, `usePointsReport`) |
 | `src/features/dashboard/hooks/sync/` | URL/store alignment: `*Refresh.ts` (imperative) or `*Sync.tsx` (mount component) |
+| `src/features/seating/hooks/` | Seating editor/view orchestration (`useSeatingChart` / `useSeatingChartEditor`, `useSeatingEditorPersistence`, `useSeatingLayoutManager`, `useSeatingEditorToolbarActions`) |
 | `src/features/{students,classes,auth}/hooks/` | Domain-specific orchestration (e.g. `useAttendanceActions`, `useClassManagement`) |
 
-**Rule:** Prefer feature colocation. Promote to `src/hooks/` only when multiple features consume the hook.
+**Rule:** Prefer feature colocation. Promote to `src/hooks/` only for true cross-feature UI utilities used by 2+ domains — not domain orchestration (even if another feature imports it).
 
 ---
 
@@ -185,7 +186,8 @@ Resolved via `awardPointsTargets.ts` (`filterEligibleStudentIds`, `resolveAwardT
 | May 2026 | Dashboard hooks rename + sync split (`*Refresh.ts` / `*Sync.tsx`) |
 | May 2026 | North-star docs added (`source-of-truth`, `project-scope`, `product-spec`) |
 | June 2026 | Skill add/edit forms no longer collect points; award weight chosen in Award Points modal |
-| Sep 2026 | Seating editor: immediate granular persistence; Option C unified groups/assignments/positions in `useSeatingStore`; one seat per layout (`UNIQUE(student_id, seating_chart_id)`); manual layout repair (`SEATING_REPAIR_LAYOUT`); view settings store-canonical — see [`seating_editor_save_audit.md`](seating_editor_save_audit.md) |
+| Sep 2026 | Seating editor: immediate granular persistence; Option C unified groups/assignments/positions in `useSeatingStore`; one seat per layout (`UNIQUE(student_id, seating_chart_id)`); manual layout repair (`SEATING_REPAIR_LAYOUT`); view settings store-canonical — see [`archive/seating_editor_save_audit.md`](archive/seating_editor_save_audit.md) |
+| Sep 2026 | Layer 1 hook placement: seating orchestration → `features/seating/hooks/`; point log/report → `features/dashboard/hooks/`; `src/hooks/` retains only cross-feature UI utilities |
 
 ---
 

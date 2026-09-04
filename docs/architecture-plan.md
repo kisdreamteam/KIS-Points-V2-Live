@@ -220,7 +220,7 @@ components/ui/                     # shared atoms, icons, WorkspaceToolbar, gene
 
 **React Context is forbidden for global application state** (see `docs/tech-stack.md`).
 
-### Layer 1 — Orchestrators (`src/hooks/`)
+### Layer 1 — Orchestrators (`src/hooks/` + `src/features/*/hooks/`)
 
 **Responsibility:** Business flow, optimistic updates, error rollback, coordination across stores.
 
@@ -239,17 +239,18 @@ components/ui/                     # shared atoms, icons, WorkspaceToolbar, gene
 | Class CRUD / archive | `useClassActions.ts`, `useClassManagement.ts`, `useClassesWorkspaceActions.ts` |
 | Student modals / selection | `useStudentsModalsState.ts`, `useStudentsSelection.ts`, `useDashboardStudentModalActions.ts` |
 | Random student tool | `useRandomStudentFlow.ts` |
-| Seating editor canvas | `useSeatingChart.ts` (`useSeatingChartEditor`), `useSeatingEditorPersistence.ts`, `useSeatingLayoutManager.ts`, `useSeatingEditorToolbarActions.ts` |
+| Seating editor canvas | `features/seating/hooks/useSeatingChart.ts` (`useSeatingChartEditor`), `useSeatingEditorPersistence.ts`, `useSeatingLayoutManager.ts`, `useSeatingEditorToolbarActions.ts` |
 | Session / logout | `useDashboardSessionActions.ts` |
 | Auth forms | `useAuthFlow.ts` |
 | Workspace toolbar presets | `features/dashboard/hooks/useWorkspaceToolbarActions.ts` (preset actions via window events) |
-| Seating editor toolbar state/actions | `useSeatingEditorToolbarActions.ts` (view settings, groups, auto-assign/randomize; consumed by `SeatingEditorWorkspaceToolbar`) |
+| Seating editor toolbar state/actions | `features/seating/hooks/useSeatingEditorToolbarActions.ts` (view settings, groups, auto-assign/randomize; consumed by `SeatingEditorWorkspaceToolbar`) |
 | Award points modal (controller) | `useAwardPointsModalController.ts` (composes `useAwardPointsModalState`, `useSkillManagement`, `useAvailablePositiveIcons` / `useAvailableNegativeIcons` for add-skill UX) |
 | Edit skills modal (controller) | `useEditSkillsModalController.ts` (list/delete/edit orchestration + icon picker data for `EditSkillForm`) |
 | Daily attendance toggle | `useAttendanceActions.ts` |
 | Attendance hydration | `useAttendanceSync.ts` (`AttendanceSync`) |
 | Batch points open (seating group) | `useBatchPointsAward.ts` → `openMultiStudentPointsAward` |
-| UI utilities | `useAnchoredDropdownPortal.ts` (portaled dropdown positioning), `useSortedStudents.ts`, `useClassPointLog.ts`, `useStudentsUrlState.ts`, `useStudentsToolbarEvents.ts`, `useDashboardToolbarInset.ts`, `useSkillManagement.ts` |
+| Point log / points report | `features/dashboard/hooks/useClassPointLog.ts`, `usePointsReport.ts` |
+| UI utilities | `src/hooks/useAnchoredDropdownPortal.ts`, `src/hooks/useCloseDrawersOnClickOutside.ts`; also `useSortedStudents.ts`, `useStudentsUrlState.ts`, `useStudentsToolbarEvents.ts`, `useDashboardToolbarInset.ts`, `useSkillManagement.ts` |
 
 Pure helpers (no React): `src/features/dashboard/lib/awardPointsTargets.ts` (includes `filterEligibleStudentIds` for bulk awards vs `absentStudentIds`), `src/features/seating/lib/seatingLogic.ts`, `src/lib/iconUtils.ts`.
 
@@ -400,7 +401,7 @@ When `useLayoutStore.isEditMode` is true on the seating chart view, shell and vi
 Orchestrates the editor toolbar using:
 
 - **Tier 3 shell:** `components/ui/WorkspaceToolbar.tsx` (`topSlot`, `bottomSlot`, `topActions`, `bottomActions`)
-- **Layer 1:** `useSeatingEditorToolbarActions()` (settings toggles, group actions, emits `STUDENT_EVENTS` consumed by `useSeatingChart.ts`), `useWorkspaceToolbarActions()` (Close and other preset buttons from `workspaceToolbarPresets.tsx`)
+- **Layer 1:** `features/seating/hooks/useSeatingEditorToolbarActions()` (settings toggles, group actions, emits `STUDENT_EVENTS` consumed by `useSeatingChart.ts`), `useWorkspaceToolbarActions()` (Close and other preset buttons from `workspaceToolbarPresets.tsx`)
 - **Tier 3 menus:** `SeatingViewSettingsMenu`, `SeatingSettingsMenu`, `SeatingEditorAddGroupsMenu` in `features/seating/components/menus/`
 
 **Button layout (top → bottom on the rail):**

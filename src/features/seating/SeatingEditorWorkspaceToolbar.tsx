@@ -17,7 +17,7 @@ import EditorClearGroupsIcon from '@/components/ui/icons/EditorClearGroupsIcon';
 import { buildShellToolbarConfig } from '@/features/dashboard/stage/dashboardToolbarConfig';
 import { useWorkspaceToolbarActions } from '@/features/dashboard/hooks/useWorkspaceToolbarActions';
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
-import { useSeatingEditorToolbarActions } from '@/hooks/useSeatingEditorToolbarActions';
+import { useSeatingEditorToolbarActions } from '@/features/seating/hooks/useSeatingEditorToolbarActions';
 import { emitSeatingRepairLayout } from '@/lib/events/students';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import { useLayoutStore } from '@/stores/useLayoutStore';

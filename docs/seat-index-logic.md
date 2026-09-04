@@ -20,7 +20,7 @@ Pure helpers: [`src/features/seating/lib/seatingLogic.ts`](../src/features/seati
   - 3 Columns: Dynamically computed from base width constants (wider than 2-column, but not a fixed 1.5x multiplier).
 
 ## 3. Assignment Logic (Editor Behavior)
-Assignment orchestration lives in **`useSeatingChartEditor`** ([`src/hooks/useSeatingChart.ts`](../src/hooks/useSeatingChart.ts)) and reads/writes layout canvas data in **`useSeatingStore`** (groups, `groupAssignmentsById`, `groupPositionsById`). Persistence is **immediate and granular** via [`useSeatingEditorPersistence.ts`](../src/hooks/useSeatingEditorPersistence.ts) — not batch-on-exit.
+Assignment orchestration lives in **`useSeatingChartEditor`** ([`src/features/seating/hooks/useSeatingChart.ts`](../src/features/seating/hooks/useSeatingChart.ts)) and reads/writes layout canvas data in **`useSeatingStore`** (groups, `groupAssignmentsById`, `groupPositionsById`). Persistence is **immediate and granular** via [`useSeatingEditorPersistence.ts`](../src/features/seating/hooks/useSeatingEditorPersistence.ts) — not batch-on-exit.
 
 - **Manual Placement:** Clicking an empty slot assigns that `seat_index` to the student (optimistic store update → API).
 - **Auto-Append:** Adding a student without a target uses `getNextSeatIndex` → `max(current_indices) + 1`. This does **not** fill holes automatically.

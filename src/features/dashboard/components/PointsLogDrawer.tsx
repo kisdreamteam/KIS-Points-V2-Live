@@ -1,8 +1,8 @@
 'use client';
 
 import type { CSSProperties, Dispatch, SetStateAction } from 'react';
-import type { PointLogRow } from '@/hooks/useClassPointLog';
-import { formatPointLogDateDDMMYYYY } from '@/hooks/useClassPointLog';
+import type { PointLogRow } from '@/features/dashboard/hooks/useClassPointLog';
+import { formatPointLogDateDDMMYYYY } from '@/features/dashboard/hooks/useClassPointLog';
 
 export type PointsLogDrawerProps = {
   isOpen: boolean;

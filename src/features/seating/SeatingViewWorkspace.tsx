@@ -21,9 +21,9 @@ import {
   getStageDrawerInsets,
   useDashboardToolbarInset,
 } from '@/features/dashboard/hooks/useDashboardToolbarInset';
-import { useClassPointLog } from '@/hooks/useClassPointLog';
+import { useClassPointLog } from '@/features/dashboard/hooks/useClassPointLog';
 import { useCloseDrawersOnClickOutside } from '@/hooks/useCloseDrawersOnClickOutside';
-import { useSeatingLayoutManager } from '@/hooks/useSeatingLayoutManager';
+import { useSeatingLayoutManager } from '@/features/seating/hooks/useSeatingLayoutManager';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 type SeatingViewWorkspaceProps = {
   classId: string;

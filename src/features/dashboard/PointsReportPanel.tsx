@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from 'react';
 import CategoryFilterPopover from '@/features/dashboard/components/points-report/CategoryFilterPopover';
 import PointsReportTable from '@/features/dashboard/components/points-report/PointsReportTable';
 import type { ConsolidatedCategoryOption } from '@/features/dashboard/lib/api/pointsReport';
-import type { PointsReportRow } from '@/hooks/usePointsReport';
+import type { PointsReportRow } from '@/features/dashboard/hooks/usePointsReport';
 
 export type PointsReportPanelProps = {
   rows: PointsReportRow[];

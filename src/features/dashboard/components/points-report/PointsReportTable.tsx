@@ -1,6 +1,6 @@
 'use client';
 
-import type { PointsReportRow } from '@/hooks/usePointsReport';
+import type { PointsReportRow } from '@/features/dashboard/hooks/usePointsReport';
 
 export type PointsReportTableProps = {
   rows: PointsReportRow[];
