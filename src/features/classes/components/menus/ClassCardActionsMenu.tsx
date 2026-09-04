@@ -15,10 +15,8 @@ interface ClassCardActionsMenuProps {
   className: string;
   isOwner: boolean;
   archiveButtonText: string;
-  showDelete: boolean;
   onEdit: (classId: string) => void;
   onArchive: (classId: string, className: string) => void;
-  onDelete?: (classId: string, className: string) => void;
 }
 
 export default function ClassCardActionsMenu({
@@ -28,10 +26,8 @@ export default function ClassCardActionsMenu({
   className,
   isOwner,
   archiveButtonText,
-  showDelete,
   onEdit,
   onArchive,
-  onDelete,
 }: ClassCardActionsMenuProps) {
   const { isMounted, portalStyle } = useAnchoredDropdownPortal({ isOpen, anchorRef });
 
@@ -58,17 +54,6 @@ export default function ClassCardActionsMenu({
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8l6 6m0 0l6-6m-6 6V3" />
       </svg>
     );
-
-  const deleteIcon = (
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-      />
-    </svg>
-  );
 
   return createPortal(
     <MenuSurface
@@ -106,22 +91,6 @@ export default function ClassCardActionsMenu({
             }}
           >
             {archiveButtonText}
-          </MenuItem>
-        </>
-      )}
-      {isOwner && showDelete && onDelete && (
-        <>
-          <MenuDivider />
-          <MenuItem
-            icon={deleteIcon}
-            intent="danger"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onDelete(classId, className);
-            }}
-          >
-            Delete Class
           </MenuItem>
         </>
       )}

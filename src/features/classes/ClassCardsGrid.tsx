@@ -20,8 +20,6 @@ interface ClassCardsGridProps {
   onAddClass: () => void;
   archiveButtonText?: string;
   showAddCard?: boolean;
-  onDelete?: (classId: string, className: string) => void;
-  showDelete?: boolean;
 }
 
 export default function ClassCardsGrid({
@@ -34,13 +32,11 @@ export default function ClassCardsGrid({
   onAddClass,
   archiveButtonText,
   showAddCard = true,
-  onDelete,
-  showDelete = false,
 }: ClassCardsGridProps) {
   return (
     <ScaledGridFrame
       responsiveScale={{ base: 0.67, md: 1 }}
-      remeasureKey={`${classes.length}-${showAddCard ? 1 : 0}-${showDelete ? 1 : 0}`}
+      remeasureKey={`${classes.length}-${showAddCard ? 1 : 0}`}
     >
       <CardsGrid className="ml-2">
         {classes.map((cls) => (
@@ -53,8 +49,6 @@ export default function ClassCardsGrid({
             onEdit={onEdit}
             onArchive={onArchive}
             archiveButtonText={archiveButtonText}
-            onDelete={onDelete}
-            showDelete={showDelete}
           />
         ))}
         {showAddCard && <AddClassCard onClick={onAddClass} />}

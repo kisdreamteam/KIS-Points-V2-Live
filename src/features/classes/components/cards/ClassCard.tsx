@@ -21,8 +21,6 @@ interface ClassCardProps {
   onEdit: (classId: string) => void;
   onArchive: (classId: string, className: string) => void;
   archiveButtonText?: string;
-  onDelete?: (classId: string, className: string) => void;
-  showDelete?: boolean;
 }
 
 export default function ClassCard({
@@ -33,8 +31,6 @@ export default function ClassCard({
   onEdit,
   onArchive,
   archiveButtonText = "Archive Class",
-  onDelete,
-  showDelete = false,
 }: ClassCardProps) {
   const menuAnchorRef = useRef<HTMLButtonElement | null>(null);
   const isOwner = classItem.is_owner !== false;
@@ -88,10 +84,8 @@ export default function ClassCard({
               className={classItem.name}
               isOwner={isOwner}
               archiveButtonText={archiveButtonText}
-              showDelete={showDelete}
               onEdit={onEdit}
               onArchive={onArchive}
-              onDelete={onDelete}
             />
           </div>
         }

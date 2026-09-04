@@ -15,7 +15,6 @@ type ClassesStageContentProps = {
   hasAccessibleClasses: boolean;
   viewMode: 'active' | 'archived';
   onArchiveClassAction: (params: { classId: string; isArchivedView: boolean }) => Promise<void>;
-  onDeleteClassAction: (params: { classId: string }) => Promise<void>;
 };
 
 export default function ClassesStageContent({
@@ -24,7 +23,6 @@ export default function ClassesStageContent({
   hasAccessibleClasses,
   viewMode,
   onArchiveClassAction,
-  onDeleteClassAction,
 }: ClassesStageContentProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -33,9 +31,6 @@ export default function ClassesStageContent({
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [archiveClassId, setArchiveClassId] = useState<string | null>(null);
   const [archiveClassName, setArchiveClassName] = useState<string>('');
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deleteClassId, setDeleteClassId] = useState<string | null>(null);
-  const [deleteClassName, setDeleteClassName] = useState<string>('');
   const {
     studentCounts,
     isCreatingClass,
@@ -119,32 +114,6 @@ export default function ClassesStageContent({
     void refreshDashboardClassesForUserAction();
   };
 
-  const handleDeleteClass = (classId: string, className: string) => {
-    if (!classOwnerMap.get(classId)) {
-      alert('Only the primary class owner can delete this class.');
-      return;
-    }
-    setDeleteClassId(classId);
-    setDeleteClassName(className);
-    setIsDeleteModalOpen(true);
-    setOpenDropdownId(null);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!deleteClassId) return;
-
-    try {
-      await onDeleteClassAction({ classId: deleteClassId });
-    } catch (err) {
-      console.error('Error deleting class:', err);
-      alert('Failed to delete class. Please try again.');
-    } finally {
-      setIsDeleteModalOpen(false);
-      setDeleteClassId(null);
-      setDeleteClassName('');
-    }
-  };
-
   return (
     <div className="h-full min-h-0 w-full min-w-0">
       <ClassesGridBranch
@@ -157,7 +126,6 @@ export default function ClassesStageContent({
         onEdit={handleEditClass}
         onArchive={handleArchiveClass}
         onAddClass={() => !isArchivedView && setIsModalOpen(true)}
-        onDelete={isArchivedView ? handleDeleteClass : undefined}
       />
 
       {!isArchivedView && (
@@ -211,33 +179,6 @@ export default function ClassesStageContent({
           </svg>
         }
       />
-
-      {isArchivedView && (
-        <ConfirmationModal
-          isOpen={isDeleteModalOpen}
-          onClose={() => {
-            setIsDeleteModalOpen(false);
-            setDeleteClassId(null);
-            setDeleteClassName('');
-          }}
-          onConfirm={handleConfirmDelete}
-          title="Delete Class"
-          message={`Are you sure you want to permanently delete "${deleteClassName}"? This cannot be undone and removes the class, students, points history, seating layouts, attendance, and collaborators.`}
-          confirmText="Delete"
-          cancelText="Cancel"
-          confirmButtonColor="red"
-          icon={
-            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-          }
-        />
-      )}
     </div>
   );
 }

@@ -17,7 +17,6 @@ export type ClassesGridWorkspaceProps = {
   onEdit: (classId: string) => void;
   onArchive: (classId: string, className: string) => void;
   onAddClass: () => void;
-  onDelete?: (classId: string, className: string) => void;
 };
 
 export default function ClassesGridWorkspace({
@@ -30,7 +29,6 @@ export default function ClassesGridWorkspace({
   onEdit,
   onArchive,
   onAddClass,
-  onDelete,
 }: ClassesGridWorkspaceProps) {
   const archiveButtonText = isArchivedView ? 'Unarchive Class' : 'Archive Class';
 
@@ -67,8 +65,6 @@ export default function ClassesGridWorkspace({
             onAddClass={onAddClass}
             archiveButtonText={archiveButtonText}
             showAddCard={!isArchivedView}
-            onDelete={onDelete}
-            showDelete={isArchivedView}
           />
         )}
       </div>

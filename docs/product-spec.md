@@ -44,7 +44,7 @@ KIS-Points helps teachers manage classes, track student points, arrange seating,
 ### 3.1 Classes grid (`/dashboard`)
 
 - Shows accessible classes filtered by **active** vs **archived** view mode
-- Actions per class: edit, archive, delete (with confirmation)
+- Actions per class: edit, archive / unarchive (with confirmation). Permanent delete is not offered.
 - Create class via modal
 - Empty state when no classes
 - Student count displayed on class cards
@@ -138,7 +138,7 @@ Main stage uses `StageTwoColumnSplit`: content + fixed-width toolbar column. Wor
 
 ## 5. Data & persistence rules
 
-- **Soft delete:** classes and students use `is_archived`; archived entities hidden from active views
+- **Soft delete only:** classes and students use `is_archived`; archived entities hidden from active views. Classes are never hard-deleted from the app.
 - **Point events:** append-only ledgers (`point_events`, `custom_point_events`)
 - **Student `points` field:** cached total on student row (updated optimistically)
 - **Archive student:** removes `student_seat_assignments` without renumbering remaining `seat_index` values

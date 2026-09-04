@@ -217,7 +217,7 @@ WF-11, WF-12, WF-13
 #### Outcome
 
 - `viewMode` preference updates; grid re-filters.
-- Archive/delete actions differ by view (WF-14, WF-15).
+- Archive/unarchive actions available per view (WF-14).
 
 #### Edge cases
 
@@ -225,7 +225,7 @@ WF-11, WF-12, WF-13
 
 #### Related
 
-WF-10, WF-14, WF-15
+WF-10, WF-14
 
 ---
 
@@ -307,34 +307,7 @@ WF-30, WF-34, WF-60
 
 #### Related
 
-WF-11, WF-15
-
----
-
-### WF-15: Delete class
-
-**Goal:** Permanently remove an archived class.  
-**Preconditions:** Archived view; class is archived.  
-**Entry points:** Class card menu → **Delete Class**.
-
-#### Steps
-
-1. Switch to archived classes (WF-11).
-2. Open class card menu → **Delete Class**.
-3. Confirm deletion.
-
-#### Outcome
-
-- Class and related data removed per backend rules.
-- Card disappears from grid.
-
-#### Edge cases
-
-- Delete only offered in archived view (`showDelete`).
-
-#### Related
-
-WF-14
+WF-11
 
 ---
 
@@ -1329,7 +1302,6 @@ WF-10, WF-64, WF-80
 | WF-12 | Create class |
 | WF-13 | Open class |
 | WF-14 | Archive / restore class |
-| WF-15 | Delete class |
 | WF-20 | Edit class info |
 | WF-21 | Manage students in edit modal |
 | WF-22 | Manage collaborators |

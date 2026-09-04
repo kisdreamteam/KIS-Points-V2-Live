@@ -86,24 +86,10 @@ Expect `relrowsecurity = true` for both tables, and policies for SELECT/INSERT o
 
 ---
 
-## Permanent class delete (`delete_class_permanently`)
+## Class soft-delete only
 
-Client permanent delete calls RPC `delete_class_permanently(p_class_id)` (owner only). The function deletes related seating, attendance, point ledgers, categories, collaborators, students, then the class in one transaction — independent of incomplete FK cascades.
-
-### Apply the migration
-
-1. Open the Supabase Dashboard for your project.
-2. Go to **SQL Editor** → **New query**.
-3. Paste and run [`migrations/20250904130000_delete_class_permanently_rpc.sql`](./migrations/20250904130000_delete_class_permanently_rpc.sql).
-
-Requires `is_class_owner` from the collaborators RLS migrations.
-
-### Verify the RPC exists
+Classes are archived via `is_archived` (no permanent delete in the app). If you previously applied a draft `delete_class_permanently` RPC, remove it:
 
 ```sql
-SELECT proname
-FROM pg_proc
-JOIN pg_namespace n ON n.oid = pg_proc.pronamespace
-WHERE n.nspname = 'public'
-  AND proname = 'delete_class_permanently';
+DROP FUNCTION IF EXISTS public.delete_class_permanently(uuid);
 ```

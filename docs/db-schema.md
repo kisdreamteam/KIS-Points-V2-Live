@@ -36,7 +36,7 @@ Allows multiple teachers/staff to manage a single class.
 * `is_archived` (boolean)
 * `created_at` (timestamptz)
 * `icon` (text)
-* **Permanent delete:** RPC `delete_class_permanently(p_class_id)` (owner only via `is_class_owner`). Removes seating charts/groups/assignments, attendance, point/custom events, point categories, collaborators, students, then the class. Soft-archive remains `is_archived` on the class row.
+* **Soft delete only:** set `is_archived`; the app does not permanently delete classes.
 
 **Table: `students`** 
 Note: Students are mapped directly to classes (1:N).

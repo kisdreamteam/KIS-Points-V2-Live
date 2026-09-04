@@ -331,9 +331,9 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 **Where:** `src/features/classes/lib/api/classes.ts`
 
-**Finding:** `deleteClassPermanently` deleted students and then the class. It did not visibly delete point events, custom point events, seating charts, groups, assignments, attendance events, or collaborators in this function.
+**Finding:** `deleteClassPermanently` deleted students and then the class without visibly cleaning related ledgers/seating/attendance, risking orphans or FK failures.
 
-**Resolution (Sep 2026):** Replaced client multi-step deletes with owner-only SECURITY DEFINER RPC `delete_class_permanently` ([`supabase/migrations/20250904130000_delete_class_permanently_rpc.sql`](../supabase/migrations/20250904130000_delete_class_permanently_rpc.sql)). Explicit ordered deletes cover seating, attendance, point ledgers, categories, collaborators, students, then class. Apply notes in [`supabase/README.md`](../supabase/README.md).
+**Resolution (Sep 2026):** Product policy is **soft-delete only** (`is_archived`). Permanent class delete was removed from the UI, Layer 3 API, and the draft `delete_class_permanently` RPC migration. Archive/unarchive remains the only class removal path.
 
 ### 3. Points reset may not reset all history consistently
 

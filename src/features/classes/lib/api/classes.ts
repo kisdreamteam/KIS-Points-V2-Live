@@ -93,16 +93,6 @@ export async function archiveClass(classId: string, archived: boolean): Promise<
   if (error) throwApiError(error, 'archiveClass');
 }
 
-export async function deleteClassPermanently(classId: string): Promise<void> {
-  const supabase = createClient();
-
-  const { error } = await supabase.rpc('delete_class_permanently', {
-    p_class_id: classId,
-  });
-
-  if (error) throwApiError(error, 'deleteClassPermanently');
-}
-
 export async function createClass(params: {
   className: string;
   grade: string;

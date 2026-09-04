@@ -10,7 +10,7 @@ export default function ClassesStage() {
   const isLoadingClasses = useDashboardStore((s) => s.isLoadingClasses);
   const hasAccessibleClasses = useDashboardStore((s) => s.allAccessibleClasses.length > 0);
   const viewMode = usePreferenceStore((s) => s.viewMode);
-  const { archiveClass, deleteClassPermanently } = useClassActions();
+  const { archiveClass } = useClassActions();
 
   return (
     <ClassesStageContent
@@ -19,7 +19,6 @@ export default function ClassesStage() {
       hasAccessibleClasses={hasAccessibleClasses}
       viewMode={viewMode}
       onArchiveClassAction={archiveClass}
-      onDeleteClassAction={deleteClassPermanently}
     />
   );
 }
