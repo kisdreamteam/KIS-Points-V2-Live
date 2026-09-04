@@ -9,6 +9,7 @@ import {
   refreshSeatingGroupsForLayout,
   refreshSeatingLayoutsForClass,
 } from '@/features/dashboard/hooks/sync/seatingChartRefresh';
+import { waitForEditorPersistsIdle } from '@/features/seating/lib/seatingEditorPersistGate';
 import { STUDENT_EVENTS, type SeatingViewSettingsChangedDetail } from '@/lib/events/students';
 
 /** Keeps seating layout/group data in `useSeatingStore` aligned with class + layout selection. */
@@ -63,8 +64,12 @@ export function SeatingChartDataSync() {
     const handleSeatingEditMode = (event: Event) => {
       const detail = (event as CustomEvent<{ isEditMode?: boolean }>).detail;
       if (detail?.isEditMode === false && selectedLayoutId) {
-        void refreshSeatingGroupsForLayout(selectedLayoutId);
-        void refreshLayoutViewSettings(selectedLayoutId);
+        const layoutId = selectedLayoutId;
+        void (async () => {
+          await waitForEditorPersistsIdle();
+          await refreshSeatingGroupsForLayout(layoutId);
+          await refreshLayoutViewSettings(layoutId);
+        })();
       }
     };
     window.addEventListener(STUDENT_EVENTS.SEATING_EDIT_MODE, handleSeatingEditMode as EventListener);

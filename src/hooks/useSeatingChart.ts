@@ -36,6 +36,7 @@ import {
 } from '@/features/seating/lib/seatingLogic';
 import { STUDENT_EVENTS, emitSeatingEditMode, type SeatingRepairLayoutDetail } from '@/lib/events/students';
 import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/seatingChartRefresh';
+import { getEditorPersistInFlight } from '@/features/seating/lib/seatingEditorPersistGate';
 import { useSeatingEditorPersistence } from '@/hooks/useSeatingEditorPersistence';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import {
@@ -305,13 +306,12 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       persistRemoveStudent,
       persistMoveStudent,
       persistSwapStudents,
-      persistInFlightRef,
     } = useSeatingEditorPersistence({
       setUnseatedStudents,
       showError: showSuccessNotification,
     });
 
-    // Handle close button - navigate back to seating chart view (remove mode=edit); no batch save
+    // Handle close — navigate only; SeatingChartDataSync refreshes after persists settle
     const handleClose = useCallback(() => {
       skipUnmountEditModeEmitRef.current = true;
       const params = new URLSearchParams(searchParams?.toString() ?? '');
@@ -320,10 +320,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       const newUrl = params.toString() ? `${base}?${params.toString()}` : base;
       router.push(newUrl);
       emitSeatingEditMode({ isEditMode: false });
-      if (selectedLayoutId) {
-        void refreshSeatingGroupsForLayout(selectedLayoutId);
-      }
-    }, [pathname, router, searchParams, selectedLayoutId]);
+    }, [pathname, router, searchParams]);
 
     const searchParamsSnapshot = searchParams?.toString() ?? '';
     useEffect(() => {
@@ -520,7 +517,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         showSuccessNotification('Nothing to sync', 'Create at least one group before syncing.');
         return;
       }
-      if (persistInFlightRef.current > 0) {
+      if (getEditorPersistInFlight() > 0) {
         showSuccessNotification(
           'Please wait',
           'Seat changes are still saving. Try sync again in a moment.'
@@ -643,7 +640,6 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       computeGroupRows,
       updateGroups,
       isRandomizing,
-      persistInFlightRef,
     ]);
 
     const repairSeatingLayoutFromStoreRef = useRef(repairSeatingLayoutFromStore);
@@ -663,7 +659,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     useEffect(() => {
       const handleSeatingRepairLayout = (event: Event) => {
         const detail = (event as CustomEvent<SeatingRepairLayoutDetail>).detail;
-        if (persistInFlightRef.current > 0) {
+        if (getEditorPersistInFlight() > 0) {
           showSuccessNotificationRef.current(
             'Please wait',
             'Seat changes are still saving. Try sync again in a moment.'
@@ -691,7 +687,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       return () => {
         window.removeEventListener(STUDENT_EVENTS.SEATING_REPAIR_LAYOUT, handleSeatingRepairLayout as EventListener);
       };
-    }, [persistInFlightRef]);
+    }, []);
 
     // Handle randomize seating - animated swap of all seated students
     const handleRandomizeSeating = useCallback(async () => {

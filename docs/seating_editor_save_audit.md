@@ -7,7 +7,7 @@ Reference for how the seating **editor** persists changes: which state buckets e
 Primary files:
 
 - [`src/hooks/useSeatingChart.ts`](../src/hooks/useSeatingChart.ts) — editor orchestration, reads/writes `useSeatingStore` for layout canvas data
-- [`src/hooks/useSeatingEditorPersistence.ts`](../src/hooks/useSeatingEditorPersistence.ts) — Layer 1 targeted persist + rollback (store-backed); wraps writes with [`withTransientRetry`](../src/lib/withTransientRetry.ts)
+- [`src/hooks/useSeatingEditorPersistence.ts`](../src/hooks/useSeatingEditorPersistence.ts) — Layer 1 targeted persist + rollback (store-backed); wraps writes with [`withTransientRetry`](../src/lib/withTransientRetry.ts); tracks in-flight via [`seatingEditorPersistGate`](../src/features/seating/lib/seatingEditorPersistGate.ts)
 - [`src/hooks/useSeatingLayoutManager.ts`](../src/hooks/useSeatingLayoutManager.ts) — view-mode layout create / rename / delete / select
 - [`src/features/seating/components/canvas/LayoutManagerDrawer.tsx`](../src/features/seating/components/canvas/LayoutManagerDrawer.tsx) — layout manager drawer UI (wired from `SeatingViewWorkspace`)
 - [`src/features/seating/lib/api/seating.ts`](../src/features/seating/lib/api/seating.ts) — Layer 3 Supabase access
@@ -39,7 +39,7 @@ flowchart LR
 
 **Pattern:** optimistic store update → targeted API call with transient retry (`withTransientRetry`, 2 retries / 300–800ms) → on exhaustion rollback store slice + error toast. **`group_rows`** is recomputed from assignments and written via `updateSeatingGroupRows` after assignment-affecting changes.
 
-**Exit (toolbar X):** navigate only — removes `mode=edit`, emits `SEATING_EDIT_MODE` false, calls `refreshSeatingGroupsForLayout` as a safety net. **`SeatingChartDataSync`** also listens for edit-mode exit and refreshes groups **again** plus view settings. **No batch save on exit.** See [Remaining concerns](#remaining-concerns) for duplicate-fetch and in-flight-persist risks.
+**Exit (toolbar X):** navigate only — removes `mode=edit`, emits `SEATING_EDIT_MODE` false. **`SeatingChartDataSync`** is the sole exit refresher: waits for [`waitForEditorPersistsIdle`](../src/features/seating/lib/seatingEditorPersistGate.ts) then refreshes groups + view settings once. **No batch save on exit.**
 
 ---
 
@@ -134,10 +134,10 @@ Orchestration: [`useSeatingLayoutManager.ts`](../src/hooks/useSeatingLayoutManag
 
 | Action | DB write | Notes |
 |--------|:--------:|-------|
-| Close editor | **No** | `handleClose`: URL `mode=edit` removed; `emitSeatingEditMode({ isEditMode: false })`; direct `refreshSeatingGroupsForLayout`. **`SeatingChartDataSync`** on the same event also calls `refreshSeatingGroupsForLayout` + `refreshLayoutViewSettings` — groups are fetched twice on every exit. |
+| Close editor | **No** | `handleClose`: URL `mode=edit` removed; `emitSeatingEditMode({ isEditMode: false })` only. **`SeatingChartDataSync`** waits for editor persists idle, then `refreshSeatingGroupsForLayout` + `refreshLayoutViewSettings` (single pass). |
 | Manual layout repair | **Yes (full replace)** | Settings → **Sync layout to database** → confirmation → `SEATING_REPAIR_LAYOUT` → `repairSeatingLayoutFromStore`. Deletes all layout assignments and re-inserts from store; batch-updates group positions. |
 
-**Repair guards:** Event handler blocks when `persistInFlightRef > 0`, randomize in flight, or repair already running (`saveAllChangesInFlightRef`). Toolbar disables the menu item while repair or randomize is in flight; granular persists are blocked at the handler with a “Please wait” toast (modal can still be opened during a granular persist).
+**Repair guards:** Event handler blocks when `getEditorPersistInFlight() > 0`, randomize in flight, or repair already running (`saveAllChangesInFlightRef`). Toolbar disables the menu item while repair or randomize is in flight; granular persists are blocked at the handler with a “Please wait” toast (modal can still be opened during a granular persist).
 
 Editor UX copy: [`SeatingCanvasDecor`](../src/features/seating/components/canvas/SeatingCanvasDecor.tsx) shows **“Changes save automatically”** when `showSaveHint` is on.
 
@@ -216,21 +216,17 @@ Batch helpers (`updateSeatingGroupsLayoutBatch`, `deleteStudentSeatAssignmentsFo
 | Unused `renumberSeatIndicesForGroup` | **Resolved** — dead Layer 3 API + hook wrapper removed; empty-seat holes intentional (students keep visual place on remove) |
 | Failed persist UX (no auto-retry) | **Resolved** — `withTransientRetry` in `useSeatingEditorPersistence` (2 retries, 300/800ms); rollback + error modal only after exhaustion. No offline queue by design. |
 | Layout manager drawer (informational) | **Resolved** — create / rename / delete / select inventory under **Layout manager (view drawer / left nav)**; Layer 3 lifecycle APIs listed |
+| Exit refresh duplicate groups fetch | **Resolved** — `handleClose` no longer refreshes; `SeatingChartDataSync` owns single exit refresh (groups + view settings) |
+| Exit refresh race with in-flight persist | **Resolved** — granular persists use `seatingEditorPersistGate`; Sync awaits `waitForEditorPersistsIdle` (8s cap) before exit refetch |
 
 ---
 
 ## Remaining concerns
 
-### Partially resolved
-
-1. **Exit refresh scope (low):** `handleClose` still calls only `refreshSeatingGroupsForLayout`, but **`SeatingChartDataSync`** now refreshes view settings on edit-mode exit as well. Net: view settings are covered indirectly; groups are fetched **twice** on every exit (see #2).
-
 ### New concerns (from Option C + repair work)
 
-2. **Exit refresh race with in-flight persist (medium):** Closing the editor while `persistInFlightRef > 0` can trigger DB fetches that overwrite optimistic store state with stale data. No guard delays exit refresh until granular persists finish. Retry backoff extends the in-flight window slightly.
+1. **Column changes not optimistic (low):** `persistGroupColumnsChange` patches store **after** API success only (unlike seat/group-position edits). Column changes in the settings menu or edit-group modal feel laggy until the API returns.
 
-3. **Column changes not optimistic (low):** `persistGroupColumnsChange` patches store **after** API success only (unlike seat/group-position edits). Column changes in the settings menu or edit-group modal feel laggy until the API returns.
+2. **Repair UI guard incomplete (low):** Toolbar disables “Sync layout” during repair or randomize only. During granular persists the menu stays enabled; opening the confirmation modal succeeds but the event handler shows “Please wait”. Consider also disabling when `getEditorPersistInFlight() > 0`.
 
-4. **Repair UI guard incomplete (low):** Toolbar disables “Sync layout” during repair or randomize only. During granular persists the menu stays enabled; opening the confirmation modal succeeds but the event handler shows “Please wait”. Consider also disabling when `persistInFlightRef > 0`.
-
-5. **Destructive repair blast radius (medium):** `repairSeatingLayoutFromStore` deletes **all** layout assignments then re-inserts from store. If store is stale (missed rollback notice, exit refresh race #2), repair writes stale state to DB and wipes divergent rows. Intended as recovery only; high blast radius.
+3. **Destructive repair blast radius (medium):** `repairSeatingLayoutFromStore` deletes **all** layout assignments then re-inserts from store. If store is stale (missed rollback notice), repair writes stale state to DB and wipes divergent rows. Intended as recovery only; high blast radius.

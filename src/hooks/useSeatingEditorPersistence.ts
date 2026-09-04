@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, type Dispatch, type SetStateAction } from 'react';
+import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import type { Student } from '@/lib/types';
 import { withTransientRetry } from '@/lib/withTransientRetry';
 import {
@@ -14,6 +14,10 @@ import {
   updateStudentSeatAssignmentByStudentId,
 } from '@/features/seating/lib/api/seating';
 import { computeGroupRowsFromAssignments } from '@/features/seating/lib/seatingLogic';
+import {
+  beginEditorPersist,
+  endEditorPersist,
+} from '@/features/seating/lib/seatingEditorPersistGate';
 import {
   cloneAssignmentsRecord,
   getAssignmentsForGroup,
@@ -39,8 +43,6 @@ export function useSeatingEditorPersistence({
   setUnseatedStudents,
   showError,
 }: UseSeatingEditorPersistenceParams) {
-  const persistInFlightRef = useRef(0);
-
   const syncGroupRowsForGroupIds = useCallback(async (groupIds: string[]) => {
     const uniqueIds = [...new Set(groupIds)];
     const st = useSeatingStore.getState();
@@ -67,7 +69,7 @@ export function useSeatingEditorPersistence({
       const assignments = getAssignmentsForGroup(st.groupAssignmentsById, groupId);
       const group_rows = computeGroupRowsFromAssignments(assignments, columns);
 
-      persistInFlightRef.current += 1;
+      beginEditorPersist();
       try {
         await withTransientRetry(async () => {
           await updateSeatingGroupFields(groupId, {
@@ -99,7 +101,7 @@ export function useSeatingEditorPersistence({
         );
         throw err;
       } finally {
-        persistInFlightRef.current -= 1;
+        endEditorPersist();
       }
     },
     [showError]
@@ -111,7 +113,7 @@ export function useSeatingEditorPersistence({
       position: { x: number; y: number },
       rollbackPosition: { x: number; y: number }
     ) => {
-      persistInFlightRef.current += 1;
+      beginEditorPersist();
       try {
         await withTransientRetry(async () => {
           await updateSeatingGroupPosition(groupId, {
@@ -137,7 +139,7 @@ export function useSeatingEditorPersistence({
           err instanceof Error ? err.message : 'Failed to save group position. Please try again.'
         );
       } finally {
-        persistInFlightRef.current -= 1;
+        endEditorPersist();
       }
     },
     [showError]
@@ -151,7 +153,7 @@ export function useSeatingEditorPersistence({
       snapshotAssignments: GroupAssignmentsById;
     }) => {
       const { student, groupId, seatIndex, snapshotAssignments } = params;
-      persistInFlightRef.current += 1;
+      beginEditorPersist();
       try {
         await withTransientRetry(async () => {
           await insertStudentSeatAssignment({
@@ -173,7 +175,7 @@ export function useSeatingEditorPersistence({
           err instanceof Error ? err.message : 'Failed to save seat assignment. Please try again.'
         );
       } finally {
-        persistInFlightRef.current -= 1;
+        endEditorPersist();
       }
     },
     [setUnseatedStudents, showError, syncGroupRowsForGroupIds]
@@ -188,7 +190,7 @@ export function useSeatingEditorPersistence({
       snapshotUnseated: Student[];
     }) => {
       const { studentId, groupId, removedStudent, snapshotAssignments, snapshotUnseated } = params;
-      persistInFlightRef.current += 1;
+      beginEditorPersist();
       try {
         await withTransientRetry(async () => {
           const layoutScope = await layoutDeleteScopeForGroup(groupId);
@@ -204,7 +206,7 @@ export function useSeatingEditorPersistence({
           err instanceof Error ? err.message : 'Failed to remove seat assignment. Please try again.'
         );
       } finally {
-        persistInFlightRef.current -= 1;
+        endEditorPersist();
       }
     },
     [setUnseatedStudents, showError, syncGroupRowsForGroupIds]
@@ -221,7 +223,7 @@ export function useSeatingEditorPersistence({
       const { studentId, fromGroupId, toGroupId, seatIndex, snapshotAssignments } = params;
       const affectedGroups =
         fromGroupId === toGroupId ? [fromGroupId] : [fromGroupId, toGroupId];
-      persistInFlightRef.current += 1;
+      beginEditorPersist();
       try {
         await withTransientRetry(async () => {
           if (fromGroupId === toGroupId) {
@@ -249,7 +251,7 @@ export function useSeatingEditorPersistence({
           err instanceof Error ? err.message : 'Failed to save seat move. Please try again.'
         );
       } finally {
-        persistInFlightRef.current -= 1;
+        endEditorPersist();
       }
     },
     [showError, syncGroupRowsForGroupIds]
@@ -275,7 +277,7 @@ export function useSeatingEditorPersistence({
         snapshotAssignments,
       } = params;
       const affectedGroups = groupId1 === groupId2 ? [groupId1] : [groupId1, groupId2];
-      persistInFlightRef.current += 1;
+      beginEditorPersist();
       try {
         await withTransientRetry(async () => {
           await swapSeatAssignments({
@@ -296,7 +298,7 @@ export function useSeatingEditorPersistence({
           err instanceof Error ? err.message : 'Failed to save seat swap. Please try again.'
         );
       } finally {
-        persistInFlightRef.current -= 1;
+        endEditorPersist();
       }
     },
     [showError, syncGroupRowsForGroupIds]
@@ -311,6 +313,5 @@ export function useSeatingEditorPersistence({
     persistRemoveStudent,
     persistMoveStudent,
     persistSwapStudents,
-    persistInFlightRef,
   };
 }
