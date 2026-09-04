@@ -4,6 +4,8 @@
 **Scope:** Read-only review for security, memory efficiency, naming conventions, potential bugs, dead code, and inefficient code.  
 **Note:** This report suggests improvements only. No app logic or UI was changed as part of this audit.
 
+**Seating editor (Sep 2026):** Persistence architecture changed since this audit — immediate granular saves, unified store, manual repair. See [`seating_editor_save_audit.md`](seating_editor_save_audit.md) for current behavior and open concerns (notably large `useSeatingChart.ts`, exit refresh races).
+
 ---
 
 ## Executive Summary

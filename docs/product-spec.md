@@ -89,8 +89,10 @@ KIS-Points helps teachers manage classes, track student points, arrange seating,
 - Manage layouts: create, rename, delete, set active
 - Add/edit/delete groups; configure rows and columns
 - Drag students to seats; auto-assign and randomize
+- **Changes save automatically** (immediate granular persist to Supabase; no batch save on exit)
 - Editor toolbar in right rail; some bottom-nav buttons disabled while editing
 - Exit edit via toolbar **Close** → returns to view mode; bottom nav re-enabled
+- **Recovery:** Settings menu → **Sync layout to database** (manual full replace; use only if canvas looks wrong after refresh/error)
 
 ### 3.6 Tools
 

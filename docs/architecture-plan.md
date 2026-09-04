@@ -146,7 +146,7 @@ Navbars may use **narrow** store selectors (e.g. `LeftNav` → `activeClassId`, 
 | `features/dashboard/` | **`DashboardView.tsx`** (route entry: sync + `DashboardStageContent` routing), `DashboardToolsHost.tsx`, `DashboardClassModalsHost.tsx`, `AwardPointsModalHost.tsx`, `EditSkillsModalHost.tsx`, `stage/dashboardToolbarConfig.ts`, `stage/workspaceToolbarPresets.tsx`, `stage/DashboardWorkspaceToolbar.tsx`, `tools/Random.tsx` |
 | `features/classes/` | `ClassesStage.tsx`, `ClassesStageContent.tsx`, `ClassesGridWorkspace.tsx`, `ClassCardsGrid.tsx`, `EditClassModalRoot.tsx`, `ClassesGridWorkspaceToolbar.tsx` |
 | `features/students/` | `StudentsStage.tsx`, `StudentsStageContent.tsx`, `StudentsGridWorkspace.tsx`, `StudentsCardsGrid.tsx`, `StudentsGridWorkspaceToolbar.tsx` |
-| `features/seating/` | `SeatingChartView.tsx`, `SeatingChartEditorView.tsx`, `SeatingChartWorkspace.tsx`, `SeatingChartEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx`, `SeatingEditorWorkspaceToolbar.tsx` |
+| `features/seating/` | `StudentsSeatingBranch.tsx`, `SeatingViewWorkspace.tsx`, `SeatingEditorWorkspace.tsx`, `SeatingGroupsCanvas.tsx`, `SeatingViewWorkspaceToolbar.tsx`, `SeatingEditorWorkspaceToolbar.tsx` |
 
 **Workspace toolbar rails (view-owned via `StageTwoColumnSplit`):**
 
@@ -239,7 +239,7 @@ components/ui/                     # shared atoms, icons, WorkspaceToolbar, gene
 | Class CRUD / archive | `useClassActions.ts`, `useClassManagement.ts`, `useClassesWorkspaceActions.ts` |
 | Student modals / selection | `useStudentsModalsState.ts`, `useStudentsSelection.ts`, `useDashboardStudentModalActions.ts` |
 | Random student tool | `useRandomStudentFlow.ts` |
-| Seating editor canvas | `useSeatingChart.ts`, `useSeatingLayoutManager.ts`, `useSeatingEditorToolbarActions.ts` |
+| Seating editor canvas | `useSeatingChart.ts` (`useSeatingChartEditor`), `useSeatingEditorPersistence.ts`, `useSeatingLayoutManager.ts`, `useSeatingEditorToolbarActions.ts` |
 | Session / logout | `useDashboardSessionActions.ts` |
 | Auth forms | `useAuthFlow.ts` |
 | Workspace toolbar presets | `features/dashboard/hooks/useWorkspaceToolbarActions.ts` (preset actions via window events) |
@@ -285,7 +285,7 @@ Pure helpers (no React): `src/features/dashboard/lib/awardPointsTargets.ts` (inc
 | `usePreferenceStore.ts` | `src/stores/` | `sortBy`, `viewMode`, `viewPreference` |
 | `useUserStore.ts` | `src/stores/` | `teacherProfile`, profile loading |
 | `useDashboardStore.ts` | `src/features/dashboard/stores/` | `activeClassId`, classes, students, `absentStudentIds`, loading, `applyPointsDelta`, `setAbsentStudentIds` |
-| `useSeatingStore.ts` | `src/features/seating/stores/` | Layouts, groups, assignments, seating view settings |
+| `useSeatingStore.ts` | `src/features/seating/stores/` | Layouts, groups, assignments, group positions, seating view settings |
 | `dashboardStudentSelectors.ts` | `src/features/students/stores/` | Roster ordering/aggregate selectors (used with `useDashboardStore`) |
 
 ### Layer 3 — Vault (global + feature `lib/`)
@@ -389,7 +389,7 @@ When `useLayoutStore.isEditMode` is true on the seating chart view, shell and vi
 | Left nav (shell) | Default `LeftNav` | `SeatingEditorLeftNav` |
 | Workspace toolbar (workspace-owned) | `SeatingViewWorkspaceToolbar` → `DashboardWorkspaceToolbar` | `SeatingEditorWorkspaceToolbar` |
 | Footer slot | Always mounted; `BottomNav` | Same slot; `BottomNav` with `buttonsDisabled={true}` |
-| Main stage (Tier 2) | `SeatingChartView` | `SeatingChartEditorView` (via `StudentsStageContent`) |
+| Main stage (Tier 2) | `SeatingViewWorkspace` → `SeatingGroupsCanvas` | `SeatingEditorWorkspace` (via `StudentsSeatingBranch`) |
 
 `/dashboard` (`ClassesGridWorkspace`): toolbar rail always visible; `ClassesGridWorkspaceToolbar` with all actions **disabled**.
 
@@ -431,6 +431,19 @@ Horizontal positioning for `leftOfAnchorDown` / `leftOfAnchorAbove`: menu right 
 
 - `components/ui/WorkspaceToolbar.tsx` — reusable vertical toolbar shell; also used by `DashboardWorkspaceToolbar`
 - `features/dashboard/stage/workspaceToolbarPresets.tsx` — maps `ToolbarActionId` → icons + `STUDENT_EVENTS` dispatches
+
+#### Seating editor persistence (Layer 1)
+
+Normal canvas edits: **optimistic `useSeatingStore` update → `useSeatingEditorPersistence` → granular `seating.ts` API → broadcast refresh**. No batch save on toolbar Close (X).
+
+| Flow | Hook / event | Notes |
+|------|--------------|-------|
+| Seat/group drag, add/remove, swap | `useSeatingEditorPersistence` | Rollback store + error toast on failure |
+| View settings toggles | `useSeatingEditorToolbarActions` | Immediate DB + store + `SEATING_VIEW_SETTINGS_CHANGED` |
+| Exit editor (Close X) | `handleClose` in `useSeatingChart` | Navigate only; `refreshSeatingGroupsForLayout` safety net; `SeatingChartDataSync` also refreshes groups + view settings on `SEATING_EDIT_MODE` false |
+| Manual layout repair | `SEATING_REPAIR_LAYOUT` → `repairSeatingLayoutFromStore` | Settings → Sync layout; full replace from store; recovery only |
+
+Full inventory: [`seating_editor_save_audit.md`](seating_editor_save_audit.md).
 
 ---
 
@@ -499,6 +512,7 @@ src/
 | done | Thin `app/` + consolidated `DashboardView` (sync + stage routing); do not regress (§0.1) |
 | done | Dashboard hooks rename + sync split (`*Refresh.ts` / `*Sync.tsx`); see `features/dashboard/hooks/README.md` |
 | done | `<AttendanceSync />` mounted in `DashboardView.tsx` |
+| done | Seating editor immediate persistence + Option C store (groups/assignments/positions); one seat per layout; manual repair — see [`seating_editor_save_audit.md`](seating_editor_save_audit.md) |
 
 ---
 
@@ -516,5 +530,6 @@ Dashboard T2   →  features/dashboard/DashboardView.tsx (stage entry) + feature
 Dashboard T3   →  features/{dashboard,classes,students,seating}/components/ + components/ui/
 Data layers    →  hooks/ · features/*/hooks/ · features/dashboard/hooks/sync/ · stores/ · lib/api/
 Attendance     →  attendanceService · absentStudentIds · features/students/.../AttendanceMenuBody · features/dashboard/.../BottomNav
-Seating edit   →  SeatingEditorWorkspaceToolbar + portaled menus; BottomNav disabled
+Seating edit   →  SeatingEditorWorkspaceToolbar + portaled menus; BottomNav disabled; immediate persist (no save-on-exit)
+Seating audit  →  docs/seating_editor_save_audit.md
 ```

@@ -1,7 +1,7 @@
 # KIS-Points: Database Schema (Supabase)
 
 ## Core Architectural Rules
-1. **Optimistic UI Context:** This schema represents the "Library" (Database). Data is fetched by Layer 3 APIs and stored in the "Desk" (Zustand/React Context) for zero-latency UI updates.
+1. **Optimistic UI:** Data is fetched by Layer 3 APIs and held in Zustand (Layer 2) for zero-latency UI updates; seating editor canvas mutations persist immediately via `useSeatingEditorPersistence` (see [`seating_editor_save_audit.md`](seating_editor_save_audit.md)).
 2. **Soft Deletes:** Key entities use `is_archived` to preserve historical point ledgers without hard-deleting records.
 3. **Immutability:** Event logs (`point_events`, `custom_point_events`, `attendance_events`) are append-only.
 

@@ -1062,11 +1062,11 @@ WF-64, WF-66
 2. Configure group rows/columns in group settings.
 3. Drag students from roster onto seats.
 4. Optional: **Auto-assign** or **Randomize** from toolbar menus.
-5. Changes persist to `seating_groups` and `student_seat_assignments`.
+5. Each edit saves **immediately** to `seating_groups` and `student_seat_assignments` (optimistic UI; rollback + error message on failure).
 
 #### Outcome
 
-- Seat map updated; view mode reflects assignments after exit.
+- Seat map updated in store and DB as you edit; view mode reflects assignments after exit (Close does not batch-save — data should already match DB).
 
 #### Edge cases
 
@@ -1087,8 +1087,8 @@ WF-33, WF-67
 #### Steps
 
 1. Click **Close editor** on workspace toolbar.
-2. `mode=edit` cleared from URL.
-3. Standard left nav and bottom nav restore.
+2. `mode=edit` cleared from URL; no batch save (changes already persisted during editing).
+3. Standard left nav and bottom nav restore; groups/view settings refreshed as safety net.
 
 #### Outcome
 

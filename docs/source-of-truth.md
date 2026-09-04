@@ -1,6 +1,6 @@
 # KIS-Points — Source of Truth
 
-**Last updated:** May 2026  
+**Last updated:** September 2026  
 **Prototype:** 1 (refactor / not live)  
 **Canonical for:** folder policy, data flow, naming, mount points
 
@@ -23,15 +23,16 @@ Start here before reading other docs or making architectural changes.
 | In/out of scope, phases | [`project-scope.md`](project-scope.md) |
 | User behavior & acceptance | [`product-spec.md`](product-spec.md) |
 | Step-by-step teacher flows | [`teacher-workflows.md`](teacher-workflows.md) |
-| Award Points modal UI upgrade | [`AwardPointsModal-UI-upgrade.md`](AwardPointsModal-UI-upgrade.md) |
+| Award Points modal UI upgrade | [`archive/AwardPointsModal-UI-upgrade.md`](archive/AwardPointsModal-UI-upgrade.md) (historical) |
 | Visual tiers & data layers (deep) | [`architecture-plan.md`](architecture-plan.md) |
 | File tree by visual tier | [`visual-layer-map.md`](visual-layer-map.md) |
 | Database tables | [`db-schema.md`](db-schema.md) |
 | Dashboard hooks naming | [`../src/features/dashboard/hooks/README.md`](../src/features/dashboard/hooks/README.md) |
 | Seating seat math | [`seat-index-logic.md`](seat-index-logic.md) |
+| Seating editor persistence (inventory + concerns) | [`seating_editor_save_audit.md`](seating_editor_save_audit.md) |
 | Student display numbers | [`student-numbering-logic.md`](student-numbering-logic.md) |
 | Tech stack detail | [`tech-stack.md`](tech-stack.md) |
-| Execution backlog | [`to-do.md`](to-do.md) |
+| Execution backlog | [`archive/to-do.md`](archive/to-do.md) (historical backlog) |
 | AI coding rules | [`.cursorrules`](../.cursorrules) |
 | Completed migration logs | [`archive/`](archive/) (historical only) |
 
@@ -98,7 +99,7 @@ Auth/landing: `src/features/{auth,landing}/` — not subject to dashboard tier s
 
 | Location | Use when |
 |----------|----------|
-| `src/hooks/` | Cross-feature utilities used by 2+ domains (e.g. `useAnchoredDropdownPortal`, `useSeatingChart`, `useClassPointLog`) |
+| `src/hooks/` | Cross-feature utilities used by 2+ domains (e.g. `useAnchoredDropdownPortal`, `useSeatingChart` / `useSeatingChartEditor`, `useSeatingEditorPersistence`, `useClassPointLog`) |
 | `src/features/dashboard/hooks/` | Dashboard orchestration, modal controllers, award-points chain, workspace toolbar |
 | `src/features/dashboard/hooks/sync/` | URL/store alignment: `*Refresh.ts` (imperative) or `*Sync.tsx` (mount component) |
 | `src/features/{students,classes,auth}/hooks/` | Domain-specific orchestration (e.g. `useAttendanceActions`, `useClassManagement`) |
@@ -116,7 +117,7 @@ Auth/landing: `src/features/{auth,landing}/` — not subject to dashboard tier s
 | `usePreferenceStore` | `src/stores/` | `sortBy`, `viewMode`, `viewPreference` (persisted) |
 | `useUserStore` | `src/stores/` | Teacher profile |
 | `useDashboardStore` | `features/dashboard/stores/` | Classes, students, `absentStudentIds`, loading, `applyPointsDelta` |
-| `useSeatingStore` | `features/seating/stores/` | Layouts, groups, assignments, view settings |
+| `useSeatingStore` | `features/seating/stores/` | Layouts, groups, assignments, group positions, view settings (`showGrid`, `colorByGender`, `colorByLevel`, …) |
 
 ---
 
@@ -184,6 +185,7 @@ Resolved via `awardPointsTargets.ts` (`filterEligibleStudentIds`, `resolveAwardT
 | May 2026 | Dashboard hooks rename + sync split (`*Refresh.ts` / `*Sync.tsx`) |
 | May 2026 | North-star docs added (`source-of-truth`, `project-scope`, `product-spec`) |
 | June 2026 | Skill add/edit forms no longer collect points; award weight chosen in Award Points modal |
+| Sep 2026 | Seating editor: immediate granular persistence; Option C unified groups/assignments/positions in `useSeatingStore`; one seat per layout (`UNIQUE(student_id, seating_chart_id)`); manual layout repair (`SEATING_REPAIR_LAYOUT`); see [`seating_editor_save_audit.md`](seating_editor_save_audit.md) |
 
 ---
 

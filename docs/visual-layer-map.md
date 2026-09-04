@@ -300,7 +300,8 @@ src/
         └── components/
             ├── canvas/                           [T3]
             │   ├── LayoutManagerDrawer.tsx
-            │   └── SeatingCanvasDecor.tsx
+            │   ├── SeatingCanvasDecor.tsx
+            │   └── SeatingLevelColorKey.tsx
             ├── menus/                            [T3]
             │   ├── SeatingEditorAddGroupsMenu.tsx
             │   ├── SeatingEditorGroupSettingsMenu.tsx
@@ -327,7 +328,9 @@ src/
 | `features/dashboard/components/tools/HappyMeter.tsx` | T3 body; PNG gauge (`happy-meter-guage.png`) + SVG needle overlay; opened by `DashboardToolsHost` (T2) |
 | `features/dashboard/tools/Random.tsx` | T2 tool; uses `LargeToolModal` (T3) |
 
-Layer 1 hooks (e.g. `useWorkspaceToolbarActions`, `useSeatingEditorToolbarActions`) feed Tier 2 toolbars but live under `src/hooks/` — not listed here.
+Layer 1 hooks (e.g. `useWorkspaceToolbarActions`, `useSeatingEditorToolbarActions`, `useSeatingChartEditor`, `useSeatingEditorPersistence`) feed Tier 2 workspaces/toolbars but live under `src/hooks/` — not listed here.
+
+**Seating store helpers:** `src/features/seating/stores/seatingLayoutStoreHelpers.ts`, `src/features/seating/lib/seatingCardStyles.ts`, `src/features/seating/lib/seatingLogic.ts`.
 
 ---
 

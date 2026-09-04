@@ -17,17 +17,19 @@
 | [visual-layer-map.md](visual-layer-map.md) | File tree labeled by tier |
 | [db-schema.md](db-schema.md) | Supabase tables and constraints |
 | [tech-stack.md](tech-stack.md) | Framework and tooling |
-| [seat-index-logic.md](seat-index-logic.md) | Seating grid physics |
+| [seat-index-logic.md](seat-index-logic.md) | Seating grid physics and assignment rules |
+| [seating_editor_save_audit.md](seating_editor_save_audit.md) | Seating editor persistence inventory, architecture, open concerns |
 | [student-numbering-logic.md](student-numbering-logic.md) | Display student numbers |
 
-## Execution
+## Quality & planning
 
 | Doc | Purpose |
 |-----|---------|
-| [to-do.md](to-do.md) | Sequenced backlog (Vite, DB types, polish) |
+| [audit.md](audit.md) | Read-only security/performance audit (July 2026) |
+| [points-report-new-feature.md](points-report-new-feature.md) | Points report feature notes |
 
 ## Archive
 
 | Doc | Purpose |
 |-----|---------|
-| [archive/](archive/) | Completed migration logs (historical only) |
+| [archive/](archive/) | Completed migration logs, historical planning (do not edit for current paths) |
