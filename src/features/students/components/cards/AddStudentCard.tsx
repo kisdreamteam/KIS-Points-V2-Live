@@ -1,5 +1,5 @@
 import BaseCard from "@/components/ui/BaseCard";
-import IconPlus from "@/components/ui/icons/iconPlus";
+import PlusIcon from "@/components/ui/icons/PlusIcon";
 
 interface AddStudentCardProps {
   onClick: () => void;
@@ -16,7 +16,7 @@ export default function AddStudentCard({ onClick }: AddStudentCardProps) {
       icon={
         <div className="mb-1">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-500">
-            <IconPlus className="h-10 w-10 text-white" />
+            <PlusIcon className="h-10 w-10 text-white" />
           </div>
         </div>
       }

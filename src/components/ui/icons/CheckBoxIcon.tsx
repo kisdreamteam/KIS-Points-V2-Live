@@ -1,8 +1,8 @@
-interface IconCheckBoxProps {
+interface CheckBoxIconProps {
   className?: string;
 }
 
-export default function IconCheckBox({ className = "w-3 h-3 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 lg:w-5 lg:h-5 text-gray-400" }: IconCheckBoxProps) {
+export default function CheckBoxIcon({ className = "w-3 h-3 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 lg:w-5 lg:h-5 text-gray-400" }: CheckBoxIconProps) {
   return (
     <svg
       className={className}

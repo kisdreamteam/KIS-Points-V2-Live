@@ -1,9 +1,9 @@
-interface IconCheckCircleProps {
+interface CheckCircleIconProps {
   className?: string;
   strokeWidth?: number;
 }
 
-export default function IconCheckCircle({ className = "w-3 h-3 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 lg:w-5 lg:h-5 text-gray-400", strokeWidth = 2 }: IconCheckCircleProps) {
+export default function CheckCircleIcon({ className = "w-3 h-3 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 lg:w-5 lg:h-5 text-gray-400", strokeWidth = 2 }: CheckCircleIconProps) {
   return (
     <svg
       className={className}

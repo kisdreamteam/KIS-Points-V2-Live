@@ -287,15 +287,13 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 **Suggestion:** Prefer a consistent vocabulary: `list*` for collections, `get*` for one value, `create*`, `update*`, `delete*`; rename remaining `fetch*` opportunistically.
 
-### 8. Icon file names use mixed conventions
+### 8. Icon file names use mixed conventions — **Resolved**
 
 **Where:** `src/components/ui/icons/`
 
-**Finding:** Icon files use styles like `iconAddPlus.tsx`, `IconTimerClock`, `AddPlusIcon.tsx`, `CanvasPointsReportIcon.tsx`, and `EditorAddMultipleIcon.tsx`.
+**Finding:** Icon files used styles like `iconAddPlus.tsx`, `IconTimerClock`, `AddPlusIcon.tsx`, `CanvasPointsReportIcon.tsx`, and `EditorAddMultipleIcon.tsx`.
 
-**Why it matters:** Mixed naming is harmless at runtime but makes searching and adding icons slower.
-
-**Suggestion:** Pick one future convention, preferably `PascalCaseIcon.tsx`, and migrate gradually.
+**Resolution (Sep 2026):** Standardized on `{Name}Icon.tsx` / `{Name}Icon` exports. Renamed all `icon*.tsx` files; deleted unused `iconAddPlus`, `iconAutoAssign`, `iconDocumentClock`, `iconPresentationBoard`. Kept distinct pencil glyphs as `EditPencilIcon` (toolbar asset) and `EditPencilOutlineIcon` (seating editor stroke).
 
 ### 9. Dependency versions should be aligned
 
@@ -413,15 +411,13 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 **Suggestion:** Move roster sorting into one shared utility and reuse it everywhere.
 
-### 5. Duplicate or unused icons
+### 5. Duplicate or unused icons — **Resolved**
 
-**Where:** `src/components/ui/icons/iconAddPlus.tsx`, `src/components/ui/icons/EditPencilIcon.tsx`, `src/components/ui/icons/iconEditPencil.tsx`
+**Where:** was `src/components/ui/icons/iconAddPlus.tsx`, `EditPencilIcon.tsx`, `iconEditPencil.tsx` (plus unused `iconAutoAssign`, `iconDocumentClock`, `iconPresentationBoard`)
 
-**Finding:** `iconAddPlus.tsx` appears unused, and pencil icons exist in two variants.
+**Finding:** Several icons were unused, and pencil icons existed in two glyph variants.
 
-**Why it matters:** Small duplicates are harmless but make the icon library harder to search and maintain.
-
-**Suggestion:** Remove unused icons and consolidate duplicate icons during an icon naming cleanup.
+**Resolution (Sep 2026):** Removed unused icons during the PascalCaseIcon naming cleanup. Kept both pencil glyphs under distinct names (`EditPencilIcon`, `EditPencilOutlineIcon`) because the SVGs differ.
 
 ### 6. Generated build output should stay out of git
 
@@ -467,9 +463,8 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 ### Low Priority
 
 1. Replace browser alerts with app-native modals/toasts.
-2. Standardize icon naming.
-3. Align or document Webpack dev vs Turbopack build usage.
-4. Keep generated `.next/` output out of commits.
+2. Align or document Webpack dev vs Turbopack build usage.
+3. Keep generated `.next/` output out of commits.
 
 ---
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { normalizeClassIconPath } from "@/lib/iconUtils";
-import IconSettingsWheel from "@/components/ui/icons/iconSettingsWheel";
+import SettingsWheelIcon from "@/components/ui/icons/SettingsWheelIcon";
 import BaseCard from "@/components/ui/BaseCard";
 import ClassCardActionsMenu from "@/features/classes/components/menus/ClassCardActionsMenu";
 import { usePreferenceStore } from "@/stores/usePreferenceStore";
@@ -78,7 +78,7 @@ export default function ClassCard({
               className={`flex h-10 w-10 items-center justify-center rounded-full text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-700 ${openDropdownId === classItem.id ? "bg-gray-100 text-gray-700" : ""
                 }`}
             >
-              <IconSettingsWheel className="h-5 w-5" />
+              <SettingsWheelIcon className="h-5 w-5" />
             </button>
 
             <ClassCardActionsMenu

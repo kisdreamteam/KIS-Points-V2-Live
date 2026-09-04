@@ -1,8 +1,8 @@
-interface IconEyeProps {
+interface EyeIconProps {
   hidden?: boolean;
 }
 
-export default function IconEye({ hidden = false }: IconEyeProps) {
+export default function EyeIcon({ hidden = false }: EyeIconProps) {
   if (hidden) {
     return (
       <svg

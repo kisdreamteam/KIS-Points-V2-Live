@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import type { Student } from '@/lib/types';
 import { normalizeAvatarPath } from '@/lib/iconUtils';
-import IconNoCircleX from '@/components/ui/icons/iconNoCircleX';
+import NoCircleXIcon from '@/components/ui/icons/NoCircleXIcon';
 
 type RandomPointsListProps = {
   students: Student[];
@@ -50,7 +50,7 @@ export default function RandomPointsList({
               aria-label={`Remove ${student.first_name} ${student.last_name} from list`}
               title="Remove from list"
             >
-              <IconNoCircleX className="w-4 h-4" strokeWidth={2.5} />
+              <NoCircleXIcon className="w-4 h-4" strokeWidth={2.5} />
             </button>
           </div>
         ))}

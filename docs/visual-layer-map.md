@@ -132,34 +132,33 @@ src/
 │   │   ├── ConfirmationModal.tsx
 │   │   ├── Modal.tsx
 │   │   └── SuccessNotificationModal.tsx
-│   └── icons/                            # React icon components (T3)
+│   └── icons/                            # React icon components (T3); convention: {Name}Icon.tsx
 │       ├── AddPlusIcon.tsx
+│       ├── AttendanceCheckIcon.tsx
+│       ├── BellIcon.tsx
 │       ├── CanvasPointsLogIcon.tsx
+│       ├── CanvasPointsReportIcon.tsx
 │       ├── CanvasTeachersViewIcon.tsx
+│       ├── CheckBoxIcon.tsx
+│       ├── CheckCircleIcon.tsx
+│       ├── CircleXIcon.tsx
 │       ├── EditPencilIcon.tsx
+│       ├── EditPencilOutlineIcon.tsx
 │       ├── EditorAddMultipleIcon.tsx
 │       ├── EditorAutoAssignSeatsIcon.tsx
 │       ├── EditorClearGroupsIcon.tsx
 │       ├── EditorRandomSeatsIcon.tsx
 │       ├── EditorViewPreferencesIcon.tsx
-│       ├── iconAddPlus.tsx
-│       ├── iconAttendanceCheck.tsx
-│       ├── iconAutoAssign.tsx
-│       ├── iconCheckBox.tsx
-│       ├── iconCheckCircle.tsx
-│       ├── iconCircleX.tsx
-│       ├── iconDocumentClock.tsx
-│       ├── iconEditPencil.tsx
-│       ├── iconEye.tsx
-│       ├── iconNoCircleX.tsx
-│       ├── iconPlus.tsx
-│       ├── iconPresentationBoard.tsx
-│       ├── iconRandomArrows.tsx
-│       ├── iconSettingsWheel.tsx
-│       ├── iconSortingArrows.tsx
-│       ├── iconStarTrophy.tsx
-│       ├── iconTimerClock.tsx
-│       └── iconViewDots.tsx
+│       ├── EyeIcon.tsx
+│       ├── HappyMeterIcon.tsx
+│       ├── NoCircleXIcon.tsx
+│       ├── PlusIcon.tsx
+│       ├── RandomArrowsIcon.tsx
+│       ├── SettingsWheelIcon.tsx
+│       ├── SortingArrowsIcon.tsx
+│       ├── StarTrophyIcon.tsx
+│       ├── TimerClockIcon.tsx
+│       └── ViewDotsIcon.tsx
 │
 └── features/
     │

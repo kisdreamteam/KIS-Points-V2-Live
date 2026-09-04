@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { normalizeAvatarPath } from '@/lib/iconUtils';
-import IconSettingsWheel from '@/components/ui/icons/iconSettingsWheel';
+import SettingsWheelIcon from '@/components/ui/icons/SettingsWheelIcon';
 import BaseCard from '@/components/ui/BaseCard';
 import StudentCardActionsMenu from '@/features/students/components/menus/StudentCardActionsMenu';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
@@ -80,7 +80,7 @@ export default function StudentCard({
         className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
         data-dropdown-button
       >
-        <IconSettingsWheel className="h-10 w-10" />
+        <SettingsWheelIcon className="h-10 w-10" />
       </button>
 
       <StudentCardActionsMenu

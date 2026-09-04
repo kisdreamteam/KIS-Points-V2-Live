@@ -18,8 +18,8 @@ import CreateLayoutModal from '@/features/seating/components/modals/CreateLayout
 import EditGroupModal from '@/features/seating/components/modals/EditGroupModal';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import SuccessNotificationModal from '@/components/ui/modals/SuccessNotificationModal';
-import IconSettingsWheel from '@/components/ui/icons/iconSettingsWheel';
-import IconEditPencil from '@/components/ui/icons/iconEditPencil';
+import SettingsWheelIcon from '@/components/ui/icons/SettingsWheelIcon';
+import EditPencilOutlineIcon from '@/components/ui/icons/EditPencilOutlineIcon';
 import SeatingCanvasDecor from '@/features/seating/components/canvas/SeatingCanvasDecor';
 import SeatingLevelColorKey from '@/features/seating/components/canvas/SeatingLevelColorKey';
 import SeatingEditorGroupSettingsMenu from '@/features/seating/components/menus/SeatingEditorGroupSettingsMenu';
@@ -427,7 +427,7 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
                             ) : (
                               <div className="flex items-center gap-2">
                                 <h4 className="font-semibold text-gray-800">{group.name}</h4>
-                                <IconEditPencil className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <EditPencilOutlineIcon className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                               </div>
                             )}
                           </div>
@@ -468,7 +468,7 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
                             className="absolute top-2 right-2 p-1 hover:bg-purple-100 rounded transition-colors"
                             title="Settings"
                           >
-                            <IconSettingsWheel className="w-5 h-5 text-gray-600" />
+                            <SettingsWheelIcon className="w-5 h-5 text-gray-600" />
                           </button>
                         </div>
 

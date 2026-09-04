@@ -11,15 +11,15 @@ import { useAttendanceActions } from '@/features/students/hooks/useAttendanceAct
 import { useSortedStudents } from '@/features/students/hooks/useSortedStudents';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 import { useLayoutStore } from '@/stores/useLayoutStore';
-import IconViewDots from '@/components/ui/icons/iconViewDots';
-import IconSortingArrows from '@/components/ui/icons/iconSortingArrows';
-import IconCheckBox from '@/components/ui/icons/iconCheckBox';
-import IconAttendanceCheck from '@/components/ui/icons/iconAttendanceCheck';
-import IconRandomArrows from '@/components/ui/icons/iconRandomArrows';
-import IconTimerClock from '@/components/ui/icons/iconTimerClock';
-import IconBell from '@/components/ui/icons/iconBell';
-import IconHappyMeter from '@/components/ui/icons/iconHappyMeter';
-import IconSettingsWheel from '@/components/ui/icons/iconSettingsWheel';
+import ViewDotsIcon from '@/components/ui/icons/ViewDotsIcon';
+import SortingArrowsIcon from '@/components/ui/icons/SortingArrowsIcon';
+import CheckBoxIcon from '@/components/ui/icons/CheckBoxIcon';
+import AttendanceCheckIcon from '@/components/ui/icons/AttendanceCheckIcon';
+import RandomArrowsIcon from '@/components/ui/icons/RandomArrowsIcon';
+import TimerClockIcon from '@/components/ui/icons/TimerClockIcon';
+import BellIcon from '@/components/ui/icons/BellIcon';
+import HappyMeterIcon from '@/components/ui/icons/HappyMeterIcon';
+import SettingsWheelIcon from '@/components/ui/icons/SettingsWheelIcon';
 import BotNavGrayButton from '@/components/ui/BotNavGrayButton';
 import BaseBottomNav from '@/components/ui/BaseBottomNav';
 
@@ -134,7 +134,7 @@ export default function BottomNav({
       <div className="flex w-full min-w-0 items-center gap-1 overflow-x-auto overflow-y-visible sm:gap-2 md:gap-4">
         <div className="relative flex-shrink-0" ref={viewButtonRef}>
           <BotNavGrayButton
-            icon={<IconViewDots />}
+            icon={<ViewDotsIcon />}
             label="View"
             active={isViewPopupOpen}
             onClick={(e) => {
@@ -158,7 +158,7 @@ export default function BottomNav({
 
         <div className="relative flex-shrink-0" ref={sortButtonRef}>
           <BotNavGrayButton
-            icon={<IconSortingArrows />}
+            icon={<SortingArrowsIcon />}
             label="Sorting"
             active={isSortPopupOpen}
             onClick={(e) => {
@@ -181,7 +181,7 @@ export default function BottomNav({
         </div>
 
         <BotNavGrayButton
-          icon={<IconCheckBox />}
+          icon={<CheckBoxIcon />}
           label="Multiple Select"
           onClick={() => {
             if (!multiSelectEnabled) return;
@@ -192,7 +192,7 @@ export default function BottomNav({
 
         <div className="relative flex-shrink-0" ref={attendanceButtonRef}>
           <BotNavGrayButton
-            icon={<IconAttendanceCheck />}
+            icon={<AttendanceCheckIcon />}
             label="Attendance"
             active={isAttendanceOpen}
             onClick={(e) => {
@@ -206,7 +206,7 @@ export default function BottomNav({
         </div>
 
         <BotNavGrayButton
-          icon={<IconRandomArrows />}
+          icon={<RandomArrowsIcon />}
           label="Random"
           onClick={() => {
             if (!classRosterToolsEnabled) return;
@@ -215,7 +215,7 @@ export default function BottomNav({
           enabled={classRosterToolsEnabled}
         />
         <BotNavGrayButton
-          icon={<IconTimerClock />}
+          icon={<TimerClockIcon />}
           label="Timer"
           onClick={() => {
             if (!classRosterToolsEnabled) return;
@@ -224,7 +224,7 @@ export default function BottomNav({
           enabled={classRosterToolsEnabled}
         />
         <BotNavGrayButton
-          icon={<IconBell />}
+          icon={<BellIcon />}
           label="Bells"
           onClick={() => {
             if (!classRosterToolsEnabled) return;
@@ -233,7 +233,7 @@ export default function BottomNav({
           enabled={classRosterToolsEnabled}
         />
         <BotNavGrayButton
-          icon={<IconHappyMeter />}
+          icon={<HappyMeterIcon />}
           label="Happy Meter"
           onClick={() => {
             if (!classRosterToolsEnabled) return;
@@ -244,7 +244,7 @@ export default function BottomNav({
 
         <div className="relative flex-shrink-0" ref={settingsButtonRef}>
           <BotNavGrayButton
-            icon={<IconSettingsWheel />}
+            icon={<SettingsWheelIcon />}
             label="Settings"
             active={isSettingsPopupOpen}
             onClick={(e) => {

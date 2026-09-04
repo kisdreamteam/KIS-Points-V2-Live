@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { normalizeClassIconPath } from '@/lib/iconUtils';
-import IconTimerClock from '@/components/ui/icons/iconTimerClock';
+import TimerClockIcon from '@/components/ui/icons/TimerClockIcon';
 import LeftNavWebsitesMenu from '@/features/dashboard/components/menus/LeftNavWebsitesMenu';
 import {
   getStageDrawerInsets,
@@ -160,7 +160,7 @@ export default function LeftNav() {
                     }`}
                 >
                   <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center">
-                    <IconTimerClock className="w-6 h-6 text-gray-600" />
+                    <TimerClockIcon className="w-6 h-6 text-gray-600" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-xl font-medium text-gray-800 block truncate">Archived Classes</span>

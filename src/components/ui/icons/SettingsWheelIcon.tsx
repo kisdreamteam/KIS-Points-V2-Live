@@ -1,8 +1,8 @@
-interface IconSettingsWheelProps {
+interface SettingsWheelIconProps {
   className?: string;
 }
 
-export default function IconSettingsWheel({ className = "w-3 h-3 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 lg:w-5 lg:h-5 text-gray-400" }: IconSettingsWheelProps) {
+export default function SettingsWheelIcon({ className = "w-3 h-3 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 lg:w-5 lg:h-5 text-gray-400" }: SettingsWheelIconProps) {
   return (
     <svg
       className={className}

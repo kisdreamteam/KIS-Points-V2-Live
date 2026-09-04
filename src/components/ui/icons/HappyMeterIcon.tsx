@@ -1,10 +1,10 @@
-interface IconHappyMeterProps {
+interface HappyMeterIconProps {
   className?: string;
 }
 
-export default function IconHappyMeter({
+export default function HappyMeterIcon({
   className = 'w-3 h-3 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 lg:w-5 lg:h-5 text-gray-400',
-}: IconHappyMeterProps) {
+}: HappyMeterIconProps) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path

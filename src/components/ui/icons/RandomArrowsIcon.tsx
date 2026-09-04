@@ -1,8 +1,8 @@
-interface IconRandomArrowsProps {
+interface RandomArrowsIconProps {
   className?: string;
 }
 
-export default function IconRandomArrows({ className = "w-3 h-3 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 lg:w-5 lg:h-5 text-gray-400" }: IconRandomArrowsProps) {
+export default function RandomArrowsIcon({ className = "w-3 h-3 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 lg:w-5 lg:h-5 text-gray-400" }: RandomArrowsIconProps) {
   return (
     <svg 
       className={className}

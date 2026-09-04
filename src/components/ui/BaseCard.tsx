@@ -1,7 +1,7 @@
 "use client";
 
 import type { HTMLAttributes, ReactNode, MouseEvent, KeyboardEvent } from "react";
-import IconSettingsWheel from "@/components/ui/icons/iconSettingsWheel";
+import SettingsWheelIcon from "@/components/ui/icons/SettingsWheelIcon";
 
 export type BaseCardVariant = "default" | "action";
 
@@ -114,7 +114,7 @@ export default function BaseCard({
           }}
           aria-label="Settings"
         >
-          <IconSettingsWheel className="h-5 w-5" />
+          <SettingsWheelIcon className="h-5 w-5" />
         </button>
       )}
 

@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import IconTimerClock from '@/components/ui/icons/iconTimerClock';
-import IconRandomArrows from '@/components/ui/icons/iconRandomArrows';
-import IconCheckCircle from '@/components/ui/icons/iconCheckCircle';
-import IconCircleX from '@/components/ui/icons/iconCircleX';
-import IconNoCircleX from '@/components/ui/icons/iconNoCircleX';
-import IconStarTrophy from '@/components/ui/icons/iconStarTrophy';
+import TimerClockIcon from '@/components/ui/icons/TimerClockIcon';
+import RandomArrowsIcon from '@/components/ui/icons/RandomArrowsIcon';
+import CheckCircleIcon from '@/components/ui/icons/CheckCircleIcon';
+import CircleXIcon from '@/components/ui/icons/CircleXIcon';
+import NoCircleXIcon from '@/components/ui/icons/NoCircleXIcon';
+import StarTrophyIcon from '@/components/ui/icons/StarTrophyIcon';
 import BotNavGrayButton from '@/components/ui/BotNavGrayButton';
 import BaseBottomNav from '@/components/ui/BaseBottomNav';
 import { STUDENT_EVENTS } from '@/lib/events/students';
@@ -97,50 +97,50 @@ export default function MultiSelectBottomNav() {
   return (
     <BaseBottomNav className="overflow-visible">
       <div className="flex w-full min-w-0 items-center gap-1 overflow-x-auto overflow-y-visible sm:gap-2 md:gap-4">
-        <BotNavGrayButton icon={<IconCheckCircle />} label="Select All" onClick={handleSelectAll} />
+        <BotNavGrayButton icon={<CheckCircleIcon />} label="Select All" onClick={handleSelectAll} />
 
         <BotNavGrayButton
-          icon={<IconCircleX />}
+          icon={<CircleXIcon />}
           label="Select None"
           onClick={handleSelectNone}
           enabled={awardableStudentCount > 0}
         />
 
         <BotNavGrayButton
-          icon={<IconTimerClock />}
+          icon={<TimerClockIcon />}
           label="Recently Selected"
           onClick={handleRecentlySelect}
           enabled={hasRecentlySelected}
         />
 
         <BotNavGrayButton
-          icon={<IconRandomArrows />}
+          icon={<RandomArrowsIcon />}
           label="Inverse Select"
           onClick={handleInverseSelect}
           enabled={awardableStudentCount > 0}
         />
 
         <BotNavGrayButton
-          icon={<IconCheckCircle />}
+          icon={<CheckCircleIcon />}
           label="Boys Only"
           onClick={handleSelectAllBoys}
         />
 
         <BotNavGrayButton
-          icon={<IconCheckCircle />}
+          icon={<CheckCircleIcon />}
           label="Girls Only"
           onClick={handleSelectAllGirls}
         />
 
         <BotNavGrayButton
           variant="danger"
-          icon={<IconNoCircleX />}
+          icon={<NoCircleXIcon />}
           label="Cancel"
           onClick={handleCancel}
         />
         <BotNavGrayButton
           variant="primary"
-          icon={<IconStarTrophy />}
+          icon={<StarTrophyIcon />}
           label="Award Points"
           onClick={handleAwardPoints}
         />

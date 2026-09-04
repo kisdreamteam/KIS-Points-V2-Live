@@ -1,8 +1,8 @@
-interface IconPlusProps {
+interface PlusIconProps {
   className?: string;
 }
 
-export default function IconPlus({ className = "w-16 h-16" }: IconPlusProps) {
+export default function PlusIcon({ className = "w-16 h-16" }: PlusIconProps) {
   return (
     <svg
       className={className}

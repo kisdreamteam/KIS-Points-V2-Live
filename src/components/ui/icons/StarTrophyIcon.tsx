@@ -1,9 +1,9 @@
-interface IconStarTrophyProps {
+interface StarTrophyIconProps {
   className?: string;
   strokeWidth?: number;
 }
 
-export default function IconStarTrophy({ className = "w-3 h-3 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 lg:w-5 lg:h-5 text-gray-400", strokeWidth = 2 }: IconStarTrophyProps) {
+export default function StarTrophyIcon({ className = "w-3 h-3 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5 lg:w-5 lg:h-5 text-gray-400", strokeWidth = 2 }: StarTrophyIconProps) {
   return (
     <svg
       className={className}
