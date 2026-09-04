@@ -305,15 +305,13 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 **Suggestion:** Align `eslint-config-next` with the installed Next major version when the package ecosystem supports it.
 
-### 10. Dev and production build engines differ
+### 10. Dev and production build engines differ — **Resolved**
 
 **Where:** `package.json`
 
 **Finding:** `dev` uses `next dev --webpack`, while `build` uses `next build --turbopack`.
 
-**Why it matters:** The app may behave differently in development and production if the bundlers resolve or optimize code differently.
-
-**Suggestion:** Use the same engine for dev and build where practical, or document why the split is intentional.
+**Resolution (Sep 2026):** Documented as an intentional split in [`tech-stack.md`](tech-stack.md) (Webpack for local HMR stability; Turbopack for production builds). Also noted in [`project-scope.md`](project-scope.md) §6 and the root `README.md`. Scripts left unchanged.
 
 ---
 
@@ -463,8 +461,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 ### Low Priority
 
 1. Replace browser alerts with app-native modals/toasts.
-2. Align or document Webpack dev vs Turbopack build usage.
-3. Keep generated `.next/` output out of commits.
+2. Keep generated `.next/` output out of commits.
 
 ---
 

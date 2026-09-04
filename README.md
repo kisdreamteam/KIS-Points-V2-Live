@@ -19,7 +19,7 @@ Classroom management prototype for teachers: classes, student rosters, skill-bas
 npm install
 ```
 
-2. Run the development server:
+2. Run the development server (Webpack; production `npm run build` uses Turbopack — see [docs/tech-stack.md](docs/tech-stack.md)):
 
 ```bash
 npm run dev

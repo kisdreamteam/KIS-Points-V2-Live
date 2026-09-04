@@ -113,7 +113,8 @@ Technical bar:
 
 | Environment | Detail |
 |-------------|--------|
-| Local dev | `npm run dev` (Next.js webpack) |
+| Local dev | `npm run dev` → Webpack (`next dev --webpack`); see [`tech-stack.md`](tech-stack.md) |
+| Production build | `npm run build` → Turbopack (`next build --turbopack`); intentional split from local `dev` |
 | Backend | Supabase project; migrations in `supabase/migrations/` |
 | Deployment | TBD (Vercel mentioned in README; not finalized) |
 

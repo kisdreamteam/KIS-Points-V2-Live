@@ -28,3 +28,7 @@
 * **AI Assistant:** Cursor IDE (Governed by strict `.cursorrules`)
 * **Linting & Formatting:** ESLint + Prettier
 * **Package Manager:** npm
+* **Bundlers (intentional split):**
+  * `npm run dev` / `npm run dev:clean` → `next dev --webpack` — local HMR pinned to Webpack for stable day-to-day development (switched away from Turbopack `dev` during the `src/` refactor).
+  * `npm run build` → `next build --turbopack` — production builds use Turbopack (Next.js 16).
+  * Treat differences between local and `build` as possible bundler deltas; reproduce with the matching script before changing app code. Do not flip either flag without a short note here.
