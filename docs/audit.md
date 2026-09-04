@@ -327,15 +327,13 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 **Suggestion:** Move student-number assignment into a database transaction/RPC, or add a uniqueness constraint plus retry logic.
 
-### 2. Class deletion may leave related records behind
+### 2. Class deletion may leave related records behind — **Resolved**
 
 **Where:** `src/features/classes/lib/api/classes.ts`
 
-**Finding:** `deleteClassPermanently` deletes students and then the class. It does not visibly delete point events, custom point events, seating charts, groups, assignments, attendance events, or collaborators in this function.
+**Finding:** `deleteClassPermanently` deleted students and then the class. It did not visibly delete point events, custom point events, seating charts, groups, assignments, attendance events, or collaborators in this function.
 
-**Why it matters:** If the database does not cascade all related tables, deleting a class can leave orphaned history or fail because child rows still exist.
-
-**Suggestion:** Confirm foreign-key cascade rules in Supabase. If they are not comprehensive, use a database RPC for class deletion.
+**Resolution (Sep 2026):** Replaced client multi-step deletes with owner-only SECURITY DEFINER RPC `delete_class_permanently` ([`supabase/migrations/20250904130000_delete_class_permanently_rpc.sql`](../supabase/migrations/20250904130000_delete_class_permanently_rpc.sql)). Explicit ordered deletes cover seating, attendance, point ledgers, categories, collaborators, students, then class. Apply notes in [`supabase/README.md`](../supabase/README.md).
 
 ### 3. Points reset may not reset all history consistently
 
@@ -440,8 +438,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 ### High Priority
 
 1. Move student-number assignment into a database-safe flow to avoid duplicate numbers.
-2. Confirm class deletion cascades or replace it with a database RPC.
-3. Version-control remaining RLS gaps (`profiles`, `attendance_events`, seating tables).
+2. Version-control remaining RLS gaps (`profiles`, `attendance_events`, seating tables).
 
 ### Medium Priority
 

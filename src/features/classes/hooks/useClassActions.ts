@@ -6,6 +6,7 @@ import {
   deleteClassPermanently as deleteClassPermanentlyApi,
 } from '@/features/classes/lib/api/classes';
 import { refreshDashboardClassesForUserAction } from '@/features/dashboard/hooks/sync/dashboardClassesRefresh';
+import { invalidateStudentsCacheForClass } from '@/features/dashboard/hooks/sync/dashboardStudentRefresh';
 
 type ArchiveClassParams = {
   classId: string;
@@ -25,6 +26,7 @@ export function useClassActions() {
 
   const deleteClassPermanently = useCallback(async ({ classId }: DeleteClassParams) => {
     await deleteClassPermanentlyApi(classId);
+    invalidateStudentsCacheForClass(classId);
     await refreshDashboardClassesForUserAction();
     window.dispatchEvent(new CustomEvent('classUpdated'));
   }, []);

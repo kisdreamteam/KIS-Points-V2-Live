@@ -222,7 +222,7 @@ export default function ClassesStageContent({
           }}
           onConfirm={handleConfirmDelete}
           title="Delete Class"
-          message={`Are you sure you want to permanently delete "${deleteClassName}"? This action cannot be undone and will delete all students in this class.`}
+          message={`Are you sure you want to permanently delete "${deleteClassName}"? This cannot be undone and removes the class, students, points history, seating layouts, attendance, and collaborators.`}
           confirmText="Delete"
           cancelText="Cancel"
           confirmButtonColor="red"
