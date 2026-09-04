@@ -29,9 +29,16 @@ import {
   updateSeatingGroupsLayoutBatch,
 } from '@/features/seating/lib/api/seating';
 import type { GroupAssignment } from '@/features/seating/lib/api/seating';
-import { getCoordinates, getNextIndex, getSlotIndex } from '@/features/seating/lib/seatingLogic';
+import {
+  computeGroupRowsFromAssignments,
+  getCoordinates,
+  getMaxSeatIndexFromAssignments,
+  getNextIndex,
+  getSlotIndex,
+} from '@/features/seating/lib/seatingLogic';
 import { STUDENT_EVENTS, emitSeatingEditMode } from '@/lib/events/students';
 import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/seatingChartRefresh';
+import { useSeatingEditorPersistence } from '@/hooks/useSeatingEditorPersistence';
 
 
 interface SeatingChart {
@@ -84,11 +91,6 @@ const BATCH_GROUP_START_Y = 150;
 const RANDOMIZE_ABOUT_TO_MOVE_MS = 300;
 /** Blue highlight hold before advancing to the next student during randomize (50% faster than 800ms). */
 const RANDOMIZE_BEING_PLACED_MS = 400;
-
-function getMaxSeatIndexFromAssignments(assignments: GroupAssignment[]): number {
-  if (assignments.length === 0) return 0;
-  return getNextIndex(assignments.map((a) => a.seat_index ?? 0)) - 1;
-}
 
 function getMaxSeatIndexInColumn(assignments: GroupAssignment[], column: number, columns: number): number {
   const inColumn = assignments.filter(
@@ -295,23 +297,42 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       setSuccessNotification({ isOpen: true, title, message });
     };
 
+    const {
+      cloneAssignmentsMap,
+      syncGroupRowsForGroupIds,
+      persistGroupPosition,
+      persistAddStudent,
+      persistRemoveStudent,
+      persistMoveStudent,
+      persistSwapStudents,
+    } = useSeatingEditorPersistence({
+      groups,
+      setGroups,
+      groupAssignmentsRef,
+      setGroupAssignments,
+      setUnseatedStudents,
+      setGroupPositions,
+      showError: showSuccessNotification,
+    });
+
     // Renumber seat_index to 1..N for a group (after remove or column change). Keeps display order.
     const renumberSeatIndicesForGroup = useCallback(async (groupId: string) => {
       await renumberSeatIndicesForGroupApi(groupId);
     }, []);
 
-    // Handle close button - navigate back to seating chart view (remove mode=edit)
-    const handleClose = () => {
-      void saveAllChangesToDatabase(() => {
-        skipUnmountEditModeEmitRef.current = true;
-        const params = new URLSearchParams(searchParams?.toString() ?? '');
-        params.delete('mode');
-        const base = pathname ?? '/';
-        const newUrl = params.toString() ? `${base}?${params.toString()}` : base;
-        router.push(newUrl);
-        emitSeatingEditMode({ isEditMode: false });
-      });
-    };
+    // Handle close button - navigate back to seating chart view (remove mode=edit); no batch save
+    const handleClose = useCallback(() => {
+      skipUnmountEditModeEmitRef.current = true;
+      const params = new URLSearchParams(searchParams?.toString() ?? '');
+      params.delete('mode');
+      const base = pathname ?? '/';
+      const newUrl = params.toString() ? `${base}?${params.toString()}` : base;
+      router.push(newUrl);
+      emitSeatingEditMode({ isEditMode: false });
+      if (selectedLayoutId) {
+        void refreshSeatingGroupsForLayout(selectedLayoutId);
+      }
+    }, [pathname, router, searchParams, selectedLayoutId]);
 
     const searchParamsSnapshot = searchParams?.toString() ?? '';
     useEffect(() => {
@@ -575,20 +596,17 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
 
 
     /** Matches local grid math used previously in saveAllGroupSizes (header row + student rows, min 2). */
-    const computeGroupRowsFromAssignments = useCallback(
-      (assignmentsInGroup: GroupAssignment[], groupColumns: number) => {
-        const studentsPerRow = groupColumns || 2;
-        const maxIdx = getMaxSeatIndexFromAssignments(assignmentsInGroup);
-        const studentRowCount = maxIdx === 0 ? 1 : Math.ceil(maxIdx / studentsPerRow);
-        return Math.max(2, 1 + studentRowCount);
-      },
+    const computeGroupRows = useCallback(
+      (assignmentsInGroup: GroupAssignment[], groupColumns: number) =>
+        computeGroupRowsFromAssignments(assignmentsInGroup, groupColumns),
       []
     );
 
     /**
-     * Batch persist: group positions/sizes + full replace of seat assignments for the current layout.
+     * Internal recovery: full replace of group layout + seat assignments for the current layout.
+     * Not wired to exit X — manual edits persist immediately via useSeatingEditorPersistence.
      */
-    const saveAllChangesToDatabase = useCallback(async (onSaveComplete?: () => void) => {
+    const reconcileSeatingLayoutFullReplace = useCallback(async (onSaveComplete?: () => void) => {
       if (!selectedLayoutId) {
         showSuccessNotification('No layout', 'Select a seating layout before saving.');
         return;
@@ -611,7 +629,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           };
           const assignmentsInGroup = groupAssignments.get(group.id) ?? [];
           const columns = group.group_columns || 2;
-          const group_rows = computeGroupRowsFromAssignments(assignmentsInGroup, columns);
+          const group_rows = computeGroupRows(assignmentsInGroup, columns);
           return { group, pos, columns, group_rows };
         });
 
@@ -677,7 +695,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
             const pos = groupPositions.get(g.id) ?? { x: g.position_x ?? 0, y: g.position_y ?? 0 };
             const assignmentsInGroup = groupAssignments.get(g.id) ?? [];
             const columns = g.group_columns || 2;
-            const group_rows = computeGroupRowsFromAssignments(assignmentsInGroup, columns);
+            const group_rows = computeGroupRows(assignmentsInGroup, columns);
             return {
               ...g,
               position_x: pos.x,
@@ -698,7 +716,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         saveAllChangesInFlightRef.current = false;
         setIsSavingAllChanges(false);
       }
-    }, [selectedLayoutId, groups, groupAssignments, groupPositions, computeGroupRowsFromAssignments]);
+    }, [selectedLayoutId, groups, groupAssignments, groupPositions, computeGroupRows]);
 
     // Handle randomize seating - animated swap of all seated students
     const handleRandomizeSeating = useCallback(async () => {
@@ -783,6 +801,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
             const newIndexInNewGroup = newList.length + 1;
             newMap.set(currentGroupId, oldList.filter(a => a.student.id !== student.id));
             newMap.set(newGroupId, [...newList, { student, seat_index: newIndexInNewGroup }]);
+            groupAssignmentsRef.current = newMap;
             return newMap;
           });
           
@@ -813,6 +832,8 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         if (assignmentsToInsert.length > 0) {
           await insertStudentSeatAssignments(assignmentsToInsert);
         }
+
+        await syncGroupRowsForGroupIds(currentLayoutGroupIds);
         
         // Refresh to ensure sync
         await fetchGroups();
@@ -826,7 +847,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         setStudentsBeingPlaced(new Set());
         setIsRandomizing(false);
       }
-    }, [isRandomizing, groups, groupAssignments, fetchGroups]);
+    }, [isRandomizing, groups, groupAssignments, fetchGroups, syncGroupRowsForGroupIds]);
 
     // Listen for randomize event
     useEffect(() => {
@@ -852,6 +873,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         const currentInGroup = (groupAssignmentsRef.current.get(groupId) ?? []).map(a => a.student);
         if (currentInGroup.some((s) => s.id === student.id)) {
           setSelectedStudentForGroup(null);
+          addStudentToGroupInFlightRef.current = null;
           return;
         }
 
@@ -860,17 +882,27 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
             ? targetSeatIndex
             : getNextSeatIndex(groupAssignmentsRef.current.get(groupId) ?? []);
 
+        const snapshotAssignments = cloneAssignmentsMap(groupAssignmentsRef.current);
+
         setGroupAssignments(prev => {
           const newMap = new Map(prev);
           const list = newMap.get(groupId) ?? [];
           if (!list.some(a => a.student.id === student.id)) {
             newMap.set(groupId, [...list, { student, seat_index: seatIndexToUse }]);
           }
+          groupAssignmentsRef.current = newMap;
           return newMap;
         });
 
         setUnseatedStudents((prev: Student[]) => prev.filter(s => s.id !== student.id));
         setSelectedStudentForGroup(null);
+
+        void persistAddStudent({
+          student,
+          groupId,
+          seatIndex: seatIndexToUse,
+          snapshotAssignments,
+        });
       } catch (err) {
         console.error('Unexpected error assigning student:', err);
         alert('An unexpected error occurred. Please try again.');
@@ -879,7 +911,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           addStudentToGroupInFlightRef.current = null;
         }
       }
-    }, [setUnseatedStudents, setSelectedStudentForGroup]);
+    }, [cloneAssignmentsMap, persistAddStudent, setUnseatedStudents, setSelectedStudentForGroup]);
 
     useEffect(() => {
       const handleAddStudentToGroup = (event: CustomEvent) => {
@@ -894,19 +926,6 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         window.removeEventListener('addStudentToGroup', handleAddStudentToGroup as EventListener);
       };
     }, [selectedStudentForGroup, addStudentToGroup]);
-
-    // Listen for save changes event from bottom nav
-    useEffect(() => {
-      const handleSaveSeatingChart = (event: Event) => {
-        const detail = (event as CustomEvent<{ onSaveComplete?: () => void }>).detail;
-        void saveAllChangesToDatabase(detail?.onSaveComplete);
-      };
-
-      window.addEventListener(STUDENT_EVENTS.SEATING_SAVE, handleSaveSeatingChart);
-      return () => {
-        window.removeEventListener(STUDENT_EVENTS.SEATING_SAVE, handleSaveSeatingChart);
-      };
-    }, [saveAllChangesToDatabase]);
 
     // Listen for clear all groups event from bottom nav
     useEffect(() => {
@@ -938,11 +957,14 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       if (!found) return;
 
       const removedStudent = found.student;
+      const snapshotAssignments = cloneAssignmentsMap(groupAssignmentsRef.current);
+      const snapshotUnseated = [...unseatedStudents];
 
       setGroupAssignments((prev) => {
         const newMap = new Map(prev);
         const currentList = newMap.get(groupId) ?? [];
         newMap.set(groupId, currentList.filter((a) => a.student.id !== studentId));
+        groupAssignmentsRef.current = newMap;
         return newMap;
       });
 
@@ -954,6 +976,14 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       if (selectedStudentForGroup?.id === studentId) {
         setSelectedStudentForGroup(null);
       }
+
+      void persistRemoveStudent({
+        studentId,
+        groupId,
+        removedStudent,
+        snapshotAssignments,
+        snapshotUnseated,
+      });
     };
 
     const handleCreateGroup = async (groupName: string, columns: number) => {
@@ -1172,18 +1202,31 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       const clampedX = Math.max(0, Math.min(relativeX, containerRect.width - GROUP_MIN_WIDTH));
       const clampedY = Math.max(0, Math.min(relativeY, containerRect.height - GROUP_MIN_HEIGHT));
       
-      // Update the position immediately - free positioning, no snapping (persist via batch save later)
+      const group = groups.find((g) => g.id === draggedGroupId);
+      const rollbackPosition = groupPositions.get(draggedGroupId) ?? {
+        x: group?.position_x ?? 0,
+        y: group?.position_y ?? 0,
+      };
+
       setGroupPositions(prev => {
         const newPositions = new Map(prev);
         newPositions.set(draggedGroupId, { x: clampedX, y: clampedY });
         return newPositions;
       });
 
+      void persistGroupPosition(
+        draggedGroupId,
+        { x: clampedX, y: clampedY },
+        rollbackPosition
+      );
+
       setDraggedGroupId(null);
       dragOffsetRef.current = null; // Clear drag offset
     };
 
     const moveStudentToGroup = (studentId: string, fromGroupId: string, toGroupId: string, targetSeatIndex?: number) => {
+      const snapshotAssignments = cloneAssignmentsMap(groupAssignmentsRef.current);
+
       // Same group + target slot = move to empty seat within group
       if (fromGroupId === toGroupId && targetSeatIndex != null) {
         setGroupAssignments((prev) => {
@@ -1192,9 +1235,17 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
             a.student.id === studentId ? { ...a, seat_index: targetSeatIndex } : a
           );
           newMap.set(fromGroupId, list);
+          groupAssignmentsRef.current = newMap;
           return newMap;
         });
         setSelectedStudentForSwap(null);
+        void persistMoveStudent({
+          studentId,
+          fromGroupId,
+          toGroupId,
+          seatIndex: targetSeatIndex,
+          snapshotAssignments,
+        });
         return;
       }
 
@@ -1223,9 +1274,17 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         const tgt = [...(newMap.get(toGroupId) ?? []), { student: studentToMove, seat_index: nextSeat }];
         newMap.set(fromGroupId, src);
         newMap.set(toGroupId, tgt);
+        groupAssignmentsRef.current = newMap;
         return newMap;
       });
       setSelectedStudentForSwap(null);
+      void persistMoveStudent({
+        studentId,
+        fromGroupId,
+        toGroupId,
+        seatIndex: nextSeat,
+        snapshotAssignments,
+      });
     };
 
     const handleSlotClick = (groupId: string, seatIndex: number) => (e: React.MouseEvent) => {
@@ -1295,6 +1354,8 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
 
     const swapStudents = (studentId1: string, groupId1: string, studentId2: string, groupId2: string) => {
       try {
+        const snapshotAssignments = cloneAssignmentsMap(groupAssignmentsRef.current);
+
         if (groupId1 === groupId2) {
           const assignments = groupAssignments.get(groupId1) ?? [];
           const a1 = assignments.find(a => a.student.id === studentId1);
@@ -1313,7 +1374,17 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
               return a;
             });
             newMap.set(groupId1, list);
+            groupAssignmentsRef.current = newMap;
             return newMap;
+          });
+          void persistSwapStudents({
+            studentId1,
+            groupId1,
+            studentId2,
+            groupId2,
+            seatIndex1: s1,
+            seatIndex2: s2,
+            snapshotAssignments,
           });
           return;
         }
@@ -1345,7 +1416,18 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           const g2 = (newMap.get(groupId2) ?? []).filter(a => a.student.id !== studentId2);
           newMap.set(groupId1, [...g1, { student: student2, seat_index: seatIndex1 }]);
           newMap.set(groupId2, [...g2, { student: student1, seat_index: seatIndex2 }]);
+          groupAssignmentsRef.current = newMap;
           return newMap;
+        });
+
+        void persistSwapStudents({
+          studentId1,
+          groupId1,
+          studentId2,
+          groupId2,
+          seatIndex1,
+          seatIndex2,
+          snapshotAssignments,
         });
       } catch (err) {
         console.error('Unexpected error swapping students:', err);
@@ -1426,16 +1508,15 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
             return;
           }
 
+          const affectedGroupIds = [...new Set(assignments.map((a) => a.seating_group_id))];
           await fetchGroups();
-          
-          // Note: group_rows is calculated on the fly for responsiveness
-          // Database will be updated when user clicks "Save Changes" button
+          await syncGroupRowsForGroupIds(affectedGroupIds);
         }
       } catch (err) {
         console.error('Unexpected error assigning seats:', err);
         alert('An unexpected error occurred. Please try again.');
       }
-    }, [groups, unseatedStudents, fetchGroups]);
+    }, [groups, unseatedStudents, fetchGroups, syncGroupRowsForGroupIds]);
 
     // Listen for add multiple groups event from bottom nav
     useEffect(() => {
@@ -1618,6 +1699,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         setGroupAssignments(prev => {
           const newMap = new Map(prev);
           newMap.set(teamToClear.id, []);
+          groupAssignmentsRef.current = newMap;
           return newMap;
         });
         
@@ -1627,9 +1709,8 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           const newStudents = studentsToUnseat.filter(s => !existingIds.has(s.id));
           return [...prev, ...newStudents];
         });
-        
-        // Note: group_rows is calculated on the fly for responsiveness
-        // Database will be updated when user clicks "Save Changes" button
+
+        await syncGroupRowsForGroupIds([teamToClear.id]);
         
         showSuccessNotification(
           'Team Cleared Successfully',
@@ -1768,6 +1849,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         setGroupAssignments(prev => {
           const newMap = new Map(prev);
           groupIds.forEach(groupId => newMap.set(groupId, []));
+          groupAssignmentsRef.current = newMap;
           return newMap;
         });
 
@@ -1777,6 +1859,8 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           const newStudents = allStudentsToUnseat.filter(s => !existingIds.has(s.id));
           return [...prev, ...newStudents];
         });
+
+        await syncGroupRowsForGroupIds(groupIds);
 
         showSuccessNotification(
           'Groups Cleared Successfully',
@@ -1967,8 +2051,8 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     setStudentsBeingPlaced,
     fetchLayouts,
     fetchGroups,
-    computeGroupRowsFromAssignments,
-    saveAllChangesToDatabase,
+    computeGroupRows,
+    reconcileSeatingLayoutFullReplace,
     handleRandomizeSeating,
     addStudentToGroup,
     removeStudentFromGroup,

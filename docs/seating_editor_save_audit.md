@@ -1,12 +1,47 @@
-# Seating Editor Save Audit
+# Seating Editor Persistence Audit
 
-**Phase 1 of n** — inventory only. No behavior changes.
+**Last updated:** post immediate-persistence implementation (2026).
 
-Goal: document which editor mutations update **local state**, **`useSeatingStore`**, and **Supabase**, and where the current hybrid is inconsistent.
+Reference for how the seating **editor** persists changes: which state buckets exist, what writes to Supabase, and how view mode stays in sync.
+
+Primary files:
+
+- [`src/hooks/useSeatingChart.ts`](../src/hooks/useSeatingChart.ts) — editor orchestration, optimistic local state, wires persistence
+- [`src/hooks/useSeatingEditorPersistence.ts`](../src/hooks/useSeatingEditorPersistence.ts) — Layer 1 targeted persist + rollback
+- [`src/features/seating/lib/api/seating.ts`](../src/features/seating/lib/api/seating.ts) — Layer 3 Supabase access
+- [`src/hooks/useSeatingEditorToolbarActions.ts`](../src/hooks/useSeatingEditorToolbarActions.ts) — view-setting toggles
+- [`src/features/seating/stores/useSeatingStore.ts`](../src/features/seating/stores/useSeatingStore.ts) — shared desk (view mode + editor chrome)
+- [`src/features/dashboard/hooks/sync/SeatingChartDataSync.tsx`](../src/features/dashboard/hooks/sync/SeatingChartDataSync.tsx) — layout/group/view-settings hydration
 
 ---
 
-## State buckets (editor session)
+## Architecture (editor mutation flow)
+
+```mermaid
+flowchart LR
+  action[Canvas or toolbar action]
+  local[useSeatingChart local state]
+  persist[useSeatingEditorPersistence]
+  api[seating.ts granular API]
+  db[(Supabase)]
+  broadcast[broadcastSeatingChartRefresh]
+  viewStore[useSeatingStore view mode]
+
+  action --> local
+  local --> persist
+  persist --> api
+  api --> db
+  api --> broadcast
+  broadcast --> viewStore
+```
+
+**Pattern:** optimistic local update → targeted API call → on failure rollback local state + error toast. **`group_rows`** is recomputed from assignments and written via `updateSeatingGroupRows` after assignment-affecting changes.
+
+**Exit (toolbar X):** navigate only — removes `mode=edit`, emits edit-mode false, calls `refreshSeatingGroupsForLayout` so view mode hydrates from DB. **No batch save on exit.**
+
+---
+
+## State buckets
 
 | Bucket | Location | Used by |
 |--------|----------|---------|
@@ -15,38 +50,27 @@ Goal: document which editor mutations update **local state**, **`useSeatingStore
 | Group XY positions | `useSeatingChart` local `groupPositions` (Map) | Editor canvas |
 | Unseated roster | `useSeatingStore.unseatedStudents` | Left nav |
 | Selected student for placement | `useSeatingStore.selectedStudentForGroup` | Left nav + canvas |
-| View settings | `useSeatingStore` (`showGrid`, `showObjects`, `layoutOrientation`, `colorByGender`, `colorByLevel`) | Toolbar, left nav styling, view mode |
-| Decor mirror (grid/furniture/desk) | `useSeatingChart` local `showGrid` / `showObjects` / `layoutOrientation` | `SeatingCanvasDecor` in editor only |
-| View-mode canvas data | `useSeatingStore` (`groups`, `groupAssignmentsById`, `groupPositionsById`) | **Not** updated during editor canvas edits; refreshed after exit save / sync workers |
-
-**Exit batch save** (`saveAllChangesToDatabase`, on toolbar X): writes `position_x`, `position_y`, `group_columns`, `group_rows`, then **delete-all + re-insert** seat assignments for the layout.
-
-Primary files: [`src/hooks/useSeatingChart.ts`](../src/hooks/useSeatingChart.ts), [`src/hooks/useSeatingEditorToolbarActions.ts`](../src/hooks/useSeatingEditorToolbarActions.ts), [`src/features/seating/stores/useSeatingStore.ts`](../src/features/seating/stores/useSeatingStore.ts), [`src/features/seating/lib/api/seating.ts`](../src/features/seating/lib/api/seating.ts).
+| Color toggles | `useSeatingStore` (`colorByGender`, `colorByLevel`) | Editor canvas, left nav, view canvas |
+| Grid / furniture / desk orientation | **Split:** toolbar local state + `useSeatingChart` local decor mirror; store also holds copies for view mode | Toolbar menu, `SeatingCanvasDecor`, view workspace |
+| View-mode canvas data | `useSeatingStore` (`groups`, `groupAssignmentsById`, `groupPositionsById`) | View mode only; refreshed via broadcast / exit refresh / sync workers — **not** updated on every editor optimistic edit |
 
 ---
 
-## Phase 1 — Change inventory (short form)
+## Persistence inventory
 
-Legend:
-
-- **Local hook** = `useSeatingChart` React state
-- **Store** = `useSeatingStore`
-- **DB** = Supabase via `seating.ts`
-- **Exit** = only in `saveAllChangesToDatabase` when leaving editor (X)
+Legend: **Local hook** = `useSeatingChart` · **Store** = `useSeatingStore` · **DB** = Supabase via `seating.ts`
 
 ### View preferences (toolbar)
 
 | Change | Local hook | Store | DB | Notes |
 |--------|:----------:|:-----:|:--:|-------|
-| Show grid | Yes (`showGrid`) | Yes | **Immediate** | Toolbar → `updateLayoutViewSettings` + `syncLayoutViewSettings` + event; hook syncs local decor via event/fetch |
-| Show furniture | Yes (`showObjects`) | Yes | **Immediate** | Same |
-| Teacher's desk left | Yes (`layoutOrientation`) | Yes | **Immediate** | Same |
-| Color by gender | No | Yes | **Immediate** | Canvas / left nav read store |
+| Show grid | Yes (decor) | Yes | **Immediate** | `updateLayoutViewSettings` + `syncLayoutViewSettings` + `SEATING_VIEW_SETTINGS_CHANGED` event; hook syncs decor via event/fetch |
+| Show furniture | Yes (decor) | Yes | **Immediate** | Same |
+| Teacher's desk left/right | Yes (decor) | Yes | **Immediate** | Same |
+| Color by gender | No | Yes | **Immediate** | Canvas / left nav read store; toolbar syncs store on load and toggle |
 | Color by level | No | Yes | **Immediate** | Same |
 
-These are **not** exit-only — they persist on toggle today.
-
----
+**Store hydration on load:** `SeatingChartDataSync` calls `refreshLayoutViewSettings` when `selectedLayoutId` changes; editor toolbar initial fetch also calls `syncLayoutViewSettings`.
 
 ### Group structure (create / edit / delete)
 
@@ -56,83 +80,107 @@ These are **not** exit-only — they persist on toggle today.
 | Add multiple groups | Yes (via `fetchGroups`) | No | **Immediate** | `insertSeatingGroups` |
 | Edit group (modal: name, columns) | Yes | No | **Immediate** | `updateSeatingGroupFields` |
 | Inline rename group | Yes | No | **Immediate** | `updateSeatingGroupFields` |
-| Update group columns (settings menu) | Yes | No | **Immediate** | `updateSeatingGroupFields` |
+| Update group columns (settings menu) | Yes | No | **Immediate** | `updateSeatingGroupFields` (columns only; see concerns) |
 | Delete one team | Yes | No | **Immediate** | `deleteTeamAssignmentsAndGroup` |
-| Clear one team (unseat) | Yes | No | **Immediate** | `deleteStudentSeatAssignmentsForSeatingGroupId` |
-| Clear all groups | Yes | No | **Immediate** | `deleteAssignmentsForGroupsSequential` |
-| Delete all groups | Yes | No | **Immediate** | Assignments delete + `deleteSeatingGroupsSequential` |
+| Clear one team (unseat) | Yes | Yes (unseated) | **Immediate** | `deleteStudentSeatAssignmentsForSeatingGroupId` + `syncGroupRowsForGroupIds` |
+| Clear all groups | Yes | Yes (unseated) | **Immediate** | `deleteAssignmentsForGroupsSequential` + `syncGroupRowsForGroupIds` |
+| Delete all groups | Yes | Yes (unseated) | **Immediate** | Assignments delete + `deleteSeatingGroupsSequential` |
 
----
+### Layout geometry and seating (canvas — immediate granular persist)
 
-### Layout geometry and seating (canvas interactions)
+| Change | Local hook | Store | DB | Layer 3 / orchestrator |
+|--------|:----------:|:-----:|:--:|------------------------|
+| Drag group XY | Yes | No | **Immediate** | `updateSeatingGroupPosition` |
+| Add student to group | Yes | Yes (unseated) | **Immediate** | `insertStudentSeatAssignment` + `updateSeatingGroupRows` |
+| Remove student from group | Yes | Yes (unseated) | **Immediate** | `deleteStudentSeatAssignmentsByStudentId` + `updateSeatingGroupRows` |
+| Swap students (same or cross group) | Yes | No | **Immediate** | `swapSeatAssignments` (delete both + insert both) + `updateSeatingGroupRows` |
+| Move student cross-group | Yes | No | **Immediate** | `deleteStudentSeatAssignmentsByStudentId` + `insertStudentSeatAssignment` + `updateSeatingGroupRows` |
+| Move / change seat within same group | Yes | No | **Immediate** | `updateStudentSeatAssignmentByStudentId` (+ `fallbackGroupId` upsert if no DB row) + `updateSeatingGroupRows` |
+| `group_rows` (derived) | Yes (computed in hook) | No | **Immediate** | `updateSeatingGroupRows` after assignment changes; local `groups[].group_rows` patched on success |
 
-| Change | Local hook | Store | DB | Notes |
-|--------|:----------:|:-----:|:--:|-------|
-| Drag group XY | Yes (`groupPositions`) | No | **Exit** | Comment in code: "persist via batch save later" |
-| Add student to group (left nav / slot) | Yes (`groupAssignments`) | Yes (unseated list) | **Exit** | Local assign + remove from `unseatedStudents` |
-| Remove student from group | Yes | Yes (unseated) | **Exit** | Local only for assignments |
-| Swap students (same or cross group) | Yes | No | **Exit** | Local `groupAssignments` only |
-| Move student between groups | Yes | No | **Exit** | Local only |
-| Change seat index within group | Yes | No | **Exit** | Local only |
-| `group_rows` (derived from seat count) | Yes (computed) | No | **Exit** | Saved in batch with groups; comments note "updated on Save" after some ops |
-
----
+Orchestration lives in [`useSeatingEditorPersistence.ts`](../src/hooks/useSeatingEditorPersistence.ts). Failed persists roll back local assignments and show an error notification.
 
 ### Bulk seating tools
 
 | Change | Local hook | Store | DB | Notes |
 |--------|:----------:|:-----:|:--:|-------|
-| Auto-assign seats | Yes (via `fetchGroups`) | Yes (unseated) | **Partial immediate** | `insertStudentSeatAssignments` runs immediately; `group_rows` still deferred to exit batch |
-| Randomize seats | Yes (via `fetchGroups`) | No | **Immediate** | Deletes all layout assignments + re-inserts; unlike manual swaps |
-
----
+| Auto-assign seats | Yes (via `fetchGroups`) | Yes (unseated) | **Immediate** | Bulk `insertStudentSeatAssignments`; then `syncGroupRowsForGroupIds` per affected group |
+| Randomize seats | Yes (via `fetchGroups`) | No | **Immediate** | Bulk delete all layout assignments + re-insert; then `syncGroupRowsForGroupIds` |
 
 ### UI / selection (not persisted)
 
 | Change | Local hook | Store | DB |
-|--------|:----------:|:-----:|:--:|
+|--------|:----------:|:-----:|:--:||
 | Selected student for swap | Yes | No | No |
 | Selected student for group placement | No | Yes | No |
 | Group settings menu open state | Yes | No | No |
 | Drag-in-progress | Yes | No | No |
 
----
+### Exit (toolbar X)
 
-### Exit save batch (toolbar X)
+| Action | DB write | Notes |
+|--------|:--------:|-------|
+| Close editor | **No** | URL `mode=edit` removed; `emitSeatingEditMode({ isEditMode: false })`; `refreshSeatingGroupsForLayout` for view hydration |
+| Batch full replace | **Not wired** | `reconcileSeatingLayoutFullReplace` retained in `useSeatingChart` as internal recovery only (exported, no UI / no `SEATING_SAVE` listener) |
 
-Runs once; writes to DB:
-
-1. `updateSeatingGroupsLayoutBatch` — all groups: `position_x`, `position_y`, `group_columns`, `group_rows`
-2. `deleteStudentSeatAssignmentsForGroupIds` — all groups in layout
-3. `insertStudentSeatAssignmentsBatched` — full replace from local `groupAssignments`
-4. `refreshSeatingGroupsForLayout` — hydrates **view-mode** `useSeatingStore`
-
-Also triggered by `SEATING_SAVE` event (if wired elsewhere).
+Editor UX copy: [`SeatingCanvasDecor`](../src/features/seating/components/canvas/SeatingCanvasDecor.tsx) shows **“Changes save automatically”** when `showSaveHint` is on.
 
 ---
 
-## Hybrid inconsistencies (Phase 1 observations)
+## Layer 3 granular APIs (assignment / layout)
 
-1. **View settings** → immediate DB; **group drag + manual seat edits** → exit batch only.
-2. **Randomize** and **auto-assign** write assignments to DB immediately; **manual swap/add/remove** do not.
-3. **Group CRUD** (add/delete/clear/rename/columns) → immediate DB; **position drags** → exit only (initial create position is immediate).
-4. **Two desks**: editor canvas uses hook local state; view mode uses `useSeatingStore` — store canvas data updates after exit save (or separate refresh paths), not on every editor edit.
-5. **Duplicate view-setting state**: grid/furniture/desk exist in both store and hook local state (synced via events/fetch, not a single source).
-6. **`group_rows`**: may be stale in DB after auto-assign/clear until exit save, despite assignments already changed in DB for some flows.
+| Function | Used for |
+|----------|----------|
+| `updateSeatingGroupPosition` | Group drag drop |
+| `updateSeatingGroupRows` | Derived row count after assignment changes |
+| `insertStudentSeatAssignment` | Single placement, cross-group move, swap re-insert |
+| `updateStudentSeatAssignmentByStudentId` | Same-group seat change; dedupes duplicate rows per student |
+| `deleteStudentSeatAssignmentsByStudentId` | Removal, cross-group move, swap |
+| `swapSeatAssignments` | Two-student swap (delete + insert both) |
+
+Batch helpers (`updateSeatingGroupsLayoutBatch`, `deleteStudentSeatAssignmentsForGroupIds`, `insertStudentSeatAssignmentsBatched`) remain for **`reconcileSeatingLayoutFullReplace`**, randomize, and auto-assign.
+
+All mutators broadcast via `broadcastByGroupIds` / `broadcastSeatingChartRefresh` for cross-tab view-mode refresh.
 
 ---
 
-## Out of scope (later phases)
+## View settings: dual hydration paths
 
-- Target architecture (immediate vs exit-debounced per change type)
-- Implementation plan
-- Realtime / cross-tab behavior
-- Rollback / optimistic failure handling
-- Layout rename/delete from layout manager drawer
+| Path | When | What it updates |
+|------|------|-----------------|
+| `SeatingChartDataSync` → `refreshLayoutViewSettings` | `selectedLayoutId` changes (view **and** editor) | Store via `syncLayoutViewSettings` |
+| `useSeatingLayoutManager` | View mode mounted | Same + realtime subscription |
+| `useSeatingEditorToolbarActions` load effect | Editor toolbar mount | Toolbar local state **and** `syncLayoutViewSettings` |
+| Toggle handlers | User toggles any view setting | DB + store + `SEATING_VIEW_SETTINGS_CHANGED` event |
+
+Color-by-level borders in editor read **`useSeatingStore.colorByLevel`**, not toolbar local state alone.
 
 ---
 
 ## Related docs
 
-- [`docs/color_by_level_planning.md`](color_by_level_planning.md) — Appendix B (immediate view-settings persist vs exit save for layout)
-- [`docs/architecture-plan.md`](architecture-plan.md) — Layer 1 / Layer 2 boundaries
+- [`docs/archive/color_by_level_planning.md`](archive/color_by_level_planning.md) — color-by-level feature planning
+- [`docs/architecture-plan.md`](architecture-plan.md) — Layer 1 / Layer 2 / Layer 3 boundaries
+- [`docs/seat-index-logic.md`](seat-index-logic.md) — seat index math (`seatingLogic.ts`)
+
+---
+
+## Remaining concerns
+
+1. **Two desks:** Editor canvas uses `useSeatingChart` local state; view mode uses `useSeatingStore`. View data catches up via broadcast and exit refresh, not live mirror of every editor pixel drag.
+
+2. **Duplicate view-setting state:** Grid/furniture/desk exist in toolbar local state, hook decor state, and store. Color flags are store-canonical for rendering but toolbar still mirrors them locally. Consolidation would reduce drift risk.
+
+3. **`group_columns` change without assignment change:** Updating columns via settings/modal writes `group_columns` only; **`group_rows` in DB may be stale** until a later assignment-affecting persist recalculates rows.
+
+4. **No `UNIQUE(student_id)` on `student_seat_assignments`:** Legacy duplicate rows per student are possible. `updateStudentSeatAssignmentByStudentId` dedupes on update; cross-group move/swap use delete+insert to avoid ambiguity.
+
+5. **`reconcileSeatingLayoutFullReplace` unwired:** Full delete-all + re-insert recovery exists but has no UI entry point; `SEATING_SAVE` event is still defined in [`students.ts`](../src/lib/events/students.ts) with no listener.
+
+6. **`renumberSeatIndicesForGroup`:** Layer 3 API exists; editor exposes a callback but **no UI calls it** — seat holes are not auto-filled after manual edits.
+
+7. **Exit refresh scope:** `handleClose` refreshes groups/assignments but does not explicitly call `refreshLayoutViewSettings` (usually already hydrated via `SeatingChartDataSync`).
+
+8. **Failed persist UX:** Optimistic rollback + toast on API failure; teacher may need to retry the action. No offline queue.
+
+9. **Layout manager drawer:** Rename/delete layout from drawer — persistence behavior documented elsewhere; not covered in this editor canvas inventory.

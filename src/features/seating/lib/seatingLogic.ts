@@ -4,6 +4,8 @@
  * @see docs/seat-index-logic.md
  */
 
+import type { GroupAssignment } from '@/features/seating/lib/api/seating';
+
 export interface SeatGridCoordinates {
   /** 0-based row in the student grid (below the group header). */
   row: number;
@@ -47,4 +49,24 @@ export function getNextIndex(existingIndices: readonly number[]): number {
     return 1;
   }
   return Math.max(...existingIndices) + 1;
+}
+
+/** Highest occupied 1-based seat index in a group; `0` when empty. */
+export function getMaxSeatIndexFromAssignments(assignments: readonly GroupAssignment[]): number {
+  if (assignments.length === 0) return 0;
+  return getNextIndex(assignments.map((a) => a.seat_index ?? 0)) - 1;
+}
+
+/**
+ * Header row + student rows for `seating_groups.group_rows` (minimum 2).
+ * Matches editor grid math used before batch save.
+ */
+export function computeGroupRowsFromAssignments(
+  assignmentsInGroup: readonly GroupAssignment[],
+  groupColumns: number
+): number {
+  const studentsPerRow = groupColumns || 2;
+  const maxIdx = getMaxSeatIndexFromAssignments(assignmentsInGroup);
+  const studentRowCount = maxIdx === 0 ? 1 : Math.ceil(maxIdx / studentsPerRow);
+  return Math.max(2, 1 + studentRowCount);
 }

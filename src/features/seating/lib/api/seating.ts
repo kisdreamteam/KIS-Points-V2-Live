@@ -277,7 +277,7 @@ async function resolveLayoutIdByGroupIds(groupIds: string[]): Promise<string | n
     .select('seating_chart_id')
     .in('id', groupIds)
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (error || !data?.seating_chart_id) return null;
   return data.seating_chart_id as string;
@@ -540,13 +540,148 @@ export async function insertSeatingGroups(
 
 export async function updateSeatingGroupFields(
   groupId: string,
-  patch: { name?: string; group_columns?: number }
+  patch: { name?: string; group_columns?: number; group_rows?: number }
 ): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.from('seating_groups').update(patch).eq('id', groupId);
 
   if (error) throwApiError(error, 'updateSeatingGroupFields');
   await broadcastByGroupIds([groupId]);
+}
+
+export async function updateSeatingGroupPosition(
+  groupId: string,
+  position: { position_x: number; position_y: number }
+): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('seating_groups')
+    .update({
+      position_x: position.position_x,
+      position_y: position.position_y,
+    })
+    .eq('id', groupId);
+
+  if (error) throwApiError(error, 'updateSeatingGroupPosition');
+  await broadcastByGroupIds([groupId]);
+}
+
+export async function updateSeatingGroupRows(groupId: string, group_rows: number): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from('seating_groups').update({ group_rows }).eq('id', groupId);
+
+  if (error) throwApiError(error, 'updateSeatingGroupRows');
+  await broadcastByGroupIds([groupId]);
+}
+
+export async function insertStudentSeatAssignment(row: StudentSeatAssignmentRow): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from('student_seat_assignments').insert(row);
+
+  if (error) throwApiError(error, 'insertStudentSeatAssignment');
+  await broadcastByGroupIds([row.seating_group_id]);
+}
+
+export type UpdateStudentSeatAssignmentOptions = {
+  /** Used to insert when no DB row exists and patch only sets seat_index. */
+  fallbackGroupId?: string;
+};
+
+export async function updateStudentSeatAssignmentByStudentId(
+  studentId: string,
+  patch: { seating_group_id?: string; seat_index?: number | null },
+  options?: UpdateStudentSeatAssignmentOptions
+): Promise<void> {
+  const supabase = createClient();
+  const { data: rows, error: selectError } = await supabase
+    .from('student_seat_assignments')
+    .select('id, seating_group_id, seat_index')
+    .eq('student_id', studentId);
+
+  if (selectError) throwApiError(selectError, 'updateStudentSeatAssignmentByStudentId.select');
+
+  const existing = rows ?? [];
+  const groupIds = new Set<string>();
+  existing.forEach((row) => groupIds.add(row.seating_group_id as string));
+  if (patch.seating_group_id) groupIds.add(patch.seating_group_id);
+  if (options?.fallbackGroupId) groupIds.add(options.fallbackGroupId);
+
+  if (existing.length === 0) {
+    const seating_group_id = patch.seating_group_id ?? options?.fallbackGroupId;
+    const seat_index = patch.seat_index;
+    if (!seating_group_id || seat_index == null) {
+      throwApiError(
+        new Error('Cannot upsert seat assignment without seating_group_id and seat_index.'),
+        'updateStudentSeatAssignmentByStudentId.upsert'
+      );
+    }
+    await insertStudentSeatAssignment({
+      student_id: studentId,
+      seating_group_id,
+      seat_index,
+    });
+    return;
+  }
+
+  if (existing.length > 1) {
+    const [primary, ...duplicates] = existing;
+    if (duplicates.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('student_seat_assignments')
+        .delete()
+        .in(
+          'id',
+          duplicates.map((row) => row.id)
+        );
+      if (deleteError) throwApiError(deleteError, 'updateStudentSeatAssignmentByStudentId.dedupe');
+    }
+    const { error: updateError } = await supabase
+      .from('student_seat_assignments')
+      .update(patch)
+      .eq('id', primary.id);
+    if (updateError) throwApiError(updateError, 'updateStudentSeatAssignmentByStudentId.update');
+    if (groupIds.size > 0) await broadcastByGroupIds([...groupIds]);
+    return;
+  }
+
+  const { error } = await supabase
+    .from('student_seat_assignments')
+    .update(patch)
+    .eq('student_id', studentId);
+
+  if (error) throwApiError(error, 'updateStudentSeatAssignmentByStudentId.update');
+  if (groupIds.size > 0) await broadcastByGroupIds([...groupIds]);
+}
+
+export type SwapSeatAssignmentsParams = {
+  studentA: string;
+  studentB: string;
+  groupA: string;
+  groupB: string;
+  seatA: number;
+  seatB: number;
+};
+
+/**
+ * Swap two seated students by replacing both assignment rows (avoids unique-slot collisions on
+ * seating_group_id + seat_index during in-place updates).
+ */
+export async function swapSeatAssignments(params: SwapSeatAssignmentsParams): Promise<void> {
+  const { studentA, studentB, groupA, groupB, seatA, seatB } = params;
+
+  await deleteStudentSeatAssignmentsByStudentId(studentA);
+  await deleteStudentSeatAssignmentsByStudentId(studentB);
+
+  await insertStudentSeatAssignment({
+    student_id: studentA,
+    seating_group_id: groupB,
+    seat_index: seatB,
+  });
+  await insertStudentSeatAssignment({
+    student_id: studentB,
+    seating_group_id: groupA,
+    seat_index: seatA,
+  });
 }
 
 export async function deleteStudentSeatAssignmentsForSeatingGroupId(groupId: string): Promise<void> {

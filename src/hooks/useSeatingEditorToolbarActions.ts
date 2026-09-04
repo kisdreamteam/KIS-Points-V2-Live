@@ -83,6 +83,7 @@ export function useSeatingEditorToolbarActions(): SeatingEditorToolbarActionsRet
         setTeachersDeskLeft(orient === 'Left');
         setColorByGender(data.color_by_gender ?? true);
         setColorByLevel(data.color_by_level ?? false);
+        useSeatingStore.getState().syncLayoutViewSettings(layoutId, data);
       } catch (err) {
         console.error('Unexpected error fetching layout view settings (editor toolbar):', err);
       }

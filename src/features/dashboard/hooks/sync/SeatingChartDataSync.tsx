@@ -40,6 +40,7 @@ export function SeatingChartDataSync() {
       return;
     }
     void refreshSeatingGroupsForLayout(selectedLayoutId);
+    void refreshLayoutViewSettings(selectedLayoutId);
   }, [selectedLayoutId]);
 
   useEffect(() => {
