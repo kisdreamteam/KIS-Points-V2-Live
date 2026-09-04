@@ -181,15 +181,13 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 **Suggestion:** Consider normalizing students by ID in the store, using `Set`-based selection checks, and memoizing sorted IDs so one student's point change does not make every card do avoidable work.
 
-### 7. Cross-tab point sync updates students one at a time
+### 7. Cross-tab point sync updates students one at a time — **Resolved**
 
 **Where:** `src/features/dashboard/hooks/sync/DashboardStudentSync.tsx`, `src/features/dashboard/stores/useDashboardStore.ts`
 
 **Finding:** The store has a good batched `applyPointsDelta` pattern, but some sync paths update students in a loop.
 
-**Why it matters:** Updating students one-by-one can trigger multiple UI refreshes instead of one.
-
-**Suggestion:** Add a batch update store action and use it for realtime/cross-tab point sync.
+**Resolution (Sep 2026):** Added `applyStudentPointsUpdates` (one store write for N absolute totals). Cross-tab broadcast applies the full `updates` array once; `postgres_changes` row updates are coalesced on a microtask before the same batch path. Seating assignment points sync remains a single batched call.
 
 ### 8. Student roster cache is unbounded
 
@@ -446,8 +444,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 1. Move student-number assignment into a database-safe flow to avoid duplicate numbers.
 2. Confirm class deletion cascades or replace it with a database RPC.
 3. Remove unused `@hello-pangea/dnd` if drag-and-drop is not planned.
-4. Batch cross-tab student point sync updates.
-5. Version-control remaining RLS gaps (`profiles`, `attendance_events`, seating tables).
+4. Version-control remaining RLS gaps (`profiles`, `attendance_events`, seating tables).
 
 ### Medium Priority
 

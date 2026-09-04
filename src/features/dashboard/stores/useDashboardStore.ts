@@ -23,6 +23,8 @@ interface DashboardStore {
   setLoadingClasses: (v: boolean) => void;
   updateStudent: (studentId: string, patch: Partial<Student>) => void;
   applyPointsDelta: (studentIds: string[], delta: number) => void;
+  /** Absolute point totals from realtime/cross-tab sync — one store write for N students. */
+  applyStudentPointsUpdates: (updates: { studentId: string; points: number }[]) => void;
 }
 
 export const useDashboardStore = create<DashboardStore>((set) => ({
@@ -55,6 +57,19 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
         if (!idSet.has(s.id)) return s;
         touched = true;
         return { ...s, points: (s.points ?? 0) + delta };
+      });
+      return touched ? { students } : {};
+    }),
+  applyStudentPointsUpdates: (updates) =>
+    set((state) => {
+      if (updates.length === 0) return {};
+      const pointsById = new Map(updates.map((u) => [u.studentId, u.points]));
+      let touched = false;
+      const students = state.students.map((s) => {
+        const nextPoints = pointsById.get(s.id);
+        if (nextPoints === undefined || (s.points ?? 0) === nextPoints) return s;
+        touched = true;
+        return { ...s, points: nextPoints };
       });
       return touched ? { students } : {};
     }),
