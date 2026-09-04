@@ -18,7 +18,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 - Dashboard route protection is client-side, so server-side middleware would add a stronger first gate.
 - Some point-history/report queries aggregate data in the browser, which is fine for small classes but may become slow as point history grows.
 - Student-grid and cross-tab point sync work can cause more re-renders than necessary.
-- A few debug logs, legacy aliases, architecture boundary drifts, and large hooks make maintenance harder.
+- A few legacy aliases, architecture boundary drifts, and large hooks make maintenance harder.
 - Student numbering and some batch operations can race if multiple teachers act at the same time.
 
 ---
@@ -391,15 +391,13 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 **Suggestion:** Remove it unless drag-and-drop work is planned soon.
 
-### 2. Debug logs remain in seating chart logic
+### 2. Debug logs remain in seating chart logic — **Resolved**
 
 **Where:** `src/hooks/useSeatingChart.ts`
 
-**Finding:** There are `console.log` calls for swapping students and opening group edit modal.
+**Finding:** There were `console.log` calls for swapping students and opening group edit modal.
 
-**Why it matters:** Debug logs can leak classroom data into the browser console and make production debugging noisy.
-
-**Suggestion:** Remove them or guard them behind a development-only debug flag.
+**Resolution (Sep 2026):** Removed both debug `console.log` calls. Error-path `console.error` retained.
 
 ### 3. Many user-facing errors still use browser `alert`
 
@@ -474,13 +472,12 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ### Low Priority
 
-1. Remove debug `console.log` calls.
-2. Replace browser alerts with app-native modals/toasts.
-3. Retire legacy API aliases after imports are migrated.
-4. Clarify hook placement rules and clean up feature-specific hooks in `src/hooks`.
-5. Standardize icon naming.
-6. Align or document Webpack dev vs Turbopack build usage.
-7. Keep generated `.next/` output out of commits.
+1. Replace browser alerts with app-native modals/toasts.
+2. Retire legacy API aliases after imports are migrated.
+3. Clarify hook placement rules and clean up feature-specific hooks in `src/hooks`.
+4. Standardize icon naming.
+5. Align or document Webpack dev vs Turbopack build usage.
+6. Keep generated `.next/` output out of commits.
 
 ---
 

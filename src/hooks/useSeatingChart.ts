@@ -1351,12 +1351,6 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         setSelectedStudentForSwap(null);
       } else {
         // Second student selected - swap them
-        console.log('Swapping students:', {
-          student1: selectedStudentForSwap.studentId,
-          group1: selectedStudentForSwap.groupId,
-          student2: studentId,
-          group2: groupId
-        });
         swapStudents(selectedStudentForSwap.studentId, selectedStudentForSwap.groupId, studentId, groupId);
         setSelectedStudentForSwap(null);
       }
@@ -1556,7 +1550,6 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     const handleEditTeam = (groupId: string) => {
       const groupToEdit = groups.find(g => g.id === groupId);
       if (groupToEdit) {
-        console.log('Opening edit modal for group:', groupToEdit);
         setEditingGroup(groupToEdit);
         setIsEditGroupModalOpen(true);
         setOpenSettingsMenuId(null);
