@@ -22,6 +22,7 @@ import { emitSeatingRepairLayout } from '@/lib/events/students';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
+import { useEditorPersistInFlight } from '@/features/seating/lib/seatingEditorPersistGate';
 
 const toolbarMenuClassName = 'min-w-[220px]';
 const TOOLBAR_TOP_MENU_PLACEMENT = 'leftOfAnchorDown' as const;
@@ -151,7 +152,8 @@ export default function SeatingEditorWorkspaceToolbar({
     setIsSettingsMenuOpen(false);
   }, [onDeleteAllGroups]);
 
-  const isRepairLayoutDisabled = isRepairingLayout || isRandomizing;
+  const isPersistInFlight = useEditorPersistInFlight();
+  const isRepairLayoutDisabled = isRepairingLayout || isRandomizing || isPersistInFlight;
 
   const handleRequestRepairLayoutSync = useCallback(() => {
     if (isRepairLayoutDisabled) return;

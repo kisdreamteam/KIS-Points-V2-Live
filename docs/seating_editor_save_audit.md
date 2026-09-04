@@ -137,7 +137,7 @@ Orchestration: [`useSeatingLayoutManager.ts`](../src/hooks/useSeatingLayoutManag
 | Close editor | **No** | `handleClose`: URL `mode=edit` removed; `emitSeatingEditMode({ isEditMode: false })` only. **`SeatingChartDataSync`** waits for editor persists idle, then `refreshSeatingGroupsForLayout` + `refreshLayoutViewSettings` (single pass). |
 | Manual layout repair | **Yes (full replace)** | Settings → **Sync layout to database** → confirmation → `SEATING_REPAIR_LAYOUT` → `repairSeatingLayoutFromStore`. Deletes all layout assignments and re-inserts from store; batch-updates group positions. |
 
-**Repair guards:** Event handler blocks when `getEditorPersistInFlight() > 0`, randomize in flight, or repair already running (`saveAllChangesInFlightRef`). Toolbar disables the menu item while repair or randomize is in flight; granular persists are blocked at the handler with a “Please wait” toast (modal can still be opened during a granular persist).
+**Repair guards:** Event handler blocks when `getEditorPersistInFlight() > 0`, randomize in flight, or repair already running (`saveAllChangesInFlightRef`). Toolbar disables “Sync layout” (menu + confirm) while repair, randomize, **or** granular persists are in flight (`useEditorPersistInFlight`); event handler “Please wait” remains a backstop.
 
 Editor UX copy: [`SeatingCanvasDecor`](../src/features/seating/components/canvas/SeatingCanvasDecor.tsx) shows **“Changes save automatically”** when `showSaveHint` is on.
 
@@ -219,6 +219,7 @@ Batch helpers (`updateSeatingGroupsLayoutBatch`, `deleteStudentSeatAssignmentsFo
 | Exit refresh duplicate groups fetch | **Resolved** — `handleClose` no longer refreshes; `SeatingChartDataSync` owns single exit refresh (groups + view settings) |
 | Exit refresh race with in-flight persist | **Resolved** — granular persists use `seatingEditorPersistGate`; Sync awaits `waitForEditorPersistsIdle` (8s cap) before exit refetch |
 | Column changes not optimistic | **Resolved** — `persistGroupColumnsChange` patches store before API; edit modal closes immediately; rollback on failure |
+| Repair UI guard incomplete | **Resolved** — Sync layout disabled while `useEditorPersistInFlight()`; handler “Please wait” kept as backstop |
 
 ---
 
@@ -226,6 +227,4 @@ Batch helpers (`updateSeatingGroupsLayoutBatch`, `deleteStudentSeatAssignmentsFo
 
 ### New concerns (from Option C + repair work)
 
-1. **Repair UI guard incomplete (low):** Toolbar disables “Sync layout” during repair or randomize only. During granular persists the menu stays enabled; opening the confirmation modal succeeds but the event handler shows “Please wait”. Consider also disabling when `getEditorPersistInFlight() > 0`.
-
-2. **Destructive repair blast radius (medium):** `repairSeatingLayoutFromStore` deletes **all** layout assignments then re-inserts from store. If store is stale (missed rollback notice), repair writes stale state to DB and wipes divergent rows. Intended as recovery only; high blast radius.
+1. **Destructive repair blast radius (medium):** `repairSeatingLayoutFromStore` deletes **all** layout assignments then re-inserts from store. If store is stale (missed rollback notice), repair writes stale state to DB and wipes divergent rows. Intended as recovery only; high blast radius.
