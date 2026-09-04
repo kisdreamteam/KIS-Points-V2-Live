@@ -417,15 +417,13 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 **Resolution (Sep 2026):** Removed unused icons during the PascalCaseIcon naming cleanup. Kept both pencil glyphs under distinct names (`EditPencilIcon`, `EditPencilOutlineIcon`) because the SVGs differ.
 
-### 6. Generated build output should stay out of git
+### 6. Generated build output should stay out of git — **Resolved**
 
 **Where:** `.gitignore`, `.next/`
 
-**Finding:** `.gitignore` correctly ignores `/.next/`, but the working tree previously showed many untracked `.next` files.
+**Finding:** `.gitignore` already ignored `/.next/`, but IDE/status snapshots sometimes listed many local `.next` files and made the tree look dirty.
 
-**Why it matters:** Build output is large, noisy, and can hide real code changes in git status.
-
-**Suggestion:** Keep `.next/` ignored and occasionally clean local build output before reviewing status.
+**Resolution (Sep 2026):** Confirmed zero tracked `.next` files. Broadened ignore to `.next/` (and `out/`) in `.gitignore`. Documented the “never commit generated Next output; use `dev:clean` when clearing cache” policy in [`tech-stack.md`](tech-stack.md).
 
 ### 7. Some helper comments describe behavior that should be encoded in names/tests
 
@@ -461,7 +459,6 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 ### Low Priority
 
 1. Replace browser alerts with app-native modals/toasts.
-2. Keep generated `.next/` output out of commits.
 
 ---
 

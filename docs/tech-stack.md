@@ -32,3 +32,4 @@
   * `npm run dev` / `npm run dev:clean` → `next dev --webpack` — local HMR pinned to Webpack for stable day-to-day development (switched away from Turbopack `dev` during the `src/` refactor).
   * `npm run build` → `next build --turbopack` — production builds use Turbopack (Next.js 16).
   * Treat differences between local and `build` as possible bundler deltas; reproduce with the matching script before changing app code. Do not flip either flag without a short note here.
+* **Generated output:** Never commit `.next/` (or `out/`). Both are listed in `.gitignore`. `npm run dev:clean` deletes `.next` then starts Webpack `dev`. Before reviewing `git status` or staging, ignore/clean local build artifacts so they do not clutter the working tree.
