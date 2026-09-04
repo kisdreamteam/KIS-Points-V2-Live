@@ -8,6 +8,8 @@ Primary files:
 
 - [`src/hooks/useSeatingChart.ts`](../src/hooks/useSeatingChart.ts) — editor orchestration, reads/writes `useSeatingStore` for layout canvas data
 - [`src/hooks/useSeatingEditorPersistence.ts`](../src/hooks/useSeatingEditorPersistence.ts) — Layer 1 targeted persist + rollback (store-backed); wraps writes with [`withTransientRetry`](../src/lib/withTransientRetry.ts)
+- [`src/hooks/useSeatingLayoutManager.ts`](../src/hooks/useSeatingLayoutManager.ts) — view-mode layout create / rename / delete / select
+- [`src/features/seating/components/canvas/LayoutManagerDrawer.tsx`](../src/features/seating/components/canvas/LayoutManagerDrawer.tsx) — layout manager drawer UI (wired from `SeatingViewWorkspace`)
 - [`src/features/seating/lib/api/seating.ts`](../src/features/seating/lib/api/seating.ts) — Layer 3 Supabase access
 - [`src/hooks/useSeatingEditorToolbarActions.ts`](../src/hooks/useSeatingEditorToolbarActions.ts) — view-setting toggles
 - [`src/features/seating/stores/useSeatingStore.ts`](../src/features/seating/stores/useSeatingStore.ts) — **single desk** for groups, assignments, positions (editor + view)
@@ -105,6 +107,20 @@ Orchestration lives in [`useSeatingEditorPersistence.ts`](../src/hooks/useSeatin
 | Auto-assign seats | Yes (via `fetchGroups`) | **Immediate** | Bulk `insertStudentSeatAssignments`; then `syncGroupRowsForGroupIds` per affected group |
 | Randomize seats | Yes (via `fetchGroups`) | **Immediate** | Bulk delete all layout assignments + re-insert; then `syncGroupRowsForGroupIds` |
 
+### Layout manager (view drawer / left nav)
+
+Orchestration: [`useSeatingLayoutManager.ts`](../src/hooks/useSeatingLayoutManager.ts). UI: [`LayoutManagerDrawer.tsx`](../src/features/seating/components/canvas/LayoutManagerDrawer.tsx) from [`SeatingViewWorkspace.tsx`](../src/features/seating/SeatingViewWorkspace.tsx); left-nav edit/delete via `setLayoutNavHandlers`.
+
+| Change | Store | DB | Notes |
+|--------|:-----:|:--:|-------|
+| Create layout | Selected id + localStorage after success | **Immediate** | `createSeatingLayout` → `refreshSeatingLayoutsForClass` → enter editor (`mode=edit`) |
+| Inline rename (drawer) | Via layouts list refresh | **Immediate** | `handleInlineRenameLayout` → `updateSeatingLayoutName` → refresh |
+| Rename (edit modal) | Via layouts list refresh | **Immediate** | `handleEditLayoutSave` → same API → refresh |
+| Delete layout | Clears selection + localStorage if active | **Immediate** | `deleteSeatingLayoutCascade` (groups + seat assignments) → refresh |
+| Select layout | `selectedLayoutId` + localStorage | **No** | Navigation only; applies cached view settings from layouts list |
+
+**Pattern (vs editor canvas):** Not optimistic — list/name update after API + `refreshSeatingLayoutsForClass`. Failures use `throw` / `alert` (not editor `SuccessNotificationModal` / `withTransientRetry`). Does not touch `groupAssignmentsById` / group positions except cascade delete wiping that layout’s DB rows.
+
 ### UI / selection (not persisted)
 
 | Change | Local hook | Store | DB |
@@ -137,6 +153,14 @@ Editor UX copy: [`SeatingCanvasDecor`](../src/features/seating/components/canvas
 | `updateStudentSeatAssignmentByStudentId` | Same-group seat change; scoped to one layout |
 | `deleteStudentSeatAssignmentsByStudentId` | Removal, cross-group move, swap; optional layout scope (omit = all layouts, e.g. archive) |
 | `swapSeatAssignments` | Two-student swap (layout-scoped delete + insert both) |
+
+### Layer 3 layout-lifecycle APIs (layout manager)
+
+| Function | Used for |
+|----------|----------|
+| `createSeatingLayout` | New chart row for class; then refresh + open editor |
+| `updateSeatingLayoutName` | Rename from drawer inline edit or edit-layout modal |
+| `deleteSeatingLayoutCascade` | Delete chart + its groups + seat assignments |
 
 **DB invariant:** `UNIQUE(student_id, seating_chart_id)` on `student_seat_assignments` (migration `20250904000000_student_seat_assignments_layout_unique.sql`). Inserts enrich `seating_chart_id` from the target group; fetch dedupes defensively by student within a layout.
 
@@ -191,25 +215,22 @@ Batch helpers (`updateSeatingGroupsLayoutBatch`, `deleteStudentSeatAssignmentsFo
 | Redundant view-settings hydration | **Resolved** — removed duplicate sync from `useSeatingEditorToolbarActions`, `useSeatingChart`, and `useSeatingLayoutManager` |
 | Unused `renumberSeatIndicesForGroup` | **Resolved** — dead Layer 3 API + hook wrapper removed; empty-seat holes intentional (students keep visual place on remove) |
 | Failed persist UX (no auto-retry) | **Resolved** — `withTransientRetry` in `useSeatingEditorPersistence` (2 retries, 300/800ms); rollback + error modal only after exhaustion. No offline queue by design. |
+| Layout manager drawer (informational) | **Resolved** — create / rename / delete / select inventory under **Layout manager (view drawer / left nav)**; Layer 3 lifecycle APIs listed |
 
 ---
 
 ## Remaining concerns
 
-### Still open (carried forward)
-
-1. **Layout manager drawer (informational):** Rename/delete layout from drawer — persistence lives in `useSeatingLayoutManager`; not covered in this editor canvas inventory.
-
 ### Partially resolved
 
-2. **Exit refresh scope (low):** `handleClose` still calls only `refreshSeatingGroupsForLayout`, but **`SeatingChartDataSync`** now refreshes view settings on edit-mode exit as well. Net: view settings are covered indirectly; groups are fetched **twice** on every exit (see #3).
+1. **Exit refresh scope (low):** `handleClose` still calls only `refreshSeatingGroupsForLayout`, but **`SeatingChartDataSync`** now refreshes view settings on edit-mode exit as well. Net: view settings are covered indirectly; groups are fetched **twice** on every exit (see #2).
 
 ### New concerns (from Option C + repair work)
 
-3. **Exit refresh race with in-flight persist (medium):** Closing the editor while `persistInFlightRef > 0` can trigger DB fetches that overwrite optimistic store state with stale data. No guard delays exit refresh until granular persists finish. Retry backoff extends the in-flight window slightly.
+2. **Exit refresh race with in-flight persist (medium):** Closing the editor while `persistInFlightRef > 0` can trigger DB fetches that overwrite optimistic store state with stale data. No guard delays exit refresh until granular persists finish. Retry backoff extends the in-flight window slightly.
 
-4. **Column changes not optimistic (low):** `persistGroupColumnsChange` patches store **after** API success only (unlike seat/group-position edits). Column changes in the settings menu or edit-group modal feel laggy until the API returns.
+3. **Column changes not optimistic (low):** `persistGroupColumnsChange` patches store **after** API success only (unlike seat/group-position edits). Column changes in the settings menu or edit-group modal feel laggy until the API returns.
 
-5. **Repair UI guard incomplete (low):** Toolbar disables “Sync layout” during repair or randomize only. During granular persists the menu stays enabled; opening the confirmation modal succeeds but the event handler shows “Please wait”. Consider also disabling when `persistInFlightRef > 0`.
+4. **Repair UI guard incomplete (low):** Toolbar disables “Sync layout” during repair or randomize only. During granular persists the menu stays enabled; opening the confirmation modal succeeds but the event handler shows “Please wait”. Consider also disabling when `persistInFlightRef > 0`.
 
-6. **Destructive repair blast radius (medium):** `repairSeatingLayoutFromStore` deletes **all** layout assignments then re-inserts from store. If store is stale (missed rollback notice, exit refresh race #3), repair writes stale state to DB and wipes divergent rows. Intended as recovery only; high blast radius.
+5. **Destructive repair blast radius (medium):** `repairSeatingLayoutFromStore` deletes **all** layout assignments then re-inserts from store. If store is stale (missed rollback notice, exit refresh race #2), repair writes stale state to DB and wipes divergent rows. Intended as recovery only; high blast radius.
