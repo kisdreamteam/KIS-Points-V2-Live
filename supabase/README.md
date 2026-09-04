@@ -43,3 +43,43 @@ WHERE n.nspname = 'public'
 3. Try an email with no account → “Teacher not found” modal.
 4. Remove a collaborator → row disappears.
 5. Non-owners should not be able to insert/delete collaborator rows (RLS).
+
+---
+
+## Point event ledgers (`point_events`, `custom_point_events`)
+
+Browser clients SELECT both ledgers, INSERT into `custom_point_events`, and DELETE `custom_point_events` on points reset. Standard awards often go through RPC `award_points_to_student`, but SELECT/INSERT policies still close the direct-table path.
+
+### Apply the migration
+
+1. Open the Supabase Dashboard for your project.
+2. Go to **SQL Editor** → **New query**.
+3. Paste and run [`migrations/20250904120000_point_events_owner_collaborator_policies.sql`](./migrations/20250904120000_point_events_owner_collaborator_policies.sql).
+
+Requires prior helpers `is_class_owner` / `is_collaborator_for_class` (from the collaborators RLS migrations).
+
+Alternatively, if you use the Supabase CLI with a linked project:
+
+```bash
+supabase db push
+```
+
+### Verify RLS is enabled and policies exist
+
+Run in **SQL Editor**:
+
+```sql
+SELECT relname, relrowsecurity
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public'
+  AND relname IN ('point_events', 'custom_point_events');
+
+SELECT polname, tablename
+FROM pg_policies
+WHERE schemaname = 'public'
+  AND tablename IN ('point_events', 'custom_point_events')
+ORDER BY tablename, polname;
+```
+
+Expect `relrowsecurity = true` for both tables, and policies for SELECT/INSERT on both plus DELETE on `custom_point_events` only.

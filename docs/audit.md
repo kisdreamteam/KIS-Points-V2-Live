@@ -25,15 +25,17 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ## Security Suggestions
 
-### 1. Verify RLS on all client-accessed tables
+### 1. Verify RLS on all client-accessed tables — **Partially resolved**
 
 **Where:** `supabase/migrations/`, `docs/db-schema.md`, `src/features/dashboard/lib/api/points.ts`, `src/features/dashboard/lib/api/pointsReport.ts`, `src/features/students/lib/api/attendanceService.ts`, `src/features/seating/lib/api/seating.ts`, `src/lib/api/auth.service.ts`
 
 **Finding:** The migrations in this repo clearly enable RLS for `classes`, `students`, `point_categories`, and `class_collaborators`, but the audit did not find matching RLS migrations for `profiles`, `attendance_events`, `point_events`, `custom_point_events`, `seating_charts`, `seating_groups`, or `student_seat_assignments`.
 
+**Resolution (Sep 2026):** Version-controlled owner/collaborator RLS for `point_events` and `custom_point_events` in [`supabase/migrations/20250904120000_point_events_owner_collaborator_policies.sql`](../supabase/migrations/20250904120000_point_events_owner_collaborator_policies.sql) (helper `can_access_student`; apply/verify notes in [`supabase/README.md`](../supabase/README.md)). **Still open:** `profiles`, `attendance_events`, `seating_charts`, `seating_groups`, `student_seat_assignments`.
+
 **Why it matters:** The browser can query and write data directly through the Supabase anon key. That is normal for Supabase apps, but the database must enforce who can read and write each row. Without RLS, a user could potentially read or change attendance, points, seating, or profile data they should not access.
 
-**Suggestion:** Verify in Supabase that every client-touched table has RLS enabled and class-owner/collaborator policies equivalent to `students` and `point_categories`. If policies exist only in production, add them to versioned migrations so the repo remains the source of truth.
+**Suggestion:** Verify in Supabase that every remaining client-touched table has RLS enabled and class-owner/collaborator policies equivalent to `students` and `point_categories`. Apply the new point-events migration to remote if not already present.
 
 ### 2. Public Supabase keys are expected, but RLS is the real security boundary
 
@@ -441,11 +443,11 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ### High Priority
 
-1. Verify and version-control RLS policies for `point_events` and `custom_point_events`.
-2. Move student-number assignment into a database-safe flow to avoid duplicate numbers.
-3. Confirm class deletion cascades or replace it with a database RPC.
-4. Remove unused `@hello-pangea/dnd` if drag-and-drop is not planned.
-5. Batch cross-tab student point sync updates.
+1. Move student-number assignment into a database-safe flow to avoid duplicate numbers.
+2. Confirm class deletion cascades or replace it with a database RPC.
+3. Remove unused `@hello-pangea/dnd` if drag-and-drop is not planned.
+4. Batch cross-tab student point sync updates.
+5. Version-control remaining RLS gaps (`profiles`, `attendance_events`, seating tables).
 
 ### Medium Priority
 

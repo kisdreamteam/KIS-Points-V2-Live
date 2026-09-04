@@ -3,7 +3,7 @@
 ## Core Architectural Rules
 1. **Optimistic UI:** Data is fetched by Layer 3 APIs and held in Zustand (Layer 2) for zero-latency UI updates; seating editor canvas mutations persist immediately via `useSeatingEditorPersistence` (see [`seating_editor_save_audit.md`](seating_editor_save_audit.md)).
 2. **Soft Deletes:** Key entities use `is_archived` to preserve historical point ledgers without hard-deleting records.
-3. **Immutability:** Event logs (`point_events`, `custom_point_events`, `attendance_events`) are append-only.
+3. **Immutability:** Event logs (`point_events`, `attendance_events`) are append-only. `custom_point_events` is append-mostly: rows may be **deleted** on points reset (`deleteCustomPointEventsByStudentIds`); no UPDATE policies.
 
 ---
 
@@ -74,6 +74,7 @@ Ledger for points awarded using predefined categories.
 * `category_id` (uuid, FK to point_categories)
 * `created_at` (timestamptz)
 * `student_id` (uuid, FK to students)
+* **RLS:** owner/collaborator of the student's class via `can_access_student(student_id)`; SELECT + INSERT (`teacher_id = auth.uid()`); no UPDATE/DELETE.
 
 **Table: `custom_point_events`**
 Ledger for ad-hoc points awarded without a predefined category.
@@ -83,6 +84,7 @@ Ledger for ad-hoc points awarded without a predefined category.
 * `student_id` (uuid, FK to students)
 * `points` (int4)
 * `memo` (text, nullable)
+* **RLS:** same SELECT/INSERT as `point_events`; DELETE allowed for class owner/collaborator (points reset).
 
 ---
 
