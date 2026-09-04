@@ -135,7 +135,7 @@ Orchestration: [`useSeatingLayoutManager.ts`](../src/hooks/useSeatingLayoutManag
 | Action | DB write | Notes |
 |--------|:--------:|-------|
 | Close editor | **No** | `handleClose`: URL `mode=edit` removed; `emitSeatingEditMode({ isEditMode: false })` only. **`SeatingChartDataSync`** waits for editor persists idle, then `refreshSeatingGroupsForLayout` + `refreshLayoutViewSettings` (single pass). |
-| Manual layout repair | **Yes (full replace)** | Settings → **Sync layout to database** → confirmation → `SEATING_REPAIR_LAYOUT` → `repairSeatingLayoutFromStore`. Deletes all layout assignments and re-inserts from store; batch-updates group positions. |
+| Manual layout repair | **Yes (diff)** | Settings → **Sync layout to database** → confirmation → `SEATING_REPAIR_LAYOUT` → `repairSeatingLayoutFromStore`. Prefetches DB, aborts if canvas has 0 seated and DB has seats; otherwise batch-updates group layout and reconciles seat inserts/updates/deletes only (`seatingRepairDiff`). |
 
 **Repair guards:** Event handler blocks when `getEditorPersistInFlight() > 0`, randomize in flight, or repair already running (`saveAllChangesInFlightRef`). Toolbar disables “Sync layout” (menu + confirm) while repair, randomize, **or** granular persists are in flight (`useEditorPersistInFlight`); event handler “Please wait” remains a backstop.
 
@@ -164,7 +164,7 @@ Editor UX copy: [`SeatingCanvasDecor`](../src/features/seating/components/canvas
 
 **DB invariant:** `UNIQUE(student_id, seating_chart_id)` on `student_seat_assignments` (migration `20250904000000_student_seat_assignments_layout_unique.sql`). Inserts enrich `seating_chart_id` from the target group; fetch dedupes defensively by student within a layout.
 
-Batch helpers (`updateSeatingGroupsLayoutBatch`, `deleteStudentSeatAssignmentsForGroupIds`, `insertStudentSeatAssignmentsBatched`) remain for **`repairSeatingLayoutFromStore`** (manual recovery), randomize, and auto-assign.
+Batch helpers (`updateSeatingGroupsLayoutBatch`, `deleteStudentSeatAssignmentsForGroupIds`, `insertStudentSeatAssignmentsBatched`) remain for **randomize / auto-assign**; layout repair uses prefetch + [`seatingRepairDiff`](../src/features/seating/lib/seatingRepairDiff.ts) instead of wipe-and-reinsert.
 
 **Cross-tab refresh (notify-only):** Mutators call `broadcastByGroupIds` / `broadcastSeatingChartRefresh` after DB success. Broadcast is **best-effort** — failures are logged and never roll back store or fail the mutation. Channel split ([`seatingRealtime.ts`](../src/features/seating/lib/seatingRealtime.ts)):
 
@@ -220,11 +220,10 @@ Batch helpers (`updateSeatingGroupsLayoutBatch`, `deleteStudentSeatAssignmentsFo
 | Exit refresh race with in-flight persist | **Resolved** — granular persists use `seatingEditorPersistGate`; Sync awaits `waitForEditorPersistsIdle` (8s cap) before exit refetch |
 | Column changes not optimistic | **Resolved** — `persistGroupColumnsChange` patches store before API; edit modal closes immediately; rollback on failure |
 | Repair UI guard incomplete | **Resolved** — Sync layout disabled while `useEditorPersistInFlight()`; handler “Please wait” kept as backstop |
+| Destructive repair blast radius | **Resolved** — repair prefetches DB, aborts empty-canvas wipe, reconciles seat diffs only (`seatingRepairDiff`) |
 
 ---
 
 ## Remaining concerns
 
-### New concerns (from Option C + repair work)
-
-1. **Destructive repair blast radius (medium):** `repairSeatingLayoutFromStore` deletes **all** layout assignments then re-inserts from store. If store is stale (missed rollback notice), repair writes stale state to DB and wipes divergent rows. Intended as recovery only; high blast radius.
+None open for this audit.

@@ -14,6 +14,7 @@ import {
   createSeatingLayout,
   deleteAssignmentsForGroupsSequential,
   deleteSeatingGroupsSequential,
+  deleteStudentSeatAssignmentsByStudentId,
   deleteStudentSeatAssignmentsForGroupIds,
   deleteStudentSeatAssignmentsForSeatingGroupId,
   deleteTeamAssignmentsAndGroup,
@@ -25,6 +26,7 @@ import {
   insertStudentSeatAssignmentsBatched,
   updateSeatingGroupFields,
   updateSeatingGroupsLayoutBatch,
+  updateStudentSeatAssignmentByStudentId,
 } from '@/features/seating/lib/api/seating';
 import type { GroupAssignment } from '@/features/seating/lib/api/seating';
 import {
@@ -34,6 +36,10 @@ import {
   getNextIndex,
   getSlotIndex,
 } from '@/features/seating/lib/seatingLogic';
+import {
+  computeSeatingRepairDiff,
+  type RepairSeatAssignment,
+} from '@/features/seating/lib/seatingRepairDiff';
 import { STUDENT_EVENTS, emitSeatingEditMode, type SeatingRepairLayoutDetail } from '@/lib/events/students';
 import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/seatingChartRefresh';
 import { getEditorPersistInFlight } from '@/features/seating/lib/seatingEditorPersistGate';
@@ -504,7 +510,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     );
 
     /**
-     * Manual recovery: full replace of group layout + seat assignments from store.
+     * Manual recovery: push canvas groups + seats to DB via diff (not wipe-and-reinsert).
      * Not wired to exit X — normal edits persist immediately via useSeatingEditorPersistence.
      * Triggered only via SEATING_REPAIR_LAYOUT (Settings → Sync layout to database).
      */
@@ -534,6 +540,48 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       try {
         const groupIds = groups.map((g) => g.id);
         const groupIdSet = new Set(groupIds);
+
+        const desired: RepairSeatAssignment[] = [];
+        for (const [seatingGroupId, list] of Object.entries(groupAssignmentsById)) {
+          if (!groupIdSet.has(seatingGroupId)) continue;
+          for (const a of list) {
+            desired.push({
+              studentId: a.student.id,
+              groupId: seatingGroupId,
+              seatIndex: a.seat_index,
+            });
+          }
+        }
+
+        const dbSeats: RepairSeatAssignment[] = [];
+        try {
+          const { groupAssignments: dbMap } = await fetchSeatingGroupsWithAssignments(selectedLayoutId);
+          for (const [groupId, list] of dbMap) {
+            for (const a of list) {
+              dbSeats.push({
+                studentId: a.student.id,
+                groupId,
+                seatIndex: a.seat_index,
+              });
+            }
+          }
+        } catch (fetchErr: unknown) {
+          console.error('Error fetching seating layout for repair:', fetchErr);
+          showSuccessNotification(
+            'Error',
+            fetchErr instanceof Error ? fetchErr.message : 'Failed to read current database seats.'
+          );
+          return;
+        }
+
+        const diff = computeSeatingRepairDiff(desired, dbSeats);
+        if (diff.desiredCount === 0 && diff.dbCount > 0) {
+          showSuccessNotification(
+            'Sync blocked',
+            'The canvas has no seated students but the database does. Refresh the layout first, then try again.'
+          );
+          return;
+        }
 
         const updates = groups.map((group) => {
           const pos = groupPositionsById[group.id] ?? {
@@ -565,42 +613,38 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           return;
         }
 
-        if (groupIds.length > 0) {
-          try {
-            await deleteStudentSeatAssignmentsForGroupIds(groupIds);
-          } catch (deleteError: unknown) {
-            console.error('Error clearing seat assignments:', deleteError);
-            showSuccessNotification(
-              'Error',
-              deleteError instanceof Error ? deleteError.message : 'Failed to clear seat assignments.'
+        try {
+          for (const seat of diff.toUpdate) {
+            await updateStudentSeatAssignmentByStudentId(
+              seat.studentId,
+              { seating_group_id: seat.groupId, seat_index: seat.seatIndex },
+              { fallbackGroupId: seat.groupId }
             );
-            return;
           }
-        }
 
-        const insertRows: { student_id: string; seating_group_id: string; seat_index: number }[] = [];
-        for (const [seatingGroupId, list] of Object.entries(groupAssignmentsById)) {
-          if (!groupIdSet.has(seatingGroupId)) continue;
-          for (const a of list) {
-            insertRows.push({
-              student_id: a.student.id,
-              seating_group_id: seatingGroupId,
-              seat_index: a.seat_index,
+          if (diff.toInsert.length > 0) {
+            await insertStudentSeatAssignmentsBatched(
+              diff.toInsert.map((seat) => ({
+                student_id: seat.studentId,
+                seating_group_id: seat.groupId,
+                seat_index: seat.seatIndex,
+              })),
+              500
+            );
+          }
+
+          for (const studentId of diff.toDeleteStudentIds) {
+            await deleteStudentSeatAssignmentsByStudentId(studentId, {
+              seatingChartId: selectedLayoutId,
             });
           }
-        }
-
-        if (insertRows.length > 0) {
-          try {
-            await insertStudentSeatAssignmentsBatched(insertRows, 500);
-          } catch (insertError: unknown) {
-            console.error('Error inserting seat assignments:', insertError);
-            showSuccessNotification(
-              'Error',
-              insertError instanceof Error ? insertError.message : 'Failed to save seat assignments.'
-            );
-            return;
-          }
+        } catch (seatErr: unknown) {
+          console.error('Error reconciling seat assignments:', seatErr);
+          showSuccessNotification(
+            'Error',
+            seatErr instanceof Error ? seatErr.message : 'Failed to sync seat assignments.'
+          );
+          return;
         }
 
         updateGroups((prev) =>
@@ -621,7 +665,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
 
         showSuccessNotification(
           'Layout synced',
-          'Seating layout and assignments were rebuilt from the current canvas.'
+          'Group positions and seat assignments were updated from the current canvas.'
         );
         await refreshSeatingGroupsForLayout(selectedLayoutId);
         onRepairComplete?.();

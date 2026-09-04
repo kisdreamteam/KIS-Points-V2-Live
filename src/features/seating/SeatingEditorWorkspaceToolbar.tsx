@@ -347,7 +347,7 @@ export default function SeatingEditorWorkspaceToolbar({
         onClose={() => setIsRepairLayoutModalOpen(false)}
         onConfirm={handleConfirmRepairLayoutSync}
         title="Sync layout to database"
-        message="Normal edits save automatically. Only use this if seats or groups look wrong after a refresh or error. This rebuilds group positions and all seat assignments from the current canvas."
+        message="Normal edits save automatically. Only use this if seats or groups look wrong after a refresh or error. Sync updates group positions and applies seat adds, moves, and removes from the current canvas — it will not wipe the database when the canvas has no seated students."
         confirmText={isRepairingLayout ? 'Syncing…' : 'Sync layout'}
         cancelText="Cancel"
         confirmButtonColor="orange"
