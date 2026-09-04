@@ -69,6 +69,19 @@ export function useSeatingEditorPersistence({
       const assignments = getAssignmentsForGroup(st.groupAssignmentsById, groupId);
       const group_rows = computeGroupRowsFromAssignments(assignments, columns);
 
+      st.updateGroups((prev) =>
+        prev.map((g) =>
+          g.id === groupId
+            ? {
+                ...g,
+                ...(name !== undefined ? { name } : {}),
+                group_columns: columns,
+                group_rows,
+              }
+            : g
+        )
+      );
+
       beginEditorPersist();
       try {
         await withTransientRetry(async () => {
@@ -77,22 +90,10 @@ export function useSeatingEditorPersistence({
             group_columns: columns,
             group_rows,
           });
-          st.updateGroups((prev) =>
-            prev.map((g) =>
-              g.id === groupId
-                ? {
-                    ...g,
-                    ...(name !== undefined ? { name } : {}),
-                    group_columns: columns,
-                    group_rows,
-                  }
-                : g
-            )
-          );
         });
       } catch (err) {
         console.error('Error persisting group columns:', err);
-        st.updateGroups((prev) =>
+        useSeatingStore.getState().updateGroups((prev) =>
           prev.map((g) => (g.id === groupId ? previousGroup : g))
         );
         showError(

@@ -1524,16 +1524,17 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     const handleUpdateGroup = async (groupName: string, columns: number) => {
       if (!editingGroup) return;
 
+      const groupId = editingGroup.id;
+      setIsEditGroupModalOpen(false);
+      setEditingGroup(null);
       try {
         await persistGroupColumnsChange({
-          groupId: editingGroup.id,
+          groupId,
           columns,
           name: groupName,
         });
-        setIsEditGroupModalOpen(false);
-        setEditingGroup(null);
       } catch {
-        // Error toast shown by persistence hook
+        // Error toast shown by persistence hook; canvas rolled back
       }
     };
 

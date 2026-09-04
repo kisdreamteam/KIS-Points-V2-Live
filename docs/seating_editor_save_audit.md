@@ -78,9 +78,9 @@ Legend: **Store** = `useSeatingStore` · **DB** = Supabase via `seating.ts`
 |--------|:-----:|:--:|-------|
 | Add one group | Yes (via `fetchGroups`) | **Immediate** | `insertSeatingGroup` |
 | Add multiple groups | Yes (via `fetchGroups`) | **Immediate** | `insertSeatingGroups` |
-| Edit group (modal: name, columns) | Yes (after API) | **Immediate** | `updateSeatingGroupFields` via `persistGroupColumnsChange` — store patched on success, not optimistically |
+| Edit group (modal: name, columns) | Yes (optimistic) | **Immediate** | `updateSeatingGroupFields` via `persistGroupColumnsChange` — store patched before API; rollback on failure |
 | Inline rename group | Yes | **Immediate** | `updateSeatingGroupFields` (name only) |
-| Update group columns (settings menu) | Yes (after API) | **Immediate** | Same as modal — `persistGroupColumnsChange` → columns + derived `group_rows` |
+| Update group columns (settings menu) | Yes (optimistic) | **Immediate** | Same as modal — `persistGroupColumnsChange` → columns + derived `group_rows` |
 | Delete one team | Yes | **Immediate** | `deleteTeamAssignmentsAndGroup` |
 | Clear one team (unseat) | Yes (+ unseated) | **Immediate** | `deleteStudentSeatAssignmentsForSeatingGroupId` + `syncGroupRowsForGroupIds` |
 | Clear all groups | Yes (+ unseated) | **Immediate** | `deleteAssignmentsForGroupsSequential` + `syncGroupRowsForGroupIds` |
@@ -218,6 +218,7 @@ Batch helpers (`updateSeatingGroupsLayoutBatch`, `deleteStudentSeatAssignmentsFo
 | Layout manager drawer (informational) | **Resolved** — create / rename / delete / select inventory under **Layout manager (view drawer / left nav)**; Layer 3 lifecycle APIs listed |
 | Exit refresh duplicate groups fetch | **Resolved** — `handleClose` no longer refreshes; `SeatingChartDataSync` owns single exit refresh (groups + view settings) |
 | Exit refresh race with in-flight persist | **Resolved** — granular persists use `seatingEditorPersistGate`; Sync awaits `waitForEditorPersistsIdle` (8s cap) before exit refetch |
+| Column changes not optimistic | **Resolved** — `persistGroupColumnsChange` patches store before API; edit modal closes immediately; rollback on failure |
 
 ---
 
@@ -225,8 +226,6 @@ Batch helpers (`updateSeatingGroupsLayoutBatch`, `deleteStudentSeatAssignmentsFo
 
 ### New concerns (from Option C + repair work)
 
-1. **Column changes not optimistic (low):** `persistGroupColumnsChange` patches store **after** API success only (unlike seat/group-position edits). Column changes in the settings menu or edit-group modal feel laggy until the API returns.
+1. **Repair UI guard incomplete (low):** Toolbar disables “Sync layout” during repair or randomize only. During granular persists the menu stays enabled; opening the confirmation modal succeeds but the event handler shows “Please wait”. Consider also disabling when `getEditorPersistInFlight() > 0`.
 
-2. **Repair UI guard incomplete (low):** Toolbar disables “Sync layout” during repair or randomize only. During granular persists the menu stays enabled; opening the confirmation modal succeeds but the event handler shows “Please wait”. Consider also disabling when `getEditorPersistInFlight() > 0`.
-
-3. **Destructive repair blast radius (medium):** `repairSeatingLayoutFromStore` deletes **all** layout assignments then re-inserts from store. If store is stale (missed rollback notice), repair writes stale state to DB and wipes divergent rows. Intended as recovery only; high blast radius.
+2. **Destructive repair blast radius (medium):** `repairSeatingLayoutFromStore` deletes **all** layout assignments then re-inserts from store. If store is stale (missed rollback notice), repair writes stale state to DB and wipes divergent rows. Intended as recovery only; high blast radius.
