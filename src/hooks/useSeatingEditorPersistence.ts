@@ -5,9 +5,11 @@ import type { Student } from '@/lib/types';
 import {
   deleteStudentSeatAssignmentsByStudentId,
   insertStudentSeatAssignment,
+  resolveSeatingChartIdForGroup,
   swapSeatAssignments,
   updateSeatingGroupPosition,
   updateSeatingGroupRows,
+  updateSeatingGroupFields,
   updateStudentSeatAssignmentByStudentId,
 } from '@/features/seating/lib/api/seating';
 import { computeGroupRowsFromAssignments } from '@/features/seating/lib/seatingLogic';
@@ -19,6 +21,13 @@ import {
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 
 type NotifyFn = (title: string, message: string) => void;
+
+async function layoutDeleteScopeForGroup(groupId: string): Promise<{ seatingChartId: string } | undefined> {
+  const selectedLayoutId = useSeatingStore.getState().selectedLayoutId;
+  if (selectedLayoutId) return { seatingChartId: selectedLayoutId };
+  const seatingChartId = await resolveSeatingChartIdForGroup(groupId);
+  return seatingChartId ? { seatingChartId } : undefined;
+}
 
 export interface UseSeatingEditorPersistenceParams {
   setUnseatedStudents: Dispatch<SetStateAction<Student[]>>;
@@ -46,6 +55,52 @@ export function useSeatingEditorPersistence({
       );
     }
   }, []);
+
+  const persistGroupColumnsChange = useCallback(
+    async (params: { groupId: string; columns: number; name?: string }) => {
+      const { groupId, columns, name } = params;
+      const st = useSeatingStore.getState();
+      const previousGroup = st.groups.find((g) => g.id === groupId);
+      if (!previousGroup) return;
+
+      const assignments = getAssignmentsForGroup(st.groupAssignmentsById, groupId);
+      const group_rows = computeGroupRowsFromAssignments(assignments, columns);
+
+      persistInFlightRef.current += 1;
+      try {
+        await updateSeatingGroupFields(groupId, {
+          ...(name !== undefined ? { name } : {}),
+          group_columns: columns,
+          group_rows,
+        });
+        st.updateGroups((prev) =>
+          prev.map((g) =>
+            g.id === groupId
+              ? {
+                  ...g,
+                  ...(name !== undefined ? { name } : {}),
+                  group_columns: columns,
+                  group_rows,
+                }
+              : g
+          )
+        );
+      } catch (err) {
+        console.error('Error persisting group columns:', err);
+        st.updateGroups((prev) =>
+          prev.map((g) => (g.id === groupId ? previousGroup : g))
+        );
+        showError(
+          'Error',
+          err instanceof Error ? err.message : 'Failed to update group columns.'
+        );
+        throw err;
+      } finally {
+        persistInFlightRef.current -= 1;
+      }
+    },
+    [showError]
+  );
 
   const persistGroupPosition = useCallback(
     async (
@@ -128,7 +183,8 @@ export function useSeatingEditorPersistence({
       const { studentId, groupId, removedStudent, snapshotAssignments, snapshotUnseated } = params;
       persistInFlightRef.current += 1;
       try {
-        await deleteStudentSeatAssignmentsByStudentId(studentId);
+        const layoutScope = await layoutDeleteScopeForGroup(groupId);
+        await deleteStudentSeatAssignmentsByStudentId(studentId, layoutScope);
         await syncGroupRowsForGroupIds([groupId]);
       } catch (err) {
         console.error('Error persisting student removal:', err);
@@ -165,7 +221,8 @@ export function useSeatingEditorPersistence({
             { fallbackGroupId: fromGroupId }
           );
         } else {
-          await deleteStudentSeatAssignmentsByStudentId(studentId);
+          const layoutScope = await layoutDeleteScopeForGroup(toGroupId);
+          await deleteStudentSeatAssignmentsByStudentId(studentId, layoutScope);
           await insertStudentSeatAssignment({
             student_id: studentId,
             seating_group_id: toGroupId,
@@ -235,6 +292,7 @@ export function useSeatingEditorPersistence({
   return {
     cloneAssignmentsRecord,
     syncGroupRowsForGroupIds,
+    persistGroupColumnsChange,
     persistGroupPosition,
     persistAddStudent,
     persistRemoveStudent,

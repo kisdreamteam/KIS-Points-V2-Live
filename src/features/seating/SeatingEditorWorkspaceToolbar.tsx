@@ -18,6 +18,8 @@ import { buildShellToolbarConfig } from '@/features/dashboard/stage/dashboardToo
 import { useWorkspaceToolbarActions } from '@/features/dashboard/hooks/useWorkspaceToolbarActions';
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 import { useSeatingEditorToolbarActions } from '@/hooks/useSeatingEditorToolbarActions';
+import { emitSeatingSave } from '@/lib/events/students';
+import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 
@@ -95,6 +97,8 @@ export default function SeatingEditorWorkspaceToolbar({
   const addGroupsButtonRef = useRef<HTMLDivElement>(null);
   const addGroupsMenuRef = useRef<HTMLDivElement>(null);
 
+  const [isRepairLayoutModalOpen, setIsRepairLayoutModalOpen] = useState(false);
+
   const {
     isMounted: isViewSettingsMounted,
     portalStyle: viewSettingsPortalStyle,
@@ -142,6 +146,16 @@ export default function SeatingEditorWorkspaceToolbar({
     onDeleteAllGroups();
     setIsSettingsMenuOpen(false);
   }, [onDeleteAllGroups]);
+
+  const handleRequestRepairLayoutSync = useCallback(() => {
+    setIsSettingsMenuOpen(false);
+    setIsRepairLayoutModalOpen(true);
+  }, []);
+
+  const handleConfirmRepairLayoutSync = useCallback(() => {
+    setIsRepairLayoutModalOpen(false);
+    emitSeatingSave({});
+  }, []);
 
   useEffect(() => {
     if (!isViewSettingsMenuOpen && !isSettingsMenuOpen && !isAddGroupsMenuOpen) return;
@@ -205,6 +219,7 @@ export default function SeatingEditorWorkspaceToolbar({
         onCloseMenu={() => setIsSettingsMenuOpen(false)}
         onClearAllGroups={handleClearAllGroups}
         onDeleteAllGroups={handleDeleteAllGroups}
+        onRepairLayoutSync={handleRequestRepairLayoutSync}
       />
     </div>
   );
@@ -316,6 +331,17 @@ export default function SeatingEditorWorkspaceToolbar({
         isAddGroupsMounted &&
         addGroupsPortalStyle &&
         createPortal(addGroupsMenu, document.body)}
+
+      <ConfirmationModal
+        isOpen={isRepairLayoutModalOpen}
+        onClose={() => setIsRepairLayoutModalOpen(false)}
+        onConfirm={handleConfirmRepairLayoutSync}
+        title="Sync layout to database"
+        message="Normal edits save automatically. Only use this if seats or groups look wrong after a refresh or error. This rebuilds group positions and all seat assignments from the current canvas."
+        confirmText="Sync layout"
+        cancelText="Cancel"
+        confirmButtonColor="orange"
+      />
     </div>
   );
 }

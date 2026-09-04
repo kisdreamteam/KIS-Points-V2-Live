@@ -37,7 +37,7 @@ import {
   getNextIndex,
   getSlotIndex,
 } from '@/features/seating/lib/seatingLogic';
-import { STUDENT_EVENTS, emitSeatingEditMode } from '@/lib/events/students';
+import { STUDENT_EVENTS, emitSeatingEditMode, type SeatingSaveDetail } from '@/lib/events/students';
 import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/seatingChartRefresh';
 import { useSeatingEditorPersistence } from '@/hooks/useSeatingEditorPersistence';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
@@ -324,11 +324,13 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     const {
       cloneAssignmentsRecord,
       syncGroupRowsForGroupIds,
+      persistGroupColumnsChange,
       persistGroupPosition,
       persistAddStudent,
       persistRemoveStudent,
       persistMoveStudent,
       persistSwapStudents,
+      persistInFlightRef,
     } = useSeatingEditorPersistence({
       setUnseatedStudents,
       showError: showSuccessNotification,
@@ -613,16 +615,28 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     );
 
     /**
-     * Internal recovery: full replace of group layout + seat assignments for the current layout.
-     * Not wired to exit X — manual edits persist immediately via useSeatingEditorPersistence.
+     * Manual recovery: full replace of group layout + seat assignments from store.
+     * Not wired to exit X — normal edits persist immediately via useSeatingEditorPersistence.
+     * Triggered only via SEATING_SAVE (Settings → Sync layout to database).
      */
-    const reconcileSeatingLayoutFullReplace = useCallback(async (onSaveComplete?: () => void) => {
+    const repairSeatingLayoutFromStore = useCallback(async (onSaveComplete?: () => void) => {
       if (!selectedLayoutId) {
-        showSuccessNotification('No layout', 'Select a seating layout before saving.');
+        showSuccessNotification('No layout', 'Select a seating layout before syncing.');
         return;
       }
       if (groups.length === 0) {
-        showSuccessNotification('Nothing to save', 'Create at least one group before saving.');
+        showSuccessNotification('Nothing to sync', 'Create at least one group before syncing.');
+        return;
+      }
+      if (persistInFlightRef.current > 0) {
+        showSuccessNotification(
+          'Please wait',
+          'Seat changes are still saving. Try sync again in a moment.'
+        );
+        return;
+      }
+      if (isRandomizing) {
+        showSuccessNotification('Please wait', 'Randomize is in progress. Try sync again when it finishes.');
         return;
       }
       if (saveAllChangesInFlightRef.current) return;
@@ -716,17 +730,69 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           })
         );
 
-        showSuccessNotification('Saved', 'Your seating chart layout and assignments were saved.');
+        showSuccessNotification(
+          'Layout synced',
+          'Seating layout and assignments were rebuilt from the current canvas.'
+        );
         await refreshSeatingGroupsForLayout(selectedLayoutId);
         onSaveComplete?.();
       } catch (err) {
-        console.error('Unexpected error saving seating chart:', err);
-        showSuccessNotification('Error', 'Failed to save changes. Please try again.');
+        console.error('Unexpected error repairing seating chart:', err);
+        showSuccessNotification('Error', 'Failed to sync layout. Please try again.');
       } finally {
         saveAllChangesInFlightRef.current = false;
         setIsSavingAllChanges(false);
       }
-    }, [selectedLayoutId, groups, groupAssignmentsById, groupPositionsById, computeGroupRows, updateGroups]);
+    }, [
+      selectedLayoutId,
+      groups,
+      groupAssignmentsById,
+      groupPositionsById,
+      computeGroupRows,
+      updateGroups,
+      isRandomizing,
+      persistInFlightRef,
+    ]);
+
+    const repairSeatingLayoutFromStoreRef = useRef(repairSeatingLayoutFromStore);
+    const isRandomizingRef = useRef(isRandomizing);
+    useEffect(() => {
+      repairSeatingLayoutFromStoreRef.current = repairSeatingLayoutFromStore;
+    }, [repairSeatingLayoutFromStore]);
+    useEffect(() => {
+      isRandomizingRef.current = isRandomizing;
+    }, [isRandomizing]);
+
+    const showSuccessNotificationRef = useRef(showSuccessNotification);
+    useEffect(() => {
+      showSuccessNotificationRef.current = showSuccessNotification;
+    }, [showSuccessNotification]);
+
+    useEffect(() => {
+      const handleSeatingSave = (event: Event) => {
+        const detail = (event as CustomEvent<SeatingSaveDetail>).detail;
+        if (persistInFlightRef.current > 0) {
+          showSuccessNotificationRef.current(
+            'Please wait',
+            'Seat changes are still saving. Try sync again in a moment.'
+          );
+          return;
+        }
+        if (isRandomizingRef.current) {
+          showSuccessNotificationRef.current(
+            'Please wait',
+            'Randomize is in progress. Try sync again when it finishes.'
+          );
+          return;
+        }
+        void repairSeatingLayoutFromStoreRef.current(detail?.onSaveComplete);
+      };
+
+      window.addEventListener(STUDENT_EVENTS.SEATING_SAVE, handleSeatingSave as EventListener);
+      return () => {
+        window.removeEventListener(STUDENT_EVENTS.SEATING_SAVE, handleSeatingSave as EventListener);
+      };
+    }, [persistInFlightRef]);
 
     // Handle randomize seating - animated swap of all seated students
     const handleRandomizeSeating = useCallback(async () => {
@@ -1564,29 +1630,15 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       if (!editingGroup) return;
 
       try {
-        try {
-          await updateSeatingGroupFields(editingGroup.id, {
-            name: groupName,
-            group_columns: columns,
-          });
-        } catch (updateError: unknown) {
-          console.error('Error updating group:', updateError);
-          alert('Failed to update team. Please try again.');
-          return;
-        }
-
-        // Update local state
-        updateGroups((prev) =>
-          prev.map((g) =>
-            g.id === editingGroup.id ? { ...g, name: groupName, group_columns: columns } : g
-          )
-        );
-
+        await persistGroupColumnsChange({
+          groupId: editingGroup.id,
+          columns,
+          name: groupName,
+        });
         setIsEditGroupModalOpen(false);
         setEditingGroup(null);
-      } catch (err) {
-        console.error('Unexpected error updating group:', err);
-        alert('An unexpected error occurred. Please try again.');
+      } catch {
+        // Error toast shown by persistence hook
       }
     };
 
@@ -1655,22 +1707,9 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
 
     const handleUpdateGroupColumns = async (groupId: string, columns: number) => {
       try {
-        try {
-          await updateSeatingGroupFields(groupId, { group_columns: columns });
-        } catch (updateError: unknown) {
-          console.error('Error updating group columns:', updateError);
-          alert('Failed to update group columns. Please try again.');
-          return;
-        }
-
-        updateGroups((prev) =>
-          prev.map((g) =>
-            g.id === groupId ? { ...g, group_columns: columns } : g
-          )
-        );
-      } catch (err) {
-        console.error('Unexpected error updating group columns:', err);
-        alert('An unexpected error occurred. Please try again.');
+        await persistGroupColumnsChange({ groupId, columns });
+      } catch {
+        // Error toast shown by persistence hook
       }
     };
 
@@ -2056,7 +2095,9 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     fetchLayouts,
     fetchGroups,
     computeGroupRows,
-    reconcileSeatingLayoutFullReplace,
+    repairSeatingLayoutFromStore,
+    /** @deprecated Use repairSeatingLayoutFromStore */
+    reconcileSeatingLayoutFullReplace: repairSeatingLayoutFromStore,
     handleRandomizeSeating,
     addStudentToGroup,
     removeStudentFromGroup,

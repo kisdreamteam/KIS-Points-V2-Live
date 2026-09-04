@@ -119,7 +119,11 @@ Maps a specific student to a specific seat index within a seating group.
 * `created_at` (timestamptz)
 * `student_id` (uuid, FK to students)
 * `seating_group_id` (uuid, FK to seating_groups)
+* `seating_chart_id` (uuid, FK to seating_charts, ON DELETE CASCADE) — denormalized layout id for uniqueness
 * `seat_index` (int4, nullable) - *Determines exact desk inside the group grid*
+
+**Constraints:**
+* `UNIQUE(student_id, seating_chart_id)` — constraint name: `student_seat_assignments_student_layout_unique` (one seat per student per layout)
 
 ---
 

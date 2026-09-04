@@ -190,13 +190,20 @@ export async function fetchSeatingGroupsWithAssignments(
     byGroup.get(groupId)!.push(assignment);
   }
 
-  byGroup.forEach((assignments, groupId) => {
+  const seenStudentIdsInLayout = new Set<string>();
+  for (const group of groups) {
+    const assignments = byGroup.get(group.id) ?? [];
     const withStudent = assignments.filter(
       (a): a is StudentSeatAssignment & { students: Student } =>
         a.students != null && a.students.is_archived !== true
     );
-    const hasNull = withStudent.some((a) => a.seat_index == null);
-    const sorted = [...withStudent].sort((a, b) => {
+    const deduped = withStudent.filter((a) => {
+      if (seenStudentIdsInLayout.has(a.students.id)) return false;
+      seenStudentIdsInLayout.add(a.students.id);
+      return true;
+    });
+    const hasNull = deduped.some((a) => a.seat_index == null);
+    const sorted = [...deduped].sort((a, b) => {
       if (hasNull) {
         const cmp = (a.students.first_name ?? '').localeCompare(b.students.first_name ?? '');
         return cmp !== 0 ? cmp : (a.students.last_name ?? '').localeCompare(b.students.last_name ?? '');
@@ -207,10 +214,10 @@ export async function fetchSeatingGroupsWithAssignments(
       return (a.students.first_name ?? '').localeCompare(b.students.first_name ?? '');
     });
     groupAssignments.set(
-      groupId,
+      group.id,
       sorted.map((a, i) => ({ student: a.students, seat_index: a.seat_index ?? i + 1 }))
     );
-  });
+  }
 
   return { groups, groupAssignments };
 }
@@ -254,6 +261,15 @@ export type StudentSeatAssignmentRow = {
   seat_index: number;
 };
 
+type StudentSeatAssignmentInsertRow = StudentSeatAssignmentRow & {
+  seating_chart_id: string;
+};
+
+export type DeleteStudentSeatAssignmentsOptions = {
+  /** When set, only remove the assignment for this layout. Omit to remove all layouts (e.g. archive). */
+  seatingChartId?: string;
+};
+
 export type SeatingGroupLayoutUpdate = {
   id: string;
   position_x: number;
@@ -281,6 +297,54 @@ async function resolveLayoutIdByGroupIds(groupIds: string[]): Promise<string | n
 
   if (error || !data?.seating_chart_id) return null;
   return data.seating_chart_id as string;
+}
+
+export async function resolveSeatingChartIdForGroup(groupId: string): Promise<string | null> {
+  return resolveLayoutIdByGroupIds([groupId]);
+}
+
+async function resolveGroupLayoutMap(groupIds: string[]): Promise<Map<string, string>> {
+  if (groupIds.length === 0) return new Map();
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('seating_groups')
+    .select('id, seating_chart_id')
+    .in('id', groupIds);
+
+  if (error) throwApiError(error, 'resolveGroupLayoutMap');
+  const map = new Map<string, string>();
+  for (const row of data ?? []) {
+    if (row.seating_chart_id) {
+      map.set(row.id as string, row.seating_chart_id as string);
+    }
+  }
+  return map;
+}
+
+async function enrichAssignmentRows(
+  rows: StudentSeatAssignmentRow[]
+): Promise<StudentSeatAssignmentInsertRow[]> {
+  const groupIds = [...new Set(rows.map((r) => r.seating_group_id))];
+  const layoutByGroupId = await resolveGroupLayoutMap(groupIds);
+  return rows.map((row) => {
+    const seating_chart_id = layoutByGroupId.get(row.seating_group_id);
+    if (!seating_chart_id) {
+      throwApiError(
+        new Error(`No seating layout found for group ${row.seating_group_id}.`),
+        'enrichAssignmentRows'
+      );
+    }
+    return { ...row, seating_chart_id };
+  });
+}
+
+async function upsertStudentSeatAssignmentRows(rows: StudentSeatAssignmentInsertRow[]): Promise<void> {
+  if (rows.length === 0) return;
+  const supabase = createClient();
+  const { error } = await supabase.from('student_seat_assignments').upsert(rows, {
+    onConflict: 'student_id,seating_chart_id',
+  });
+  if (error) throwApiError(error, 'upsertStudentSeatAssignmentRows');
 }
 
 async function broadcastByGroupIds(groupIds: string[]): Promise<void> {
@@ -446,22 +510,37 @@ export async function updateSeatingGroupsLayoutBatch(
   await broadcastByGroupIds(updates.map((u) => u.id));
 }
 
-export async function deleteStudentSeatAssignmentsByStudentId(studentId: string): Promise<void> {
+export async function deleteStudentSeatAssignmentsByStudentId(
+  studentId: string,
+  options?: DeleteStudentSeatAssignmentsOptions
+): Promise<void> {
   const supabase = createClient();
-  const { data: rows, error: selectError } = await supabase
+  let selectQuery = supabase
     .from('student_seat_assignments')
     .select('seating_group_id')
     .eq('student_id', studentId);
+
+  if (options?.seatingChartId) {
+    selectQuery = selectQuery.eq('seating_chart_id', options.seatingChartId);
+  }
+
+  const { data: rows, error: selectError } = await selectQuery;
 
   if (selectError) throwApiError(selectError, 'deleteStudentSeatAssignmentsByStudentId.select');
 
   const groupIds = [...new Set((rows ?? []).map((r) => r.seating_group_id as string))];
   if (groupIds.length === 0) return;
 
-  const { error } = await supabase
+  let deleteQuery = supabase
     .from('student_seat_assignments')
     .delete()
     .eq('student_id', studentId);
+
+  if (options?.seatingChartId) {
+    deleteQuery = deleteQuery.eq('seating_chart_id', options.seatingChartId);
+  }
+
+  const { error } = await deleteQuery;
 
   if (error) throwApiError(error, 'deleteStudentSeatAssignmentsByStudentId.delete');
   await broadcastByGroupIds(groupIds);
@@ -484,20 +563,18 @@ export async function insertStudentSeatAssignmentsBatched(
   chunkSize = 500
 ): Promise<void> {
   if (rows.length === 0) return;
-  const supabase = createClient();
-  for (let i = 0; i < rows.length; i += chunkSize) {
-    const chunk = rows.slice(i, i + chunkSize);
-    const { error } = await supabase.from('student_seat_assignments').insert(chunk);
-    if (error) throwApiError(error, 'insertStudentSeatAssignmentsBatched');
+  const enriched = await enrichAssignmentRows(rows);
+  for (let i = 0; i < enriched.length; i += chunkSize) {
+    const chunk = enriched.slice(i, i + chunkSize);
+    await upsertStudentSeatAssignmentRows(chunk);
   }
   await broadcastByGroupIds(rows.map((r) => r.seating_group_id));
 }
 
 export async function insertStudentSeatAssignments(rows: StudentSeatAssignmentRow[]): Promise<void> {
   if (rows.length === 0) return;
-  const supabase = createClient();
-  const { error } = await supabase.from('student_seat_assignments').insert(rows);
-  if (error) throwApiError(error, 'insertStudentSeatAssignments');
+  const enriched = await enrichAssignmentRows(rows);
+  await upsertStudentSeatAssignmentRows(enriched);
   await broadcastByGroupIds(rows.map((r) => r.seating_group_id));
 }
 
@@ -575,10 +652,8 @@ export async function updateSeatingGroupRows(groupId: string, group_rows: number
 }
 
 export async function insertStudentSeatAssignment(row: StudentSeatAssignmentRow): Promise<void> {
-  const supabase = createClient();
-  const { error } = await supabase.from('student_seat_assignments').insert(row);
-
-  if (error) throwApiError(error, 'insertStudentSeatAssignment');
+  const [enriched] = await enrichAssignmentRows([row]);
+  await upsertStudentSeatAssignmentRows([enriched]);
   await broadcastByGroupIds([row.seating_group_id]);
 }
 
@@ -592,21 +667,37 @@ export async function updateStudentSeatAssignmentByStudentId(
   patch: { seating_group_id?: string; seat_index?: number | null },
   options?: UpdateStudentSeatAssignmentOptions
 ): Promise<void> {
+  const groupIdForLayout = patch.seating_group_id ?? options?.fallbackGroupId;
+  if (!groupIdForLayout) {
+    throwApiError(
+      new Error('Cannot update seat assignment without a seating group for layout resolution.'),
+      'updateStudentSeatAssignmentByStudentId.layout'
+    );
+  }
+
+  const seating_chart_id = await resolveSeatingChartIdForGroup(groupIdForLayout);
+  if (!seating_chart_id) {
+    throwApiError(
+      new Error(`No seating layout found for group ${groupIdForLayout}.`),
+      'updateStudentSeatAssignmentByStudentId.layout'
+    );
+  }
+
   const supabase = createClient();
-  const { data: rows, error: selectError } = await supabase
+  const { data: existing, error: selectError } = await supabase
     .from('student_seat_assignments')
     .select('id, seating_group_id, seat_index')
-    .eq('student_id', studentId);
+    .eq('student_id', studentId)
+    .eq('seating_chart_id', seating_chart_id)
+    .maybeSingle();
 
   if (selectError) throwApiError(selectError, 'updateStudentSeatAssignmentByStudentId.select');
 
-  const existing = rows ?? [];
-  const groupIds = new Set<string>();
-  existing.forEach((row) => groupIds.add(row.seating_group_id as string));
+  const groupIds = new Set<string>([groupIdForLayout]);
+  if (existing?.seating_group_id) groupIds.add(existing.seating_group_id as string);
   if (patch.seating_group_id) groupIds.add(patch.seating_group_id);
-  if (options?.fallbackGroupId) groupIds.add(options.fallbackGroupId);
 
-  if (existing.length === 0) {
+  if (!existing) {
     const seating_group_id = patch.seating_group_id ?? options?.fallbackGroupId;
     const seat_index = patch.seat_index;
     if (!seating_group_id || seat_index == null) {
@@ -623,33 +714,15 @@ export async function updateStudentSeatAssignmentByStudentId(
     return;
   }
 
-  if (existing.length > 1) {
-    const [primary, ...duplicates] = existing;
-    if (duplicates.length > 0) {
-      const { error: deleteError } = await supabase
-        .from('student_seat_assignments')
-        .delete()
-        .in(
-          'id',
-          duplicates.map((row) => row.id)
-        );
-      if (deleteError) throwApiError(deleteError, 'updateStudentSeatAssignmentByStudentId.dedupe');
-    }
-    const { error: updateError } = await supabase
-      .from('student_seat_assignments')
-      .update(patch)
-      .eq('id', primary.id);
-    if (updateError) throwApiError(updateError, 'updateStudentSeatAssignmentByStudentId.update');
-    if (groupIds.size > 0) await broadcastByGroupIds([...groupIds]);
-    return;
-  }
-
-  const { error } = await supabase
+  const { error: updateError } = await supabase
     .from('student_seat_assignments')
-    .update(patch)
-    .eq('student_id', studentId);
+    .update({
+      ...patch,
+      seating_chart_id,
+    })
+    .eq('id', existing.id);
 
-  if (error) throwApiError(error, 'updateStudentSeatAssignmentByStudentId.update');
+  if (updateError) throwApiError(updateError, 'updateStudentSeatAssignmentByStudentId.update');
   if (groupIds.size > 0) await broadcastByGroupIds([...groupIds]);
 }
 
@@ -669,8 +742,11 @@ export type SwapSeatAssignmentsParams = {
 export async function swapSeatAssignments(params: SwapSeatAssignmentsParams): Promise<void> {
   const { studentA, studentB, groupA, groupB, seatA, seatB } = params;
 
-  await deleteStudentSeatAssignmentsByStudentId(studentA);
-  await deleteStudentSeatAssignmentsByStudentId(studentB);
+  const seatingChartId = await resolveSeatingChartIdForGroup(groupA);
+  const layoutScope = seatingChartId ? { seatingChartId } : undefined;
+
+  await deleteStudentSeatAssignmentsByStudentId(studentA, layoutScope);
+  await deleteStudentSeatAssignmentsByStudentId(studentB, layoutScope);
 
   await insertStudentSeatAssignment({
     student_id: studentA,

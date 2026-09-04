@@ -17,6 +17,7 @@ interface SeatingSettingsMenuProps {
   onCloseMenu: () => void;
   onClearAllGroups: () => void;
   onDeleteAllGroups: () => void;
+  onRepairLayoutSync?: () => void;
 }
 
 export default function SeatingSettingsMenu({
@@ -29,6 +30,7 @@ export default function SeatingSettingsMenu({
   onCloseMenu,
   onClearAllGroups,
   onDeleteAllGroups,
+  onRepairLayoutSync,
 }: SeatingSettingsMenuProps) {
   if (!isOpen) return null;
 
@@ -70,6 +72,17 @@ export default function SeatingSettingsMenu({
       >
         Delete All Groups
       </MenuItem>
+
+      {onRepairLayoutSync && (
+        <MenuItem
+          onClick={(e) => {
+            e.stopPropagation();
+            onRepairLayoutSync();
+          }}
+        >
+          Sync layout to database
+        </MenuItem>
+      )}
     </MenuSurface>
   );
 }
