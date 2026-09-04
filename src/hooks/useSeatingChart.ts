@@ -37,7 +37,7 @@ import {
   getNextIndex,
   getSlotIndex,
 } from '@/features/seating/lib/seatingLogic';
-import { STUDENT_EVENTS, emitSeatingEditMode, type SeatingSaveDetail } from '@/lib/events/students';
+import { STUDENT_EVENTS, emitSeatingEditMode, type SeatingRepairLayoutDetail } from '@/lib/events/students';
 import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/seatingChartRefresh';
 import { useSeatingEditorPersistence } from '@/hooks/useSeatingEditorPersistence';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
@@ -617,9 +617,9 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     /**
      * Manual recovery: full replace of group layout + seat assignments from store.
      * Not wired to exit X — normal edits persist immediately via useSeatingEditorPersistence.
-     * Triggered only via SEATING_SAVE (Settings → Sync layout to database).
+     * Triggered only via SEATING_REPAIR_LAYOUT (Settings → Sync layout to database).
      */
-    const repairSeatingLayoutFromStore = useCallback(async (onSaveComplete?: () => void) => {
+    const repairSeatingLayoutFromStore = useCallback(async (onRepairComplete?: () => void) => {
       if (!selectedLayoutId) {
         showSuccessNotification('No layout', 'Select a seating layout before syncing.');
         return;
@@ -735,7 +735,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           'Seating layout and assignments were rebuilt from the current canvas.'
         );
         await refreshSeatingGroupsForLayout(selectedLayoutId);
-        onSaveComplete?.();
+        onRepairComplete?.();
       } catch (err) {
         console.error('Unexpected error repairing seating chart:', err);
         showSuccessNotification('Error', 'Failed to sync layout. Please try again.');
@@ -769,8 +769,8 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     }, [showSuccessNotification]);
 
     useEffect(() => {
-      const handleSeatingSave = (event: Event) => {
-        const detail = (event as CustomEvent<SeatingSaveDetail>).detail;
+      const handleSeatingRepairLayout = (event: Event) => {
+        const detail = (event as CustomEvent<SeatingRepairLayoutDetail>).detail;
         if (persistInFlightRef.current > 0) {
           showSuccessNotificationRef.current(
             'Please wait',
@@ -785,12 +785,19 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           );
           return;
         }
-        void repairSeatingLayoutFromStoreRef.current(detail?.onSaveComplete);
+        if (saveAllChangesInFlightRef.current) {
+          showSuccessNotificationRef.current(
+            'Please wait',
+            'A layout sync is already in progress.'
+          );
+          return;
+        }
+        void repairSeatingLayoutFromStoreRef.current(detail?.onRepairComplete);
       };
 
-      window.addEventListener(STUDENT_EVENTS.SEATING_SAVE, handleSeatingSave as EventListener);
+      window.addEventListener(STUDENT_EVENTS.SEATING_REPAIR_LAYOUT, handleSeatingRepairLayout as EventListener);
       return () => {
-        window.removeEventListener(STUDENT_EVENTS.SEATING_SAVE, handleSeatingSave as EventListener);
+        window.removeEventListener(STUDENT_EVENTS.SEATING_REPAIR_LAYOUT, handleSeatingRepairLayout as EventListener);
       };
     }, [persistInFlightRef]);
 
@@ -2096,8 +2103,6 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     fetchGroups,
     computeGroupRows,
     repairSeatingLayoutFromStore,
-    /** @deprecated Use repairSeatingLayoutFromStore */
-    reconcileSeatingLayoutFullReplace: repairSeatingLayoutFromStore,
     handleRandomizeSeating,
     addStudentToGroup,
     removeStudentFromGroup,

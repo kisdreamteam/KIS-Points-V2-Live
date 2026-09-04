@@ -18,6 +18,7 @@ interface SeatingSettingsMenuProps {
   onClearAllGroups: () => void;
   onDeleteAllGroups: () => void;
   onRepairLayoutSync?: () => void;
+  isRepairLayoutDisabled?: boolean;
 }
 
 export default function SeatingSettingsMenu({
@@ -31,6 +32,7 @@ export default function SeatingSettingsMenu({
   onClearAllGroups,
   onDeleteAllGroups,
   onRepairLayoutSync,
+  isRepairLayoutDisabled = false,
 }: SeatingSettingsMenuProps) {
   if (!isOpen) return null;
 
@@ -75,8 +77,10 @@ export default function SeatingSettingsMenu({
 
       {onRepairLayoutSync && (
         <MenuItem
+          disabled={isRepairLayoutDisabled}
           onClick={(e) => {
             e.stopPropagation();
+            if (isRepairLayoutDisabled) return;
             onRepairLayoutSync();
           }}
         >

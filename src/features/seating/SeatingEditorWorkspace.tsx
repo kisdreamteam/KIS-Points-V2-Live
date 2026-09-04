@@ -88,6 +88,7 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
     studentsAboutToMove,
     studentsBeingPlaced,
     isRandomizing,
+    isSavingAllChanges,
     handleStudentClick,
     removeStudentFromGroup,
     editingGroupNameId,
@@ -172,7 +173,12 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
 
   const workspaceShell = (content: ReactNode) => (
     <StageTwoColumnSplit
-      rightRail={<SeatingEditorWorkspaceToolbar />}
+      rightRail={
+        <SeatingEditorWorkspaceToolbar
+          isRepairingLayout={isSavingAllChanges}
+          isRandomizing={isRandomizing}
+        />
+      }
       rightRailClassName="overflow-visible"
     >
       <div className="h-full w-full min-h-0 flex flex-col">

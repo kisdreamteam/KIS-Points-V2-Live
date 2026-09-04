@@ -120,7 +120,7 @@ Orchestration lives in [`useSeatingEditorPersistence.ts`](../src/hooks/useSeatin
 | Action | DB write | Notes |
 |--------|:--------:|-------|
 | Close editor | **No** | URL `mode=edit` removed; `emitSeatingEditMode({ isEditMode: false })`; `refreshSeatingGroupsForLayout` as safety net |
-| Manual layout repair | **Yes (full replace)** | Settings menu → **Sync layout to database** → confirmation → `SEATING_SAVE` → `repairSeatingLayoutFromStore` |
+| Manual layout repair | **Yes (full replace)** | Settings menu → **Sync layout to database** → confirmation → `SEATING_REPAIR_LAYOUT` → `repairSeatingLayoutFromStore` |
 
 Editor UX copy: [`SeatingCanvasDecor`](../src/features/seating/components/canvas/SeatingCanvasDecor.tsx) shows **“Changes save automatically”** when `showSaveHint` is on.
 

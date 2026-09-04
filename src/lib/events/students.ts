@@ -24,7 +24,7 @@ export const STUDENT_EVENTS = {
   SEATING_RANDOMIZE: 'seatingChartRandomize',
   SEATING_CLEAR_ALL_GROUPS: 'seatingChartClearAllGroups',
   SEATING_DELETE_ALL_GROUPS: 'seatingChartDeleteAllGroups',
-  SEATING_SAVE: 'seatingChartSave',
+  SEATING_REPAIR_LAYOUT: 'seatingChartRepairLayout',
   SEATING_ADD_MULTIPLE_GROUPS: 'seatingChartAddMultipleGroups',
   SEATING_AUTO_ASSIGN_SEATS: 'seatingChartAutoAssignSeats',
   /** Layout-hosted award modal: patch seating `groupAssignments` only (roster already updated in the dashboard store). */
@@ -50,7 +50,7 @@ export type SeatingViewSettingsChangedDetail = {
   color_by_gender?: boolean;
   color_by_level?: boolean;
 };
-export type SeatingSaveDetail = { onSaveComplete?: () => void };
+export type SeatingRepairLayoutDetail = { onRepairComplete?: () => void };
 export type SeatingAddMultipleGroupsDetail = { numGroups: number };
 
 export function emitSelectionCountChanged(detail: SelectionCountChangedDetail) {
@@ -93,8 +93,8 @@ export function emitSeatingDeleteAllGroups() {
   window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.SEATING_DELETE_ALL_GROUPS));
 }
 
-export function emitSeatingSave(detail: SeatingSaveDetail) {
-  window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.SEATING_SAVE, { detail }));
+export function emitSeatingRepairLayout(detail: SeatingRepairLayoutDetail = {}) {
+  window.dispatchEvent(new CustomEvent(STUDENT_EVENTS.SEATING_REPAIR_LAYOUT, { detail }));
 }
 
 export function emitSeatingAddMultipleGroups(detail: SeatingAddMultipleGroupsDetail) {

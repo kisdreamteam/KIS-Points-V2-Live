@@ -12,6 +12,7 @@ interface ConfirmationModalProps {
   confirmText: string;
   cancelText: string;
   confirmButtonColor?: 'red' | 'green' | 'purple' | 'blue' | 'orange';
+  confirmDisabled?: boolean;
   icon?: React.ReactNode;
 }
 
@@ -24,6 +25,7 @@ export default function ConfirmationModal({
   confirmText,
   cancelText,
   confirmButtonColor = 'blue',
+  confirmDisabled = false,
   icon,
 }: ConfirmationModalProps) {
   const colorClasses = {
@@ -62,7 +64,8 @@ export default function ConfirmationModal({
                   onConfirm();
                   onClose();
                 }}
-                className={`px-4 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${colorClasses[confirmButtonColor]} focus:ring-${confirmButtonColor}-500`}
+                disabled={confirmDisabled}
+                className={`px-4 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${colorClasses[confirmButtonColor]} focus:ring-${confirmButtonColor}-500`}
               >
                 {confirmText}
               </button>

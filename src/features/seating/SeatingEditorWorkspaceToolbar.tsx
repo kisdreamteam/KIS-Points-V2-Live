@@ -18,7 +18,7 @@ import { buildShellToolbarConfig } from '@/features/dashboard/stage/dashboardToo
 import { useWorkspaceToolbarActions } from '@/features/dashboard/hooks/useWorkspaceToolbarActions';
 import { useAnchoredDropdownPortal } from '@/hooks/useAnchoredDropdownPortal';
 import { useSeatingEditorToolbarActions } from '@/hooks/useSeatingEditorToolbarActions';
-import { emitSeatingSave } from '@/lib/events/students';
+import { emitSeatingRepairLayout } from '@/lib/events/students';
 import ConfirmationModal from '@/components/ui/modals/ConfirmationModal';
 import { useLayoutStore } from '@/stores/useLayoutStore';
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
@@ -29,10 +29,14 @@ const TOOLBAR_BOTTOM_MENU_PLACEMENT = 'leftOfAnchorAbove' as const;
 
 type SeatingEditorWorkspaceToolbarProps = {
   classId?: string | null;
+  isRepairingLayout?: boolean;
+  isRandomizing?: boolean;
 };
 
 export default function SeatingEditorWorkspaceToolbar({
   classId: classIdProp = null,
+  isRepairingLayout = false,
+  isRandomizing = false,
 }: SeatingEditorWorkspaceToolbarProps) {
   const params = useParams();
   const classId = classIdProp ?? (params?.classId as string | undefined) ?? null;
@@ -147,14 +151,17 @@ export default function SeatingEditorWorkspaceToolbar({
     setIsSettingsMenuOpen(false);
   }, [onDeleteAllGroups]);
 
+  const isRepairLayoutDisabled = isRepairingLayout || isRandomizing;
+
   const handleRequestRepairLayoutSync = useCallback(() => {
+    if (isRepairLayoutDisabled) return;
     setIsSettingsMenuOpen(false);
     setIsRepairLayoutModalOpen(true);
-  }, []);
+  }, [isRepairLayoutDisabled]);
 
   const handleConfirmRepairLayoutSync = useCallback(() => {
     setIsRepairLayoutModalOpen(false);
-    emitSeatingSave({});
+    emitSeatingRepairLayout({});
   }, []);
 
   useEffect(() => {
@@ -220,6 +227,7 @@ export default function SeatingEditorWorkspaceToolbar({
         onClearAllGroups={handleClearAllGroups}
         onDeleteAllGroups={handleDeleteAllGroups}
         onRepairLayoutSync={handleRequestRepairLayoutSync}
+        isRepairLayoutDisabled={isRepairLayoutDisabled}
       />
     </div>
   );
@@ -338,9 +346,10 @@ export default function SeatingEditorWorkspaceToolbar({
         onConfirm={handleConfirmRepairLayoutSync}
         title="Sync layout to database"
         message="Normal edits save automatically. Only use this if seats or groups look wrong after a refresh or error. This rebuilds group positions and all seat assignments from the current canvas."
-        confirmText="Sync layout"
+        confirmText={isRepairingLayout ? 'Syncing…' : 'Sync layout'}
         cancelText="Cancel"
         confirmButtonColor="orange"
+        confirmDisabled={isRepairLayoutDisabled}
       />
     </div>
   );
