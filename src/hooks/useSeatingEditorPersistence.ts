@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { useCallback, useRef, type Dispatch, type SetStateAction } from 'react';
 import type { Student } from '@/lib/types';
 import {
   deleteStudentSeatAssignmentsByStudentId,
@@ -9,66 +9,43 @@ import {
   updateSeatingGroupPosition,
   updateSeatingGroupRows,
   updateStudentSeatAssignmentByStudentId,
-  type GroupAssignment,
 } from '@/features/seating/lib/api/seating';
 import { computeGroupRowsFromAssignments } from '@/features/seating/lib/seatingLogic';
-
-export interface SeatingGroupForPersistence {
-  id: string;
-  group_columns: number;
-  group_rows?: number;
-  position_x?: number;
-  position_y?: number;
-}
+import {
+  cloneAssignmentsRecord,
+  getAssignmentsForGroup,
+  type GroupAssignmentsById,
+} from '@/features/seating/stores/seatingLayoutStoreHelpers';
+import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 
 type NotifyFn = (title: string, message: string) => void;
 
-export interface UseSeatingEditorPersistenceParams<T extends SeatingGroupForPersistence> {
-  groups: T[];
-  setGroups: Dispatch<SetStateAction<T[]>>;
-  groupAssignmentsRef: RefObject<Map<string, GroupAssignment[]>>;
-  setGroupAssignments: Dispatch<SetStateAction<Map<string, GroupAssignment[]>>>;
+export interface UseSeatingEditorPersistenceParams {
   setUnseatedStudents: Dispatch<SetStateAction<Student[]>>;
-  setGroupPositions: Dispatch<SetStateAction<Map<string, { x: number; y: number }>>>;
   showError: NotifyFn;
 }
 
-function cloneAssignmentsMap(source: Map<string, GroupAssignment[]>): Map<string, GroupAssignment[]> {
-  const clone = new Map<string, GroupAssignment[]>();
-  source.forEach((list, groupId) => {
-    clone.set(groupId, list.map((a) => ({ ...a, student: { ...a.student } })));
-  });
-  return clone;
-}
-
-export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence>({
-  groups,
-  setGroups,
-  groupAssignmentsRef,
-  setGroupAssignments,
+export function useSeatingEditorPersistence({
   setUnseatedStudents,
-  setGroupPositions,
   showError,
-}: UseSeatingEditorPersistenceParams<T>) {
+}: UseSeatingEditorPersistenceParams) {
   const persistInFlightRef = useRef(0);
 
-  const syncGroupRowsForGroupIds = useCallback(
-    async (groupIds: string[]) => {
-      const uniqueIds = [...new Set(groupIds)];
-      for (const groupId of uniqueIds) {
-        const group = groups.find((g) => g.id === groupId);
-        if (!group) continue;
-        const assignments = groupAssignmentsRef.current?.get(groupId) ?? [];
-        const columns = group.group_columns || 2;
-        const group_rows = computeGroupRowsFromAssignments(assignments, columns);
-        await updateSeatingGroupRows(groupId, group_rows);
-        setGroups((prev) =>
-          prev.map((g) => (g.id === groupId ? { ...g, group_rows } : g))
-        );
-      }
-    },
-    [groups, groupAssignmentsRef, setGroups]
-  );
+  const syncGroupRowsForGroupIds = useCallback(async (groupIds: string[]) => {
+    const uniqueIds = [...new Set(groupIds)];
+    const st = useSeatingStore.getState();
+    for (const groupId of uniqueIds) {
+      const group = st.groups.find((g) => g.id === groupId);
+      if (!group) continue;
+      const assignments = getAssignmentsForGroup(st.groupAssignmentsById, groupId);
+      const columns = group.group_columns || 2;
+      const group_rows = computeGroupRowsFromAssignments(assignments, columns);
+      await updateSeatingGroupRows(groupId, group_rows);
+      st.updateGroups((prev) =>
+        prev.map((g) => (g.id === groupId ? { ...g, group_rows } : g))
+      );
+    }
+  }, []);
 
   const persistGroupPosition = useCallback(
     async (
@@ -82,7 +59,7 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
           position_x: position.x,
           position_y: position.y,
         });
-        setGroups((prev) =>
+        useSeatingStore.getState().updateGroups((prev) =>
           prev.map((g) =>
             g.id === groupId
               ? { ...g, position_x: position.x, position_y: position.y }
@@ -91,11 +68,10 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
         );
       } catch (err) {
         console.error('Error persisting group position:', err);
-        setGroupPositions((prev) => {
-          const next = new Map(prev);
-          next.set(groupId, rollbackPosition);
-          return next;
-        });
+        useSeatingStore.getState().mergeGroupPositions((prev) => ({
+          ...prev,
+          [groupId]: rollbackPosition,
+        }));
         showError(
           'Error',
           err instanceof Error ? err.message : 'Failed to save group position.'
@@ -104,7 +80,7 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
         persistInFlightRef.current -= 1;
       }
     },
-    [setGroups, setGroupPositions, showError]
+    [showError]
   );
 
   const persistAddStudent = useCallback(
@@ -112,7 +88,7 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
       student: Student;
       groupId: string;
       seatIndex: number;
-      snapshotAssignments: Map<string, GroupAssignment[]>;
+      snapshotAssignments: GroupAssignmentsById;
     }) => {
       const { student, groupId, seatIndex, snapshotAssignments } = params;
       persistInFlightRef.current += 1;
@@ -125,7 +101,7 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
         await syncGroupRowsForGroupIds([groupId]);
       } catch (err) {
         console.error('Error persisting student placement:', err);
-        setGroupAssignments(snapshotAssignments);
+        useSeatingStore.getState().setGroupAssignmentsById(snapshotAssignments);
         setUnseatedStudents((prev) => {
           if (prev.some((s) => s.id === student.id)) return prev;
           return [...prev, student];
@@ -138,7 +114,7 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
         persistInFlightRef.current -= 1;
       }
     },
-    [setGroupAssignments, setUnseatedStudents, showError, syncGroupRowsForGroupIds]
+    [setUnseatedStudents, showError, syncGroupRowsForGroupIds]
   );
 
   const persistRemoveStudent = useCallback(
@@ -146,7 +122,7 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
       studentId: string;
       groupId: string;
       removedStudent: Student;
-      snapshotAssignments: Map<string, GroupAssignment[]>;
+      snapshotAssignments: GroupAssignmentsById;
       snapshotUnseated: Student[];
     }) => {
       const { studentId, groupId, removedStudent, snapshotAssignments, snapshotUnseated } = params;
@@ -156,7 +132,7 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
         await syncGroupRowsForGroupIds([groupId]);
       } catch (err) {
         console.error('Error persisting student removal:', err);
-        setGroupAssignments(snapshotAssignments);
+        useSeatingStore.getState().setGroupAssignmentsById(snapshotAssignments);
         setUnseatedStudents(snapshotUnseated);
         showError(
           'Error',
@@ -166,7 +142,7 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
         persistInFlightRef.current -= 1;
       }
     },
-    [setGroupAssignments, setUnseatedStudents, showError, syncGroupRowsForGroupIds]
+    [setUnseatedStudents, showError, syncGroupRowsForGroupIds]
   );
 
   const persistMoveStudent = useCallback(
@@ -175,7 +151,7 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
       fromGroupId: string;
       toGroupId: string;
       seatIndex: number;
-      snapshotAssignments: Map<string, GroupAssignment[]>;
+      snapshotAssignments: GroupAssignmentsById;
     }) => {
       const { studentId, fromGroupId, toGroupId, seatIndex, snapshotAssignments } = params;
       const affectedGroups =
@@ -199,7 +175,7 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
         await syncGroupRowsForGroupIds(affectedGroups);
       } catch (err) {
         console.error('Error persisting student move:', err);
-        setGroupAssignments(snapshotAssignments);
+        useSeatingStore.getState().setGroupAssignmentsById(snapshotAssignments);
         showError(
           'Error',
           err instanceof Error ? err.message : 'Failed to save seat move.'
@@ -208,7 +184,7 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
         persistInFlightRef.current -= 1;
       }
     },
-    [setGroupAssignments, showError, syncGroupRowsForGroupIds]
+    [showError, syncGroupRowsForGroupIds]
   );
 
   const persistSwapStudents = useCallback(
@@ -219,7 +195,7 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
       groupId2: string;
       seatIndex1: number;
       seatIndex2: number;
-      snapshotAssignments: Map<string, GroupAssignment[]>;
+      snapshotAssignments: GroupAssignmentsById;
     }) => {
       const {
         studentId1,
@@ -244,7 +220,7 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
         await syncGroupRowsForGroupIds(affectedGroups);
       } catch (err) {
         console.error('Error persisting student swap:', err);
-        setGroupAssignments(snapshotAssignments);
+        useSeatingStore.getState().setGroupAssignmentsById(snapshotAssignments);
         showError(
           'Error',
           err instanceof Error ? err.message : 'Failed to save seat swap.'
@@ -253,11 +229,11 @@ export function useSeatingEditorPersistence<T extends SeatingGroupForPersistence
         persistInFlightRef.current -= 1;
       }
     },
-    [setGroupAssignments, showError, syncGroupRowsForGroupIds]
+    [showError, syncGroupRowsForGroupIds]
   );
 
   return {
-    cloneAssignmentsMap,
+    cloneAssignmentsRecord,
     syncGroupRowsForGroupIds,
     persistGroupPosition,
     persistAddStudent,

@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef, type Dispatch, type SetStateAction } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import type { ReadonlyURLSearchParams } from 'next/navigation';
 import { Student } from '@/lib/types';
@@ -39,6 +40,12 @@ import {
 import { STUDENT_EVENTS, emitSeatingEditMode } from '@/lib/events/students';
 import { refreshSeatingGroupsForLayout } from '@/features/dashboard/hooks/sync/seatingChartRefresh';
 import { useSeatingEditorPersistence } from '@/hooks/useSeatingEditorPersistence';
+import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
+import {
+  assignmentsMapToRecord,
+  buildGroupPositionsFromGroups,
+  getAssignmentsForGroup,
+} from '@/features/seating/stores/seatingLayoutStoreHelpers';
 
 
 interface SeatingChart {
@@ -170,6 +177,10 @@ function getDefaultStaggerPosition(index: number): { x: number; y: number } {
     y: DEFAULT_GROUP_START + index * DEFAULT_GROUP_STAGGER_Y,
   };
 }
+
+function readStoreAssignments(groupId: string): GroupAssignment[] {
+  return getAssignmentsForGroup(useSeatingStore.getState().groupAssignmentsById, groupId);
+}
 export interface UseSeatingChartEditorParams {
   classId: string;
   students: Student[];
@@ -202,8 +213,31 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     const [layouts, setLayouts] = useState<SeatingChart[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [groups, setGroups] = useState<SeatingGroup[]>([]);
-    const [isLoadingGroups, setIsLoadingGroups] = useState(false);
+    const {
+      groups,
+      isLoadingGroups,
+      groupAssignmentsById,
+      groupPositionsById,
+      setGroups,
+      setGroupsLoading,
+      setGroupAssignmentsById,
+      mergeGroupPositions,
+      updateGroups,
+      updateGroupAssignmentsById,
+    } = useSeatingStore(
+      useShallow((s) => ({
+        groups: s.groups,
+        isLoadingGroups: s.isLoadingGroups,
+        groupAssignmentsById: s.groupAssignmentsById,
+        groupPositionsById: s.groupPositionsById,
+        setGroups: s.setGroups,
+        setGroupsLoading: s.setGroupsLoading,
+        setGroupAssignmentsById: s.setGroupAssignmentsById,
+        mergeGroupPositions: s.mergeGroupPositions,
+        updateGroups: s.updateGroups,
+        updateGroupAssignmentsById: s.updateGroupAssignmentsById,
+      }))
+    );
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditGroupModalOpen, setIsEditGroupModalOpen] = useState(false);
     const [isClearAllModalOpen, setIsClearAllModalOpen] = useState(false);
@@ -221,9 +255,6 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     });
     const [isSavingAllChanges, setIsSavingAllChanges] = useState(false);
     const [editingGroup, setEditingGroup] = useState<SeatingGroup | null>(null);
-    /** Fixed-slot: groupId -> list of { student, seat_index } (may have gaps). */
-    const [groupAssignments, setGroupAssignments] = useState<Map<string, GroupAssignment[]>>(new Map());
-    const groupAssignmentsRef = useRef<Map<string, GroupAssignment[]>>(new Map());
     const handleCloseRef = useRef<() => void>(() => {});
     /** Set when closing via handleClose after save so unmount cleanup does not emit edit-mode false again. */
     const skipUnmountEditModeEmitRef = useRef(false);
@@ -231,41 +262,34 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     const saveAllChangesInFlightRef = useRef(false);
     const [targetGroupId, setTargetGroupId] = useState<string | null>(null);
 
-    // Keep ref in sync with state
-    useEffect(() => {
-      groupAssignmentsRef.current = groupAssignments;
-    }, [groupAssignments]);
-
-    // Helpers for fixed-slot grid (derived from groupAssignments)
+    // Helpers for fixed-slot grid (derived from store groupAssignmentsById)
     const getAssignmentsInGroup = useCallback((groupId: string): GroupAssignment[] => {
-      return groupAssignments.get(groupId) ?? [];
-    }, [groupAssignments]);
+      return groupAssignmentsById[groupId] ?? [];
+    }, [groupAssignmentsById]);
     const getStudentsInGroup = useCallback((groupId: string): Student[] => {
-      return (groupAssignments.get(groupId) ?? []).map(a => a.student);
-    }, [groupAssignments]);
+      return (groupAssignmentsById[groupId] ?? []).map(a => a.student);
+    }, [groupAssignmentsById]);
     const studentAtSlot = useCallback((groupId: string, seatIndex: number): Student | null => {
-      const list = groupAssignments.get(groupId) ?? [];
+      const list = groupAssignmentsById[groupId] ?? [];
       const found = list.find(a => a.seat_index === seatIndex);
       return found ? found.student : null;
-    }, [groupAssignments]);
+    }, [groupAssignmentsById]);
     const maxSeatIndex = useCallback((groupId: string): number => {
-      const list = groupAssignments.get(groupId) ?? [];
+      const list = groupAssignmentsById[groupId] ?? [];
       return getMaxSeatIndexFromAssignments(list);
-    }, [groupAssignments]);
+    }, [groupAssignmentsById]);
     const maxSeatIndexInColumn = useCallback((groupId: string, col: number, C: number): number => {
-      const list = groupAssignments.get(groupId) ?? [];
+      const list = groupAssignmentsById[groupId] ?? [];
       return getMaxSeatIndexInColumn(list, col, C);
-    }, [groupAssignments]);
+    }, [groupAssignmentsById]);
     const nextSeatIndexInColumn = useCallback((groupId: string, col: number, C: number): number => {
-      const list = groupAssignments.get(groupId) ?? [];
+      const list = groupAssignmentsById[groupId] ?? [];
       return getNextSeatIndexInColumn(list, col, C);
-    }, [groupAssignments]);
+    }, [groupAssignmentsById]);
     const [openSettingsMenuId, setOpenSettingsMenuId] = useState<string | null>(null);
     const [selectedStudentForSwap, setSelectedStudentForSwap] = useState<{ studentId: string; groupId: string } | null>(null);
     const [editingGroupNameId, setEditingGroupNameId] = useState<string | null>(null);
     const [editingGroupNameValue, setEditingGroupNameValue] = useState<string>('');
-    // Store pixel positions for each group (x, y coordinates)
-    const [groupPositions, setGroupPositions] = useState<Map<string, { x: number; y: number }>>(new Map());
     const canvasContainerRef = useRef<HTMLDivElement | null>(null);
     // Track which group is being dragged
     const [draggedGroupId, setDraggedGroupId] = useState<string | null>(null);
@@ -298,7 +322,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     };
 
     const {
-      cloneAssignmentsMap,
+      cloneAssignmentsRecord,
       syncGroupRowsForGroupIds,
       persistGroupPosition,
       persistAddStudent,
@@ -306,12 +330,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       persistMoveStudent,
       persistSwapStudents,
     } = useSeatingEditorPersistence({
-      groups,
-      setGroups,
-      groupAssignmentsRef,
-      setGroupAssignments,
       setUnseatedStudents,
-      setGroupPositions,
       showError: showSuccessNotification,
     });
 
@@ -520,55 +539,46 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       const preserveLocalPositions = options?.preserveLocalPositions ?? false;
 
       try {
-        setIsLoadingGroups(true);
+        setGroupsLoading(true);
         const { groups: groupsData, groupAssignments: nextGroupAssignments } =
           await fetchSeatingGroupsWithAssignments(selectedLayoutId);
 
         if (groupsData) {
           setGroups(groupsData);
-          
-          // Initialize positions for groups from database or default
-          setGroupPositions(prev => {
-            const newPositions = new Map(prev);
-            groupsData.forEach((group, index) => {
-              // Keep any position already tracked locally (e.g. unsaved drags)
-              if (preserveLocalPositions && newPositions.has(group.id)) return;
-              // Use saved position from database if available, otherwise default
-              if (group.position_x !== undefined && group.position_y !== undefined) {
-                newPositions.set(group.id, { 
-                  x: group.position_x, 
-                  y: group.position_y 
-                });
-              } else if (!newPositions.has(group.id)) {
-                // Default position: staggered horizontally, spaced vertically
-                newPositions.set(group.id, getDefaultStaggerPosition(index));
-              }
-            });
-            return newPositions;
-          });
 
-          setGroupAssignments(nextGroupAssignments);
+          mergeGroupPositions((prev) =>
+            buildGroupPositionsFromGroups(groupsData, prev, { preserveLocalPositions })
+          );
 
-          // Calculate unseated students: all students minus assigned students
+          setGroupAssignmentsById(assignmentsMapToRecord(nextGroupAssignments));
+
           const assignedStudentIds = new Set<string>();
           nextGroupAssignments.forEach((assignments) => {
             assignments.forEach((assignment) => {
               assignedStudentIds.add(assignment.student.id);
             });
           });
-          const unseated = students.filter(student => !assignedStudentIds.has(student.id));
+          const unseated = students.filter((student) => !assignedStudentIds.has(student.id));
           setUnseatedStudents(unseated);
         } else {
           setGroups([]);
-          setGroupAssignments(new Map());
+          setGroupAssignmentsById({});
           setUnseatedStudents(students);
         }
       } catch (err) {
         console.error('Unexpected error fetching seating groups:', err);
       } finally {
-        setIsLoadingGroups(false);
+        setGroupsLoading(false);
       }
-    }, [selectedLayoutId, students, setUnseatedStudents]);
+    }, [
+      selectedLayoutId,
+      students,
+      setUnseatedStudents,
+      setGroups,
+      setGroupsLoading,
+      setGroupAssignmentsById,
+      mergeGroupPositions,
+    ]);
 
     // Fetch groups when layout is selected or when shared roster changes
     useEffect(() => {
@@ -576,9 +586,9 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         fetchGroups();
       } else if (!selectedLayoutId) {
         setGroups([]);
-        setGroupAssignments(new Map());
+        setGroupAssignmentsById({});
       }
-    }, [selectedLayoutId, fetchGroups, students.length]);
+    }, [selectedLayoutId, fetchGroups, students.length, setGroups, setGroupAssignmentsById]);
 
     // Listen for student selection from sidebar
     useEffect(() => {
@@ -623,11 +633,11 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         const groupIdSet = new Set(groupIds);
 
         const updates = groups.map((group) => {
-          const pos = groupPositions.get(group.id) ?? {
+          const pos = groupPositionsById[group.id] ?? {
             x: group.position_x ?? 0,
             y: group.position_y ?? 0,
           };
-          const assignmentsInGroup = groupAssignments.get(group.id) ?? [];
+          const assignmentsInGroup = groupAssignmentsById[group.id] ?? [];
           const columns = group.group_columns || 2;
           const group_rows = computeGroupRows(assignmentsInGroup, columns);
           return { group, pos, columns, group_rows };
@@ -666,8 +676,8 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         }
 
         const insertRows: { student_id: string; seating_group_id: string; seat_index: number }[] = [];
-        groupAssignments.forEach((list, seatingGroupId) => {
-          if (!groupIdSet.has(seatingGroupId)) return;
+        for (const [seatingGroupId, list] of Object.entries(groupAssignmentsById)) {
+          if (!groupIdSet.has(seatingGroupId)) continue;
           for (const a of list) {
             insertRows.push({
               student_id: a.student.id,
@@ -675,7 +685,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
               seat_index: a.seat_index,
             });
           }
-        });
+        }
 
         if (insertRows.length > 0) {
           try {
@@ -690,10 +700,10 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           }
         }
 
-        setGroups((prev) =>
+        updateGroups((prev) =>
           prev.map((g) => {
-            const pos = groupPositions.get(g.id) ?? { x: g.position_x ?? 0, y: g.position_y ?? 0 };
-            const assignmentsInGroup = groupAssignments.get(g.id) ?? [];
+            const pos = groupPositionsById[g.id] ?? { x: g.position_x ?? 0, y: g.position_y ?? 0 };
+            const assignmentsInGroup = groupAssignmentsById[g.id] ?? [];
             const columns = g.group_columns || 2;
             const group_rows = computeGroupRows(assignmentsInGroup, columns);
             return {
@@ -716,7 +726,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         saveAllChangesInFlightRef.current = false;
         setIsSavingAllChanges(false);
       }
-    }, [selectedLayoutId, groups, groupAssignments, groupPositions, computeGroupRows]);
+    }, [selectedLayoutId, groups, groupAssignmentsById, groupPositionsById, computeGroupRows, updateGroups]);
 
     // Handle randomize seating - animated swap of all seated students
     const handleRandomizeSeating = useCallback(async () => {
@@ -727,17 +737,17 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       try {
         // First, record the size of each group (to maintain group sizes after randomization)
         const groupSizes: Map<string, number> = new Map();
-        groupAssignments.forEach((assignments, groupId) => {
+        for (const [groupId, assignments] of Object.entries(groupAssignmentsById)) {
           groupSizes.set(groupId, assignments.length);
-        });
+        }
 
         // Collect all seated students with their current groups
         const seatedStudents: Array<{ student: Student; currentGroupId: string }> = [];
-        groupAssignments.forEach((assignments, groupId) => {
+        for (const [groupId, assignments] of Object.entries(groupAssignmentsById)) {
           assignments.forEach(({ student }) => {
             seatedStudents.push({ student, currentGroupId: groupId });
           });
-        });
+        }
 
         if (seatedStudents.length === 0) {
           setIsRandomizing(false);
@@ -793,16 +803,15 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           });
           setStudentsBeingPlaced(prev => new Set(prev).add(student.id));
           
-          // Update local state immediately for visual feedback (randomize uses 1..N per group)
-          setGroupAssignments(prev => {
-            const newMap = new Map(prev);
-            const oldList = newMap.get(currentGroupId) ?? [];
-            const newList = newMap.get(newGroupId) ?? [];
+          // Update store immediately for visual feedback (randomize uses 1..N per group)
+          updateGroupAssignmentsById((prev) => {
+            const next = { ...prev };
+            const oldList = next[currentGroupId] ?? [];
+            const newList = next[newGroupId] ?? [];
             const newIndexInNewGroup = newList.length + 1;
-            newMap.set(currentGroupId, oldList.filter(a => a.student.id !== student.id));
-            newMap.set(newGroupId, [...newList, { student, seat_index: newIndexInNewGroup }]);
-            groupAssignmentsRef.current = newMap;
-            return newMap;
+            next[currentGroupId] = oldList.filter((a) => a.student.id !== student.id);
+            next[newGroupId] = [...newList, { student, seat_index: newIndexInNewGroup }];
+            return next;
           });
           
           await new Promise((resolve) => setTimeout(resolve, RANDOMIZE_BEING_PLACED_MS));
@@ -847,7 +856,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         setStudentsBeingPlaced(new Set());
         setIsRandomizing(false);
       }
-    }, [isRandomizing, groups, groupAssignments, fetchGroups, syncGroupRowsForGroupIds]);
+    }, [isRandomizing, groups, groupAssignmentsById, fetchGroups, syncGroupRowsForGroupIds, updateGroupAssignmentsById]);
 
     // Listen for randomize event
     useEffect(() => {
@@ -870,7 +879,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       addStudentToGroupInFlightRef.current = { studentId: student.id, groupId };
 
       try {
-        const currentInGroup = (groupAssignmentsRef.current.get(groupId) ?? []).map(a => a.student);
+        const currentInGroup = readStoreAssignments(groupId).map((a) => a.student);
         if (currentInGroup.some((s) => s.id === student.id)) {
           setSelectedStudentForGroup(null);
           addStudentToGroupInFlightRef.current = null;
@@ -880,18 +889,19 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         const seatIndexToUse =
           targetSeatIndex != null
             ? targetSeatIndex
-            : getNextSeatIndex(groupAssignmentsRef.current.get(groupId) ?? []);
+            : getNextSeatIndex(readStoreAssignments(groupId));
 
-        const snapshotAssignments = cloneAssignmentsMap(groupAssignmentsRef.current);
+        const snapshotAssignments = cloneAssignmentsRecord(
+          useSeatingStore.getState().groupAssignmentsById
+        );
 
-        setGroupAssignments(prev => {
-          const newMap = new Map(prev);
-          const list = newMap.get(groupId) ?? [];
-          if (!list.some(a => a.student.id === student.id)) {
-            newMap.set(groupId, [...list, { student, seat_index: seatIndexToUse }]);
+        updateGroupAssignmentsById((prev) => {
+          const next = { ...prev };
+          const list = next[groupId] ?? [];
+          if (!list.some((a) => a.student.id === student.id)) {
+            next[groupId] = [...list, { student, seat_index: seatIndexToUse }];
           }
-          groupAssignmentsRef.current = newMap;
-          return newMap;
+          return next;
         });
 
         setUnseatedStudents((prev: Student[]) => prev.filter(s => s.id !== student.id));
@@ -911,7 +921,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           addStudentToGroupInFlightRef.current = null;
         }
       }
-    }, [cloneAssignmentsMap, persistAddStudent, setUnseatedStudents, setSelectedStudentForGroup]);
+    }, [cloneAssignmentsRecord, persistAddStudent, setUnseatedStudents, setSelectedStudentForGroup, updateGroupAssignmentsById]);
 
     useEffect(() => {
       const handleAddStudentToGroup = (event: CustomEvent) => {
@@ -952,20 +962,21 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     }, []);
 
     const removeStudentFromGroup = (studentId: string, groupId: string) => {
-      const list = groupAssignmentsRef.current.get(groupId) ?? [];
+      const list = readStoreAssignments(groupId);
       const found = list.find((a) => a.student.id === studentId);
       if (!found) return;
 
       const removedStudent = found.student;
-      const snapshotAssignments = cloneAssignmentsMap(groupAssignmentsRef.current);
+      const snapshotAssignments = cloneAssignmentsRecord(
+        useSeatingStore.getState().groupAssignmentsById
+      );
       const snapshotUnseated = [...unseatedStudents];
 
-      setGroupAssignments((prev) => {
-        const newMap = new Map(prev);
-        const currentList = newMap.get(groupId) ?? [];
-        newMap.set(groupId, currentList.filter((a) => a.student.id !== studentId));
-        groupAssignmentsRef.current = newMap;
-        return newMap;
+      updateGroupAssignmentsById((prev) => {
+        const next = { ...prev };
+        const currentList = next[groupId] ?? [];
+        next[groupId] = currentList.filter((a) => a.student.id !== studentId);
+        return next;
       });
 
       setUnseatedStudents((prev: Student[]) => {
@@ -1027,14 +1038,11 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         }
 
         if (data) {
-          // Update local state with the new group position
-          setGroupPositions(prev => {
-            const newPositions = new Map(prev);
-            newPositions.set(data.id, { x: initialX, y: initialY });
-            return newPositions;
-          });
-          
-          // Refresh groups to get the latest data
+          mergeGroupPositions((prev) => ({
+            ...prev,
+            [data.id]: { x: initialX, y: initialY },
+          }));
+
           await fetchGroups();
         }
       } catch (err) {
@@ -1092,26 +1100,24 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         }
 
         if (insertedGroups && insertedGroups.length > 0) {
-          // Update local state with the new group positions
-          setGroupPositions(prev => {
-            const newPositions = new Map(prev);
+          mergeGroupPositions((prev) => {
+            const next = { ...prev };
             insertedGroups.forEach((group) => {
-              const groupData = groupsToCreate.find(g => g.name === group.name);
+              const groupData = groupsToCreate.find((g) => g.name === group.name);
               if (groupData) {
-                newPositions.set(group.id, { x: groupData.position_x, y: groupData.position_y });
+                next[group.id] = { x: groupData.position_x, y: groupData.position_y };
               }
             });
-            return newPositions;
+            return next;
           });
-          
-          // Refresh groups to get the latest data (keep unsaved drag positions)
+
           await fetchGroups({ preserveLocalPositions: true });
         }
       } catch (err) {
         console.error('Unexpected error creating multiple groups:', err);
         alert('An unexpected error occurred. Please try again.');
       }
-    }, [selectedLayoutId, groups, fetchGroups]);
+    }, [selectedLayoutId, groups, fetchGroups, mergeGroupPositions]);
 
     const handleCreateLayout = async (layoutName: string) => {
       try {
@@ -1203,16 +1209,15 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       const clampedY = Math.max(0, Math.min(relativeY, containerRect.height - GROUP_MIN_HEIGHT));
       
       const group = groups.find((g) => g.id === draggedGroupId);
-      const rollbackPosition = groupPositions.get(draggedGroupId) ?? {
+      const rollbackPosition = groupPositionsById[draggedGroupId] ?? {
         x: group?.position_x ?? 0,
         y: group?.position_y ?? 0,
       };
 
-      setGroupPositions(prev => {
-        const newPositions = new Map(prev);
-        newPositions.set(draggedGroupId, { x: clampedX, y: clampedY });
-        return newPositions;
-      });
+      mergeGroupPositions((prev) => ({
+        ...prev,
+        [draggedGroupId]: { x: clampedX, y: clampedY },
+      }));
 
       void persistGroupPosition(
         draggedGroupId,
@@ -1225,18 +1230,19 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     };
 
     const moveStudentToGroup = (studentId: string, fromGroupId: string, toGroupId: string, targetSeatIndex?: number) => {
-      const snapshotAssignments = cloneAssignmentsMap(groupAssignmentsRef.current);
+      const snapshotAssignments = cloneAssignmentsRecord(
+        useSeatingStore.getState().groupAssignmentsById
+      );
 
       // Same group + target slot = move to empty seat within group
       if (fromGroupId === toGroupId && targetSeatIndex != null) {
-        setGroupAssignments((prev) => {
-          const newMap = new Map(prev);
-          const list = (newMap.get(fromGroupId) ?? []).map((a) =>
+        updateGroupAssignmentsById((prev) => {
+          const next = { ...prev };
+          const list = (next[fromGroupId] ?? []).map((a) =>
             a.student.id === studentId ? { ...a, seat_index: targetSeatIndex } : a
           );
-          newMap.set(fromGroupId, list);
-          groupAssignmentsRef.current = newMap;
-          return newMap;
+          next[fromGroupId] = list;
+          return next;
         });
         setSelectedStudentForSwap(null);
         void persistMoveStudent({
@@ -1254,7 +1260,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         return;
       }
 
-      const fromList = groupAssignmentsRef.current.get(fromGroupId) ?? [];
+      const fromList = readStoreAssignments(fromGroupId);
       const foundFrom = fromList.find((a) => a.student.id === studentId);
       const studentToMove = foundFrom?.student;
 
@@ -1265,17 +1271,16 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         return;
       }
 
-      const toList = groupAssignmentsRef.current.get(toGroupId) ?? [];
+      const toList = readStoreAssignments(toGroupId);
       const nextSeat = targetSeatIndex != null ? targetSeatIndex : getNextSeatIndex(toList);
 
-      setGroupAssignments((prev) => {
-        const newMap = new Map(prev);
-        const src = (newMap.get(fromGroupId) ?? []).filter((a) => a.student.id !== studentId);
-        const tgt = [...(newMap.get(toGroupId) ?? []), { student: studentToMove, seat_index: nextSeat }];
-        newMap.set(fromGroupId, src);
-        newMap.set(toGroupId, tgt);
-        groupAssignmentsRef.current = newMap;
-        return newMap;
+      updateGroupAssignmentsById((prev) => {
+        const next = { ...prev };
+        const src = (next[fromGroupId] ?? []).filter((a) => a.student.id !== studentId);
+        const tgt = [...(next[toGroupId] ?? []), { student: studentToMove, seat_index: nextSeat }];
+        next[fromGroupId] = src;
+        next[toGroupId] = tgt;
+        return next;
       });
       setSelectedStudentForSwap(null);
       void persistMoveStudent({
@@ -1354,28 +1359,29 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
 
     const swapStudents = (studentId1: string, groupId1: string, studentId2: string, groupId2: string) => {
       try {
-        const snapshotAssignments = cloneAssignmentsMap(groupAssignmentsRef.current);
+        const snapshotAssignments = cloneAssignmentsRecord(
+          useSeatingStore.getState().groupAssignmentsById
+        );
 
         if (groupId1 === groupId2) {
-          const assignments = groupAssignments.get(groupId1) ?? [];
-          const a1 = assignments.find(a => a.student.id === studentId1);
-          const a2 = assignments.find(a => a.student.id === studentId2);
+          const assignments = groupAssignmentsById[groupId1] ?? [];
+          const a1 = assignments.find((a) => a.student.id === studentId1);
+          const a2 = assignments.find((a) => a.student.id === studentId2);
           if (!a1 || !a2) {
             console.error('One or both students not found in group');
             return;
           }
           const s1 = a1.seat_index;
           const s2 = a2.seat_index;
-          setGroupAssignments(prev => {
-            const newMap = new Map(prev);
-            const list = (newMap.get(groupId1) ?? []).map(a => {
+          updateGroupAssignmentsById((prev) => {
+            const next = { ...prev };
+            const list = (next[groupId1] ?? []).map((a) => {
               if (a.student.id === studentId1) return { ...a, seat_index: s2 };
               if (a.student.id === studentId2) return { ...a, seat_index: s1 };
               return a;
             });
-            newMap.set(groupId1, list);
-            groupAssignmentsRef.current = newMap;
-            return newMap;
+            next[groupId1] = list;
+            return next;
           });
           void persistSwapStudents({
             studentId1,
@@ -1389,8 +1395,8 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           return;
         }
 
-        const list1 = groupAssignments.get(groupId1) ?? [];
-        const list2 = groupAssignments.get(groupId2) ?? [];
+        const list1 = groupAssignmentsById[groupId1] ?? [];
+        const list2 = groupAssignmentsById[groupId2] ?? [];
         const a1 = list1.find(a => a.student.id === studentId1);
         const a2 = list2.find(a => a.student.id === studentId2);
 
@@ -1410,14 +1416,13 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         const student1 = a1.student;
         const student2 = a2.student;
 
-        setGroupAssignments(prev => {
-          const newMap = new Map(prev);
-          const g1 = (newMap.get(groupId1) ?? []).filter(a => a.student.id !== studentId1);
-          const g2 = (newMap.get(groupId2) ?? []).filter(a => a.student.id !== studentId2);
-          newMap.set(groupId1, [...g1, { student: student2, seat_index: seatIndex1 }]);
-          newMap.set(groupId2, [...g2, { student: student1, seat_index: seatIndex2 }]);
-          groupAssignmentsRef.current = newMap;
-          return newMap;
+        updateGroupAssignmentsById((prev) => {
+          const next = { ...prev };
+          const g1 = (next[groupId1] ?? []).filter((a) => a.student.id !== studentId1);
+          const g2 = (next[groupId2] ?? []).filter((a) => a.student.id !== studentId2);
+          next[groupId1] = [...g1, { student: student2, seat_index: seatIndex1 }];
+          next[groupId2] = [...g2, { student: student1, seat_index: seatIndex2 }];
+          return next;
         });
 
         void persistSwapStudents({
@@ -1447,16 +1452,16 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
       }
 
       try {
-        const currentAssignments = groupAssignmentsRef.current;
-        const totalSeatedStudents = Array.from(currentAssignments.values()).reduce(
+        const currentAssignments = useSeatingStore.getState().groupAssignmentsById;
+        const totalSeatedStudents = Object.values(currentAssignments).reduce(
           (sum, assignments) => sum + assignments.length,
           0
         );
         const totalStudents = totalSeatedStudents + unseatedStudents.length;
         const targetPerGroup = Math.floor(totalStudents / groups.length);
         const remainder = totalStudents % groups.length;
-        const groupCurrentCounts = groups.map(group => {
-          const list = currentAssignments.get(group.id) ?? [];
+        const groupCurrentCounts = groups.map((group) => {
+          const list = currentAssignments[group.id] ?? [];
           const maxIdx = getMaxSeatIndexFromAssignments(list);
           return { groupId: group.id, currentCount: list.length, nextSeatIndex: maxIdx + 1 };
         });
@@ -1571,11 +1576,11 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         }
 
         // Update local state
-        setGroups(prev => prev.map(g => 
-          g.id === editingGroup.id 
-            ? { ...g, name: groupName, group_columns: columns }
-            : g
-        ));
+        updateGroups((prev) =>
+          prev.map((g) =>
+            g.id === editingGroup.id ? { ...g, name: groupName, group_columns: columns } : g
+          )
+        );
 
         setIsEditGroupModalOpen(false);
         setEditingGroup(null);
@@ -1619,11 +1624,11 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           return;
         }
 
-        setGroups(prev => prev.map(g => 
-          g.id === groupId 
-            ? { ...g, name: editingGroupNameValue.trim() }
-            : g
-        ));
+        updateGroups((prev) =>
+          prev.map((g) =>
+            g.id === groupId ? { ...g, name: editingGroupNameValue.trim() } : g
+          )
+        );
 
         setEditingGroupNameId(null);
         setEditingGroupNameValue('');
@@ -1658,11 +1663,11 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
           return;
         }
 
-        setGroups(prev => prev.map(g =>
-          g.id === groupId
-            ? { ...g, group_columns: columns }
-            : g
-        ));
+        updateGroups((prev) =>
+          prev.map((g) =>
+            g.id === groupId ? { ...g, group_columns: columns } : g
+          )
+        );
       } catch (err) {
         console.error('Unexpected error updating group columns:', err);
         alert('An unexpected error occurred. Please try again.');
@@ -1696,12 +1701,10 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         }
 
         const studentsToUnseat = getStudentsInGroup(teamToClear.id);
-        setGroupAssignments(prev => {
-          const newMap = new Map(prev);
-          newMap.set(teamToClear.id, []);
-          groupAssignmentsRef.current = newMap;
-          return newMap;
-        });
+        updateGroupAssignmentsById((prev) => ({
+          ...prev,
+          [teamToClear.id]: [],
+        }));
         
         // Add students back to unseated list (filter out duplicates)
         setUnseatedStudents((prev: Student[]) => {
@@ -1756,18 +1759,17 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         }
 
         const studentsToUnseat = getStudentsInGroup(teamToDelete.id);
-        setGroupAssignments(prev => {
-          const newMap = new Map(prev);
-          newMap.delete(teamToDelete.id);
-          return newMap;
+        updateGroupAssignmentsById((prev) => {
+          const next = { ...prev };
+          delete next[teamToDelete.id];
+          return next;
         });
-        
-        setGroups(prev => prev.filter(g => g.id !== teamToDelete.id));
-        // Remove from group positions
-        setGroupPositions(prev => {
-          const newPositions = new Map(prev);
-          newPositions.delete(teamToDelete.id);
-          return newPositions;
+
+        updateGroups((prev) => prev.filter((g) => g.id !== teamToDelete.id));
+        mergeGroupPositions((prev) => {
+          const next = { ...prev };
+          delete next[teamToDelete.id];
+          return next;
         });
         
         // Add students back to unseated list (filter out duplicates)
@@ -1843,14 +1845,15 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         }
 
         const allStudentsToUnseat: Student[] = [];
-        groupAssignments.forEach((assignments) => {
-          assignments.forEach(a => allStudentsToUnseat.push(a.student));
-        });
-        setGroupAssignments(prev => {
-          const newMap = new Map(prev);
-          groupIds.forEach(groupId => newMap.set(groupId, []));
-          groupAssignmentsRef.current = newMap;
-          return newMap;
+        for (const assignments of Object.values(groupAssignmentsById)) {
+          assignments.forEach((a) => allStudentsToUnseat.push(a.student));
+        }
+        updateGroupAssignmentsById((prev) => {
+          const next = { ...prev };
+          groupIds.forEach((groupId) => {
+            next[groupId] = [];
+          });
+          return next;
         });
 
         // Add all students back to unseated list (filter out duplicates)
@@ -1926,12 +1929,12 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
         }
 
         const allStudentsToUnseat: Student[] = [];
-        groupAssignments.forEach((assignments) => {
-          assignments.forEach(a => allStudentsToUnseat.push(a.student));
-        });
+        for (const assignments of Object.values(groupAssignmentsById)) {
+          assignments.forEach((a) => allStudentsToUnseat.push(a.student));
+        }
         setGroups([]);
-        setGroupAssignments(new Map());
-        setGroupPositions(new Map());
+        setGroupAssignmentsById({});
+        useSeatingStore.getState().setGroupPositionsById({});
 
         // Add all students back to unseated list (filter out duplicates)
         setUnseatedStudents((prev: Student[]) => {
@@ -1976,7 +1979,7 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     groups,
     setGroups,
     isLoadingGroups,
-    setIsLoadingGroups,
+    setGroupsLoading,
     isCreateModalOpen,
     setIsCreateModalOpen,
     isEditGroupModalOpen,
@@ -2005,9 +2008,9 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     setIsSavingAllChanges,
     editingGroup,
     setEditingGroup,
-    groupAssignments,
-    setGroupAssignments,
-    groupAssignmentsRef,
+    groupAssignmentsById,
+    setGroupAssignmentsById,
+    updateGroupAssignmentsById,
     handleCloseRef,
     addStudentToGroupInFlightRef,
     saveAllChangesInFlightRef,
@@ -2027,8 +2030,9 @@ export function useSeatingChartEditor(params: UseSeatingChartEditorParams) {
     setEditingGroupNameId,
     editingGroupNameValue,
     setEditingGroupNameValue,
-    groupPositions,
-    setGroupPositions,
+    groupPositionsById,
+    mergeGroupPositions,
+    updateGroups,
     canvasContainerRef,
     draggedGroupId,
     setDraggedGroupId,

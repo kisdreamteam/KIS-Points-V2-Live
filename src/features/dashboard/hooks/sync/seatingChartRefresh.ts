@@ -2,35 +2,14 @@
 
 import { useSeatingStore } from '@/features/seating/stores/useSeatingStore';
 import {
+  assignmentsMapToRecord,
+  buildGroupPositionsFromGroups,
+} from '@/features/seating/stores/seatingLayoutStoreHelpers';
+import {
   fetchLayoutViewSettings,
   fetchSeatingGroupsWithAssignments,
   fetchSeatingLayoutsByClassId,
-  type GroupAssignment,
-  type SeatingGroupRecord,
 } from '@/features/seating/lib/api/seating';
-
-function mapAssignmentsToRecord(map: Map<string, GroupAssignment[]>): Record<string, GroupAssignment[]> {
-  const out: Record<string, GroupAssignment[]> = {};
-  map.forEach((v, k) => {
-    out[k] = v;
-  });
-  return out;
-}
-
-function buildGroupPositions(
-  groupsData: SeatingGroupRecord[],
-  prev: Record<string, { x: number; y: number }>
-): Record<string, { x: number; y: number }> {
-  const groupPositionsById: Record<string, { x: number; y: number }> = { ...prev };
-  groupsData.forEach((group, index) => {
-    if (group.position_x !== undefined && group.position_y !== undefined) {
-      groupPositionsById[group.id] = { x: group.position_x, y: group.position_y };
-    } else if (groupPositionsById[group.id] === undefined) {
-      groupPositionsById[group.id] = { x: 20 + index * 20, y: 20 + index * 100 };
-    }
-  });
-  return groupPositionsById;
-}
 
 export async function refreshSeatingLayoutsForClass(classId: string): Promise<void> {
   const st = useSeatingStore.getState();
@@ -94,9 +73,9 @@ export async function refreshSeatingGroupsForLayout(layoutId: string | null): Pr
       st.setGroupsLoading(false);
       return;
     }
-    const nextPositions = buildGroupPositions(groupsData, st.groupPositionsById);
+    const nextPositions = buildGroupPositionsFromGroups(groupsData, st.groupPositionsById);
     st.setGroups(groupsData);
-    st.setGroupAssignmentsById(mapAssignmentsToRecord(nextGroupAssignments));
+    st.setGroupAssignmentsById(assignmentsMapToRecord(nextGroupAssignments));
     st.setGroupPositionsById(nextPositions);
     st.setGroupsLoading(false);
   } catch (err) {

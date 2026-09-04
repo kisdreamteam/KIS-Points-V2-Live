@@ -82,7 +82,7 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
     getAssignmentsInGroup,
     targetGroupId,
     getGroupRenderLayout,
-    groupPositions,
+    groupPositionsById,
     getDefaultStaggerPosition,
     selectedStudentForSwap,
     studentsAboutToMove,
@@ -272,7 +272,7 @@ export default function SeatingEditorWorkspace({ classId, students }: SeatingEdi
                       group.group_columns,
                       assignmentsInGroup
                     );
-                    const position = groupPositions.get(group.id) || getDefaultStaggerPosition(index);
+                    const position = groupPositionsById[group.id] || getDefaultStaggerPosition(index);
                     const groupX = position.x;
                     const groupY = position.y;
 

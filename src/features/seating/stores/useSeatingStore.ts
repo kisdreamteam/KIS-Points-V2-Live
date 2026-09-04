@@ -38,7 +38,11 @@ interface SeatingStore {
   setLayoutNavHandlers: (handlers: SeatingLayoutNavHandlers | null) => void;
   setGroupsLoading: (v: boolean) => void;
   setGroups: (groups: SeatingGroupRecord[]) => void;
+  updateGroups: (updater: (prev: SeatingGroupRecord[]) => SeatingGroupRecord[]) => void;
   setGroupAssignmentsById: (next: Record<string, GroupAssignment[]>) => void;
+  updateGroupAssignmentsById: (
+    updater: (prev: Record<string, GroupAssignment[]>) => Record<string, GroupAssignment[]>
+  ) => void;
   setGroupPositionsById: (next: Record<string, { x: number; y: number }>) => void;
   mergeGroupPositions: (
     updater: (prev: Record<string, { x: number; y: number }>) => Record<string, { x: number; y: number }>
@@ -98,7 +102,10 @@ export const useSeatingStore = create<SeatingStore>((set, get) => ({
   setLayoutNavHandlers: (layoutNavHandlers) => set({ layoutNavHandlers }),
   setGroupsLoading: (isLoadingGroups) => set({ isLoadingGroups }),
   setGroups: (groups) => set({ groups }),
+  updateGroups: (updater) => set((s) => ({ groups: updater(s.groups) })),
   setGroupAssignmentsById: (groupAssignmentsById) => set({ groupAssignmentsById }),
+  updateGroupAssignmentsById: (updater) =>
+    set((s) => ({ groupAssignmentsById: updater(s.groupAssignmentsById) })),
   setGroupPositionsById: (groupPositionsById) => set({ groupPositionsById }),
   mergeGroupPositions: (updater) =>
     set((s) => ({ groupPositionsById: updater(s.groupPositionsById) })),
