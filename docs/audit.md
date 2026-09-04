@@ -371,15 +371,13 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ## Dead Code & Inefficient Code
 
-### 1. Unused drag-and-drop dependency
+### 1. Unused drag-and-drop dependency — **Resolved**
 
 **Where:** `package.json`, `package-lock.json`
 
-**Finding:** `@hello-pangea/dnd` is installed but no imports were found.
+**Finding:** `@hello-pangea/dnd` was installed but unused (no imports). Seating/tool dragging uses custom pointer handlers, not this library.
 
-**Why it matters:** Unused dependencies increase install size, audit surface, and potentially bundle size if accidentally imported later.
-
-**Suggestion:** Remove it unless drag-and-drop work is planned soon.
+**Resolution (Sep 2026):** Removed `@hello-pangea/dnd` from dependencies (`npm uninstall`).
 
 ### 2. Debug logs remain in seating chart logic — **Resolved**
 
@@ -443,8 +441,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 1. Move student-number assignment into a database-safe flow to avoid duplicate numbers.
 2. Confirm class deletion cascades or replace it with a database RPC.
-3. Remove unused `@hello-pangea/dnd` if drag-and-drop is not planned.
-4. Version-control remaining RLS gaps (`profiles`, `attendance_events`, seating tables).
+3. Version-control remaining RLS gaps (`profiles`, `attendance_events`, seating tables).
 
 ### Medium Priority
 

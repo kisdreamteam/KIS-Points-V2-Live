@@ -10,7 +10,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@hello-pangea/dnd": "^18.0.1",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.75.0",
     "canvas-confetti": "^1.9.4",
