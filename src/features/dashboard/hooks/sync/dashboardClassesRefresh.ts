@@ -1,7 +1,7 @@
 'use client';
 
 import { getSessionUserId } from '@/lib/api/auth.service';
-import { fetchAccessibleClassesForUser } from '@/features/classes/lib/api/classes';
+import { listAccessibleClassesForUser } from '@/features/classes/lib/api/classes';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 export type RefreshDashboardClassesOptions = {
@@ -29,7 +29,7 @@ export async function refreshDashboardClasses(options?: RefreshDashboardClassesO
       options?.onUnauthenticated?.();
       return;
     }
-    const rows = await fetchAccessibleClassesForUser(userId);
+    const rows = await listAccessibleClassesForUser(userId);
     st.setAllAccessibleClasses(rows);
   } catch (err) {
     console.error('Unexpected error fetching classes:', err);

@@ -420,11 +420,3 @@ export function subscribeToStudentPointsSync(
     },
   };
 }
-
-// Legacy aliases for backwards compatibility.
-export const fetchPointCategoriesByClassIds = listPointCategoriesByClassIds;
-export const fetchStudentIdsByClassIds = listStudentIdsByClassIds;
-export const fetchStudentIdsByClassId = listStudentIdsByClassId;
-export const awardPointsToStudents = createPointAwardsForStudents;
-export const awardCustomPointsToStudents = createCustomPointAwardsForStudents;
-export const fetchPointLogRowsForStudents = listPointLogRowsForStudents;

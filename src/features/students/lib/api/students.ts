@@ -236,13 +236,3 @@ export async function resetPointsByStudentIds(studentIds: string[]): Promise<voi
     .in('id', studentIds);
   if (error) throwApiError(error, 'resetPointsByStudentIds');
 }
-
-// Legacy aliases for backwards compatibility.
-export const fetchStudentsByClassId = listStudentsByClassId;
-export const fetchStudentsForRandomByClassId = listStudentsForRandomByClassId;
-export const markStudentAsPicked = (studentId: string) => updateStudentPickedState(studentId, true);
-export const countStudentsByClassId = getStudentCountByClassId;
-export const insertStudent = createStudent;
-export const insertStudentsBulk = createStudentsBulk;
-export const updateStudentById = updateStudent;
-export const fetchStudentIdsByClassIdForReset = listStudentIdsByClassId;

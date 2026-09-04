@@ -18,7 +18,7 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 - Dashboard route protection is client-side, so server-side middleware would add a stronger first gate.
 - Some point-history/report queries aggregate data in the browser, which is fine for small classes but may become slow as point history grows.
 - Student-grid and cross-tab point sync work can cause more re-renders than necessary.
-- A few legacy aliases, architecture boundary drifts, and large hooks make maintenance harder.
+- Architecture boundary drifts and large hooks make maintenance harder.
 - Student numbering and some batch operations can race if multiple teachers act at the same time.
 
 ---
@@ -223,15 +223,13 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 ## Naming & Architecture Conventions
 
-### 1. Legacy alias exports keep old names alive
+### 1. Legacy alias exports keep old names alive — **Resolved**
 
 **Where:** `src/features/classes/lib/api/classes.ts`, `src/features/students/lib/api/students.ts`, `src/features/dashboard/lib/api/points.ts`
 
-**Finding:** Several files export newer function names and older aliases, such as `fetchStudentsByClassId`, `insertStudent`, and `awardPointsToStudents`.
+**Finding:** Several files exported newer function names and older aliases, such as `fetchStudentsByClassId`, `insertStudent`, and `awardPointsToStudents`.
 
-**Why it matters:** Aliases reduce migration pain, but over time they make it unclear which name is preferred.
-
-**Suggestion:** Keep a short deprecation list, migrate imports to the canonical names, then remove aliases in one cleanup pass.
+**Resolution (Sep 2026):** Migrated all call sites to canonical names (`list*` / `get*` / `create*` / `update*`) and removed the alias export blocks.
 
 ### 2. `useSeatingLayoutManager` lives in global hooks but is seating-specific
 
@@ -287,11 +285,11 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 
 **Where:** `src/features/students/lib/api/students.ts`, `src/features/classes/lib/api/classes.ts`, `src/features/dashboard/lib/api/points.ts`
 
-**Finding:** Function names mix `list`, `fetch`, `insert`, `create`, and legacy aliases.
+**Finding:** Function names previously mixed `list`, `fetch`, `insert`, `create`, and legacy aliases. Alias exports are gone (see § Naming #1). A few `fetch*` names remain (e.g. `fetchClassById`).
 
 **Why it matters:** Mixed verbs make it harder for a new developer to guess the right function name.
 
-**Suggestion:** Prefer a consistent vocabulary: `list*` for collections, `get*` for one value, `create*`, `update*`, `delete*`, and avoid new `fetch*` aliases.
+**Suggestion:** Prefer a consistent vocabulary: `list*` for collections, `get*` for one value, `create*`, `update*`, `delete*`; rename remaining `fetch*` opportunistically.
 
 ### 8. Icon file names use mixed conventions
 
@@ -473,11 +471,10 @@ The biggest risks are not single catastrophic bugs, but several practical cleanu
 ### Low Priority
 
 1. Replace browser alerts with app-native modals/toasts.
-2. Retire legacy API aliases after imports are migrated.
-3. Clarify hook placement rules and clean up feature-specific hooks in `src/hooks`.
-4. Standardize icon naming.
-5. Align or document Webpack dev vs Turbopack build usage.
-6. Keep generated `.next/` output out of commits.
+2. Clarify hook placement rules and clean up feature-specific hooks in `src/hooks`.
+3. Standardize icon naming.
+4. Align or document Webpack dev vs Turbopack build usage.
+5. Keep generated `.next/` output out of commits.
 
 ---
 

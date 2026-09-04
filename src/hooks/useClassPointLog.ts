@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { fetchPointLogRowsForStudents } from '@/features/dashboard/lib/api/points';
+import { listPointLogRowsForStudents } from '@/features/dashboard/lib/api/points';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 export type PointLogRow = {
@@ -51,7 +51,7 @@ export function useClassPointLog(classId: string | undefined) {
         return;
       }
 
-      const mergedRows = await fetchPointLogRowsForStudents({
+      const mergedRows = await listPointLogRowsForStudents({
         studentIds,
         studentNameMap,
       });

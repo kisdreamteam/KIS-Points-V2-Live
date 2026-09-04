@@ -3,8 +3,8 @@
 import { useCallback, useState } from 'react';
 import type { CreateClassFormValues } from '@/features/classes/components/forms/CreateClassForm';
 import {
-  createClassForCurrentUser,
-  fetchStudentCountsByClassIds,
+  createClass,
+  getStudentCountsByClassIds,
   type ClassRecord,
 } from '@/features/classes/lib/api/classes';
 
@@ -24,7 +24,7 @@ export function useClassesWorkspaceActions({ onCreateSuccess }: UseClassesWorksp
         setStudentCounts({});
         return;
       }
-      const countsMap = await fetchStudentCountsByClassIds(classIds);
+      const countsMap = await getStudentCountsByClassIds(classIds);
       setStudentCounts(countsMap);
     } catch (err) {
       console.error('Error fetching student counts:', err);
@@ -36,7 +36,7 @@ export function useClassesWorkspaceActions({ onCreateSuccess }: UseClassesWorksp
       setCreateClassError(null);
       setIsCreatingClass(true);
       try {
-        await createClassForCurrentUser({
+        await createClass({
           className: values.className,
           grade: values.grade,
           schoolYear: values.schoolYear,

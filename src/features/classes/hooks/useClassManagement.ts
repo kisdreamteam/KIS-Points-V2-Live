@@ -6,20 +6,20 @@ import { getSessionUser } from '@/lib/api/auth.service';
 import {
   addClassCollaborator,
   fetchClassById,
-  fetchStudentsForClassEdit,
+  listStudentsForClassEdit,
   getCurrentSessionUserId,
   listClassCollaborators,
   lookupTeacherByEmail,
   removeClassCollaborator,
-  updateClassInfo,
+  updateClass,
 } from '@/features/classes/lib/api/classes';
 import {
   bulkUpdateStudents,
   deleteCustomPointEventsByStudentIds,
-  fetchStudentIdsByClassIdForReset,
+  listStudentIdsByClassId,
   getNextStartingStudentNumber,
-  insertStudent,
-  insertStudentsBulk,
+  createStudent,
+  createStudentsBulk,
   resetPointsByStudentIds,
 } from '@/features/students/lib/api/students';
 import type { Student } from '@/lib/types';
@@ -95,7 +95,7 @@ export function useClassManagement({
 
   const fetchStudents = useCallback(async () => {
     try {
-      const studentsData = await fetchStudentsForClassEdit(classId);
+      const studentsData = await listStudentsForClassEdit(classId);
       if (!studentsData) {
         setStudents([]);
         setOriginalStudents([]);
@@ -167,7 +167,7 @@ export function useClassManagement({
       };
       if (values.mode === 'single') {
         const parts = values.studentName.split(' ');
-        await insertStudent({
+        await createStudent({
           first_name: parts[0],
           last_name: parts.slice(1).join(' '),
           class_id: classId,
@@ -191,7 +191,7 @@ export function useClassManagement({
           }
           return { first_name, last_name, class_id: classId, avatar: getRandomAvatar() };
         });
-        await insertStudentsBulk(newStudents);
+        await createStudentsBulk(newStudents);
       }
       await fetchStudents();
       await refreshDashboardRosterIfActive(classId);
@@ -209,7 +209,7 @@ export function useClassManagement({
     if (!className.trim()) return alert('Please enter a class name.');
     setIsLoading(true);
     try {
-      await updateClassInfo({ classId, name: className.trim(), grade: grade.trim(), icon: selectedIcon });
+      await updateClass({ classId, name: className.trim(), grade: grade.trim(), icon: selectedIcon });
       onRefresh();
       onClose();
     } finally {
@@ -309,7 +309,7 @@ export function useClassManagement({
     if (isResettingPoints) return;
     setIsResettingPoints(true);
     try {
-      const studentIds = await fetchStudentIdsByClassIdForReset(classId);
+      const studentIds = await listStudentIdsByClassId(classId);
       if (studentIds.length === 0) return alert('No students found in this class.');
       if (deleteEvents) await deleteCustomPointEventsByStudentIds(studentIds);
       await resetPointsByStudentIds(studentIds);

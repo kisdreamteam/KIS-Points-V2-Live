@@ -5,9 +5,9 @@ import { refreshDashboardStudents } from '@/features/dashboard/hooks/sync/dashbo
 import type { ModalType } from '@/stores/useModalStore';
 import {
   getNextStartingStudentNumber,
-  insertStudent,
-  insertStudentsBulk,
-  updateStudentById,
+  createStudent,
+  createStudentsBulk,
+  updateStudent,
 } from '@/features/students/lib/api/students';
 import type { AddStudentsFormSubmitValues } from '@/features/students/components/forms/AddStudentsForm';
 import type { EditStudentModalSubmitValues } from '@/features/students/components/modals/EditStudentModal';
@@ -59,7 +59,7 @@ export function useDashboardStudentModalActions({
 
         if (values.mode === 'single') {
           const parts = values.studentName.split(' ');
-          await insertStudent({
+          await createStudent({
             first_name: parts[0],
             last_name: parts.slice(1).join(' '),
             class_id: currentClassId,
@@ -83,7 +83,7 @@ export function useDashboardStudentModalActions({
             }
             return { first_name, last_name, class_id: currentClassId, avatar: getRandomAvatar() };
           });
-          await insertStudentsBulk(newStudents);
+          await createStudentsBulk(newStudents);
         }
       } catch (err) {
         setAddStudentsError(err instanceof Error ? err.message : 'Failed to add students.');
@@ -96,7 +96,7 @@ export function useDashboardStudentModalActions({
 
   const handleSubmitEditStudent = useCallback(
     async ({ studentId, ...patch }: EditStudentModalSubmitValues) => {
-      await updateStudentById(studentId, patch);
+      await updateStudent(studentId, patch);
       await refreshDashboardStudents(true);
       closeModal();
     },

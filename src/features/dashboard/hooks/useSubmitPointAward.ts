@@ -7,7 +7,7 @@ import {
   type AwardTargetContext,
   type AwardMode,
 } from '@/features/dashboard/lib/awardPointsTargets';
-import { awardCustomPointsToStudents, awardPointsToStudents, getAuthenticatedUserId } from '@/features/dashboard/lib/api/points';
+import { createCustomPointAwardsForStudents, createPointAwardsForStudents, getAuthenticatedUserId } from '@/features/dashboard/lib/api/points';
 import {
   broadcastStudentPointsFromStore,
   syncStudentsByClassCacheFromStore,
@@ -135,7 +135,7 @@ export function useSubmitPointAward({
         syncStudentsByClassCacheFromStore();
 
         try {
-          await awardPointsToStudents({
+          await createPointAwardsForStudents({
             studentIds: eligibleStudentIds,
             categoryId: category.id,
             points,
@@ -193,7 +193,7 @@ export function useSubmitPointAward({
         syncStudentsByClassCacheFromStore();
 
         try {
-          await awardCustomPointsToStudents({
+          await createCustomPointAwardsForStudents({
             studentIds: eligibleStudentIds,
             teacherId,
             points: customPoints,

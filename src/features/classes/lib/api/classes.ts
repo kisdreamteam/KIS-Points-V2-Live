@@ -246,10 +246,3 @@ export async function listStudentsForClassEdit(classId: string): Promise<Student
   if (error) throwApiError(error, 'listStudentsForClassEdit');
   return (data || []) as Student[];
 }
-
-// Legacy aliases for backwards compatibility.
-export const fetchAccessibleClassesForUser = listAccessibleClassesForUser;
-export const fetchStudentCountsByClassIds = getStudentCountsByClassIds;
-export const createClassForCurrentUser = createClass;
-export const updateClassInfo = updateClass;
-export const fetchStudentsForClassEdit = listStudentsForClassEdit;

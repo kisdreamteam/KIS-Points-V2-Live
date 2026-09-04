@@ -6,7 +6,7 @@ export type DashboardSetStudents = Student[] | ((prev: Student[]) => Student[]);
 
 interface DashboardStore {
   activeClassId: string | null;
-  /** Full list from `fetchAccessibleClassesForUser` (unfiltered). */
+  /** Full list from `listAccessibleClassesForUser` (unfiltered). */
   allAccessibleClasses: ClassRecord[];
   /** Filtered by dashboard viewMode (active vs archived). */
   classes: ClassRecord[];

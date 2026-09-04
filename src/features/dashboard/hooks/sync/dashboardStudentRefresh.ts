@@ -5,7 +5,7 @@ import {
   broadcastStudentPointsUpdate,
   type StudentPointsBroadcastPayload,
 } from '@/features/dashboard/lib/api/points';
-import { fetchStudentsByClassId } from '@/features/students/lib/api/students';
+import { listStudentsByClassId } from '@/features/students/lib/api/students';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
 
 const studentsByClassCache = new Map<string, Student[]>();
@@ -48,7 +48,7 @@ export async function refreshDashboardStudents(force = false): Promise<void> {
 
   try {
     setLoadingStudents(true);
-    const next = await fetchStudentsByClassId(activeClassId);
+    const next = await listStudentsByClassId(activeClassId);
     studentsByClassCache.set(activeClassId, next);
     setStudents(next);
   } catch (err) {

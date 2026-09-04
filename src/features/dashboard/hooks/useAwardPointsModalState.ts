@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PointCategory, Student } from '@/lib/types';
-import { fetchPointCategoriesByClassIds } from '@/features/dashboard/lib/api/points';
+import { listPointCategoriesByClassIds } from '@/features/dashboard/lib/api/points';
 import { ensureDefaultGeneralCategories, resolveCategoryType } from '@/features/dashboard/lib/api/skills';
 import {
   getDefaultCategoryForType,
@@ -153,7 +153,7 @@ export function useAwardPointsModalState({
         return;
       }
 
-      const data = await fetchPointCategoriesByClassIds(classIdsToFetch);
+      const data = await listPointCategoriesByClassIds(classIdsToFetch);
       const normalizedData = sortPointCategoriesForDisplay(normalizeCategoryIcons(data || []));
       skillsByScopeCache.set(cacheKey, normalizedData);
       setCategories(normalizedData);

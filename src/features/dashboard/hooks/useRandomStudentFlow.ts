@@ -4,8 +4,8 @@ import { useCallback, useState } from 'react';
 import type { Student } from '@/lib/types';
 import type { PickerPool } from '@/features/dashboard/lib/randomPickerPool';
 import {
-  fetchStudentsForRandomByClassId,
-  markStudentAsPicked,
+  listStudentsForRandomByClassId,
+  updateStudentPickedState,
   resetPickedStudentsByClassId,
 } from '@/features/students/lib/api/students';
 
@@ -20,7 +20,7 @@ export function useRandomStudentFlow() {
       if (!silent) {
         setIsLoading(true);
       }
-      const studentsData = await fetchStudentsForRandomByClassId(classId);
+      const studentsData = await listStudentsForRandomByClassId(classId);
       setStudents(studentsData);
     } catch (err) {
       console.error('Unexpected error fetching students:', err);
@@ -33,7 +33,7 @@ export function useRandomStudentFlow() {
 
   const markSelectedStudentAsPicked = useCallback(async (studentId: string) => {
     try {
-      await markStudentAsPicked(studentId);
+      await updateStudentPickedState(studentId, true);
       setStudents((prev) => prev.map((s) => (s.id === studentId ? { ...s, has_been_picked: true } : s)));
     } catch (error) {
       console.error('Unexpected error marking student as picked:', error);

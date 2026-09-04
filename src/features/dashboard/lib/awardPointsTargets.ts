@@ -1,8 +1,8 @@
 import {
-  awardCustomPointsToStudents,
-  awardPointsToStudents,
-  fetchStudentIdsByClassId,
-  fetchStudentIdsByClassIds,
+  createCustomPointAwardsForStudents,
+  createPointAwardsForStudents,
+  listStudentIdsByClassId,
+  listStudentIdsByClassIds,
   getAuthenticatedUserId,
 } from '@/features/dashboard/lib/api/points';
 import { useDashboardStore } from '@/features/dashboard/stores/useDashboardStore';
@@ -37,14 +37,14 @@ export function getAwardMode(context: AwardTargetContext): AwardMode {
 export async function resolveAwardTargetStudentIds(context: AwardTargetContext): Promise<string[]> {
   const mode = getAwardMode(context);
   if (mode === 'multiClass') {
-    const ids = await fetchStudentIdsByClassIds(context.selectedClassIds ?? []);
+    const ids = await listStudentIdsByClassIds(context.selectedClassIds ?? []);
     return filterEligibleStudentIds(ids);
   }
   if (mode === 'multiStudent') {
     return context.selectedStudentIds ?? [];
   }
   if (mode === 'wholeClass') {
-    const ids = await fetchStudentIdsByClassId(context.classId);
+    const ids = await listStudentIdsByClassId(context.classId);
     return filterEligibleStudentIds(ids);
   }
   return context.studentId ? [context.studentId] : [];
@@ -60,7 +60,7 @@ export async function executeCategoryAward(params: {
   if (studentIds.length === 0) {
     return [];
   }
-  await awardPointsToStudents({
+  await createPointAwardsForStudents({
     studentIds,
     categoryId: params.categoryId,
     points: params.points,
@@ -84,7 +84,7 @@ export async function executeCustomAward(params: {
     return { teacherId, studentIds: [] };
   }
 
-  await awardCustomPointsToStudents({
+  await createCustomPointAwardsForStudents({
     studentIds,
     teacherId,
     points: params.points,
